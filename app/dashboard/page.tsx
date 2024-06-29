@@ -8,6 +8,18 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { ResponsiveLine } from "@nivo/line"
 import { ResponsiveBar } from "@nivo/bar"
 import Image from "next/image"
+import { Settings } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { Package2 } from 'lucide-react';
+import { Map } from 'lucide-react';
+import { Home } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
+import { CircleAlert } from 'lucide-react';
+import { Check } from 'lucide-react';
+import { Bolt } from 'lucide-react';
+import { Bell } from 'lucide-react';
+
+
 
 export default function Component() {
   return (
@@ -16,12 +28,12 @@ export default function Component() {
         <div className="flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-[60px] items-center border-b px-6">
             <Link href="#" className="flex items-center gap-2 font-semibold" prefetch={false}>
-              <Package2Icon className="h-6 w-6" />
-              <span className="">Utility Dashboard</span>
+              <Package2 className="h-6 w-6" />
+              <span className="">Dashboard</span>
             </Link>
             <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
-              <BellIcon className="h-4 w-4" />
-              <span className="sr-only">Toggle notifications</span>
+              <Bell className="h-4 w-4" />
+              <span className="sr-only"></span>
             </Button>
           </div>
           <div className="flex-1 overflow-auto py-2">
@@ -31,40 +43,40 @@ export default function Component() {
                 className="flex items-center gap-3 rounded-lg  px-3 py-2 text-primary  transition-all hover:text-primary"
                 prefetch={false}
               >
-                <HomeIcon className="h-4 w-4" />
-                Dashboard
+                <Home className="h-4 w-4" />
+                Inicio
               </Link>
               <Link
                 href="#"
                 className="flex items-center gap-3 rounded-lg px-3 py-2  transition-all hover:text-primary"
                 prefetch={false}
               >
-                <BoltIcon className="h-4 w-4" />
-                Energy Usage
+                <Bolt className="h-4 w-4" />
+                Control de consumo
               </Link>
               <Link
                 href="#"
                 className="flex items-center gap-3 rounded-lg px-3 py-2  transition-all hover:text-primary"
                 prefetch={false}
               >
-                <DollarSignIcon className="h-4 w-4" />
-                Billing
+                <DollarSign className="h-4 w-4" />
+                Pagos
               </Link>
               <Link
                 href="#"
                 className="flex items-center gap-3 rounded-lg px-3 py-2  transition-all hover:text-primary"
                 prefetch={false}
               >
-                <MapIcon className="h-4 w-4" />
-                Outages
+                <Map className="h-4 w-4" />
+                Sectores sin energia
               </Link>
               <Link
                 href="#"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary"
                 prefetch={false}
               >
-                <SettingsIcon className="h-4 w-4" />
-                Settings
+                <Settings className="h-4 w-4" />
+                Configuración
               </Link>
             </nav>
           </div>
@@ -73,13 +85,13 @@ export default function Component() {
       <div className="flex flex-col">
         <header className="flex h-14 lg:h-[60px] items-center gap-4 border-b  px-6">
           <Link href="#" className="lg:hidden" prefetch={false}>
-            <Package2Icon className="h-6 w-6" />
-            <span className="sr-only">Home</span>
+            <Package2 className="h-6 w-6" />
+            <span className="sr-only">Inicio</span>
           </Link>
           <div className="w-full flex-1">
             <form>
               <div className="relative">
-                <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4" />
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4" />
                 <Input
                   type="search"
                   placeholder="Search"
@@ -96,12 +108,12 @@ export default function Component() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>Mi cuenta</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
+              <DropdownMenuItem>Configuración</DropdownMenuItem>
+              <DropdownMenuItem>Soporte</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Logout</DropdownMenuItem>
+              <DropdownMenuItem>Cerrar Sesion</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
@@ -109,7 +121,7 @@ export default function Component() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <Card>
               <CardHeader>
-                <CardDescription>Monthly Energy Usage</CardDescription>
+                <CardDescription>Energia usada en el mes</CardDescription>
                 <CardTitle>2,345 kWh</CardTitle>
               </CardHeader>
               <CardContent>
@@ -118,19 +130,19 @@ export default function Component() {
             </Card>
             <Card>
               <CardHeader>
-                <CardDescription>Auto Top-Up</CardDescription>
-                <CardTitle>Enabled</CardTitle>
+                <CardDescription>Reposicion automatica</CardDescription>
+                <CardTitle>Activada</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
-                  <CheckIcon className="h-5 w-5 text-primary" />
+                  <Check className="h-5 w-5 text-primary" />
                   <p>Your account is set to automatically top-up when your balance is low.</p>
                 </div>
               </CardContent>
             </Card>
             <Card>
               <CardHeader>
-                <CardDescription>Total Energy Consumption</CardDescription>
+                <CardDescription>Total de energia consumida</CardDescription>
                 <CardTitle>12,345 kWh</CardTitle>
               </CardHeader>
               <CardContent>
@@ -139,12 +151,12 @@ export default function Component() {
             </Card>
             <Card>
               <CardHeader>
-                <CardDescription>Last 3 Months Usage</CardDescription>
+                <CardDescription>Total de energia usada en los 3 meses</CardDescription>
                 <CardTitle>
                   <div className="flex items-center gap-2">
                     <div>3,456 kWh</div>
                     <div className=" text-sm">
-                      <span className="text-primary">+12%</span> from last month
+                      <span className="text-primary">+12%</span> Dentro del ultimo mes
                     </div>
                   </div>
                 </CardTitle>
@@ -157,14 +169,14 @@ export default function Component() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <Card>
               <CardHeader>
-                <CardDescription>Last Payments</CardDescription>
+                <CardDescription>Ultimos pagos</CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Amount</TableHead>
+                      <TableHead>Fecha</TableHead>
+                      <TableHead>Monto</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -186,7 +198,7 @@ export default function Component() {
             </Card>
             <Card>
               <CardHeader>
-                <CardDescription>Hourly Usage</CardDescription>
+                <CardDescription>Consumo por horas</CardDescription>
               </CardHeader>
               <CardContent>
                 <LineChart className="aspect-[4/3]" />
@@ -194,22 +206,22 @@ export default function Component() {
             </Card>
             <Card>
               <CardHeader>
-                <CardDescription>Power Outages</CardDescription>
+                <CardDescription>Sectores sin energia</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center gap-2">
-                    <CircleAlertIcon className="h-5 w-5 text-red-500" />
+                    <CircleAlert className="h-5 w-5 text-red-500" />
                     <div>
                       <p className="font-medium">Sector A</p>
-                      <p className="text-sm ">Estimated restoration: 2 hours</p>
+                      <p className="text-sm ">Tiempo estimado de Reposición: 2 hours</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CircleAlertIcon className="h-5 w-5 text-red-500" />
+                    <CircleAlert className="h-5 w-5 text-red-500" />
                     <div>
                       <p className="font-medium">Sector B</p>
-                      <p className="text-sm ">Estimated restoration: 1 hour</p>
+                      <p className="text-sm ">Tiempo estimado de Reposición: 1 hour</p>
                     </div>
                   </div>
                 </div>
@@ -222,9 +234,9 @@ export default function Component() {
   )
 }
 
-function BarChart(props) {
+function BarChart(props: { data: object[];}) {
   return (
-    <div {...props}>
+    <div {...props} >
       <ResponsiveBar
         data={[
           { name: "Jan", count: 111 },
@@ -275,134 +287,7 @@ function BarChart(props) {
   )
 }
 
-
-function BellIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-    </svg>
-  )
-}
-
-
-function BoltIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-      <circle cx="12" cy="12" r="4" />
-    </svg>
-  )
-}
-
-
-function CheckIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M20 6 9 17l-5-5" />
-    </svg>
-  )
-}
-
-
-function CircleAlertIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <line x1="12" x2="12" y1="8" y2="12" />
-      <line x1="12" x2="12.01" y1="16" y2="16" />
-    </svg>
-  )
-}
-
-
-function DollarSignIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <line x1="12" x2="12" y1="2" y2="22" />
-      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-    </svg>
-  )
-}
-
-
-function HomeIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-      <polyline points="9 22 9 12 15 12 15 22" />
-    </svg>
-  )
-}
-
-
-function LineChart(props) {
+function LineChart (props: { data: object[]; }) {
   return (
     <div {...props}>
       <ResponsiveLine
@@ -472,91 +357,5 @@ function LineChart(props) {
         role="application"
       />
     </div>
-  )
-}
-
-
-function MapIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" />
-      <path d="M15 5.764v15" />
-      <path d="M9 3.236v15" />
-    </svg>
-  )
-}
-
-
-function Package2Icon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z" />
-      <path d="m3 9 2.45-4.9A2 2 0 0 1 7.24 3h9.52a2 2 0 0 1 1.8 1.1L21 9" />
-      <path d="M12 3v6" />
-    </svg>
-  )
-}
-
-
-function SearchIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.3-4.3" />
-    </svg>
-  )
-}
-
-
-function SettingsIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
   )
 }

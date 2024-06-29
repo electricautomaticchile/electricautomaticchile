@@ -42,19 +42,19 @@ export default function Component() {
                   <Link href="#" className="group grid h-auto w-full justify-start gap-1" prefetch={false}>
                     <div className="text-sm font-medium leading-none group-hover:underline">Desarrollo web</div>
                     <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                      Creamos soluciones web a medida.
+                      Control de Consumo
                     </div>
                   </Link>
                   <Link href="#" className="group grid h-auto w-full justify-start gap-1" prefetch={false}>
                     <div className="text-sm font-medium leading-none group-hover:underline">Diseño gráfico</div>
                     <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                      Diseñamos tu imagen de marca.
+                      Monitoreo de Consumo
                     </div>
                   </Link>
                   <Link href="#" className="group grid h-auto w-full justify-start gap-1" prefetch={false}>
                     <div className="text-sm font-medium leading-none group-hover:underline">Estrategia digital</div>
                     <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                      Impulsamos tu presencia online.
+                      Programación de Dispositivos
                     </div>
                   </Link>
                 </div>
@@ -105,9 +105,9 @@ export default function Component() {
                     className="group grid h-auto w-full items-center justify-start gap-1 rounded-md bg-background p-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
                     prefetch={false}
                   >
-                    <div className="text-sm font-medium leading-none group-hover:underline">Desarrollo web</div>
+                    <div className="text-sm font-medium leading-none group-hover:underline">Control de Consumo</div>
                     <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                      Creamos soluciones web a medida.
+                      Optimiza y reduce tu consumo energético con nuestras soluciones inteligentes.
                     </div>
                   </Link>
                 </NavigationMenuLink>
@@ -117,9 +117,9 @@ export default function Component() {
                     className="group grid h-auto w-full items-center justify-start gap-1 rounded-md bg-background p-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
                     prefetch={false}
                   >
-                    <div className="text-sm font-medium leading-none group-hover:underline">Diseño gráfico</div>
+                    <div className="text-sm font-medium leading-none group-hover:underline">Monitoreo de Consumo</div>
                     <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                      Diseñamos tu imagen de marca.
+                      Supervisa y optimiza el consumo energético de tus dispositivos.
                     </div>
                   </Link>
                 </NavigationMenuLink>

@@ -1,7 +1,10 @@
 "use client"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-
+import { Calendar } from 'lucide-react';
+import { Gauge } from 'lucide-react';
+import { Lightbulb } from 'lucide-react';
+import { Thermometer } from 'lucide-react';
 
 export default function Component() {
   return (
@@ -20,21 +23,21 @@ export default function Component() {
           <div className="flex flex-col justify-center space-y-4">
             <ul className="grid gap-6">
               <li className="flex gap-4">
-                <LightbulbIcon className="w-6 h-6" />
+                <Lightbulb color="#e66100" className="w-6 h-6" />
                 <div>
                   <h3 className="text-xl font-bold">Control de Consumo</h3>
                   <p className="text-muted-foreground">Optimiza y reduce tu consumo energético con nuestras soluciones inteligentes.</p>
                 </div>
               </li>
               <li className="flex gap-4">
-                <ThermometerIcon className="w-6 h-6" />
+                <Thermometer color="#e66100" className="w-6 h-6" />
                 <div>
                   <h3 className="text-xl font-bold">Programación de Tareas</h3>
                   <p className="text-muted-foreground">Programa y automatiza tus procesos eléctricos para mayor eficiencia.</p>
                 </div>
               </li>
               <li className="flex gap-4">
-                <GaugeIcon className="w-6 h-6" />
+                <Gauge color="#e66100" className="w-6 h-6" />
                 <div>
                   <h3 className="text-xl font-bold">Monitoreo de Consumo</h3>
                   <p className="text-muted-foreground">
@@ -43,7 +46,7 @@ export default function Component() {
                 </div>
               </li>
               <li className="flex gap-4">
-                <CalendarIcon className="w-6 h-6" />
+                <Calendar color="#e66100" className="w-6 h-6" />
                 <div>
                   <h3 className="text-xl font-bold">Programación de Dispositivos</h3>
                   <p className="text-muted-foreground">Programa y automatiza el funcionamiento de tus dispositivos.</p>
@@ -67,87 +70,3 @@ export default function Component() {
   )
 }
 
-function CalendarIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M8 2v4" />
-      <path d="M16 2v4" />
-      <rect width="18" height="18" x="3" y="4" rx="2" />
-      <path d="M3 10h18" />
-    </svg>
-  )
-}
-
-
-function GaugeIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m12 14 4-4" />
-      <path d="M3.34 19a10 10 0 1 1 17.32 0" />
-    </svg>
-  )
-}
-
-
-function LightbulbIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" />
-      <path d="M9 18h6" />
-      <path d="M10 22h4" />
-    </svg>
-  )
-}
-
-
-function ThermometerIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z" />
-    </svg>
-  )
-}
