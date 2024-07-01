@@ -274,6 +274,7 @@ function BarChart(props: ChartProps) {
               borderRadius: "9999px",
             },
             container: {
+              color:"black",
               fontSize: "12px",
               textTransform: "capitalize",
               borderRadius: "6px",
@@ -349,6 +350,7 @@ function LineChart(props: ChartProps) {
               borderRadius: "9999px",
             },
             container: {
+              color:"black",
               fontSize: "12px",
               textTransform: "capitalize",
               borderRadius: "6px",
