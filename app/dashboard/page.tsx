@@ -125,7 +125,7 @@ export default function Component() {
                 <CardTitle>2,345 kWh</CardTitle>
               </CardHeader>
               <CardContent>
-                <LineChart className="aspect-[4/3]" />
+              <LineChart data={[]} />
               </CardContent>
             </Card>
             <Card>
@@ -146,7 +146,7 @@ export default function Component() {
                 <CardTitle>12,345 kWh</CardTitle>
               </CardHeader>
               <CardContent>
-                <BarChart className="aspect-[4/3]" />
+              <BarChart data={[]} /> 
               </CardContent>
             </Card>
             <Card>
@@ -162,7 +162,7 @@ export default function Component() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <LineChart className="aspect-[4/3]" />
+              <LineChart data={[]}  />
               </CardContent>
             </Card>
           </div>
@@ -201,7 +201,7 @@ export default function Component() {
                 <CardDescription>Consumo por horas</CardDescription>
               </CardHeader>
               <CardContent>
-                <LineChart className="aspect-[4/3]" />
+              <LineChart data={[]}  />
               </CardContent>
             </Card>
             <Card>
@@ -234,9 +234,15 @@ export default function Component() {
   )
 }
 
-function BarChart(props: { data: object[];}) {
+
+
+interface ChartProps {
+  data: any[];
+}
+
+function BarChart(props: ChartProps) {
   return (
-    <div {...props} >
+    <div className="aspect-[4/3]" {...props}>
       <ResponsiveBar
         data={[
           { name: "Jan", count: 111 },
@@ -246,6 +252,7 @@ function BarChart(props: { data: object[];}) {
           { name: "May", count: 119 },
           { name: "Jun", count: 72 },
         ]}
+        
         keys={["count"]}
         indexBy="name"
         margin={{ top: 0, right: 0, bottom: 40, left: 40 }}
@@ -286,10 +293,9 @@ function BarChart(props: { data: object[];}) {
     </div>
   )
 }
-
-function LineChart (props: { data: object[]; }) {
+function LineChart(props: ChartProps) {
   return (
-    <div {...props}>
+    <div className="aspect-[4/3]"  {...props}>
       <ResponsiveLine
         data={[
           {
