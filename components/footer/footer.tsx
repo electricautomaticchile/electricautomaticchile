@@ -13,7 +13,7 @@ import { Phone } from 'lucide-react';
 export default function Component() {
   return (
     <footer className="p-6 md:py-12 w-full h-full">
-      <div className="container max-w-7xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+      <div className="container max-w-10xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 px-25 gap-8">
         <div className="flex flex-col gap-4">
           <Link href="#" className="flex items-center gap-2" prefetch={false}>
           <Zap color="#e66100" className="h-6 w-6" />
@@ -23,7 +23,7 @@ export default function Component() {
         </div>
         <div className="grid gap-2">
           <h3 className="text-lg font-semibold">Páginas</h3>
-          <Link href="#" className="hover:underline" prefetch={false}>
+          <Link href="/" className="hover:underline" prefetch={false}>
             Inicio
           </Link>
           <Link href="#" className="hover:underline" prefetch={false}>
@@ -40,30 +40,22 @@ export default function Component() {
           <h3 className="text-lg font-semibold">Contacto</h3>
           <div className="flex items-center gap-2">
             <Phone color="#e66100" className="h-5 w-5 text-muted-foreground" />
-            <span>+56 (9) 6356-7384</span>
+            <a href="tel:+56963567384">+56 (9) 6356-7384</a>
           </div>
           <div className="flex items-center gap-2">
             <Mail color="#e66100" className="h-5 w-5 text-muted-foreground" />
-            <span>Electricautomaticchile@gmail.com</span>
+            <a href="mailito:Electricautomaticchile@gmail.com">Electricautomaticchile@gmail.com</a>
           </div>
           <div className="flex items-center gap-2">
             <Locate color="#e66100" className="h-5 w-5 text-muted-foreground" />
-            <span></span>
+            <a href="https://maps.app.goo.gl/NQGvzcTTDYKD8o319">Region De Valparaiso,Villa Alemana, 1198 C. Alcalde Rodolfo Galleguillos</a>
           </div>
         </div>
-        <div className="grid gap-2">
+        <div className="flex flex-col gap-4">
           <h3 className="text-lg font-semibold">Redes Sociales</h3>
-          <div className="flex items-center gap-4">
-            <Link href="#" className="hover:text-primary" prefetch={false}>
-              <Facebook className="h-6 w-6" />
-            </Link>
-            <Link href="#" className="hover:text-primary" prefetch={false}>
-              <Instagram className="h-6 w-6" />
-            </Link>
-            <Link href="#" className="hover:text-primary" prefetch={false}>
+            <Link href="https://www.linkedin.com/company/electricautomatichile/about/?viewAsMember=true" className="hover:text-primary" prefetch={false}>
               <Linkedin className="h-6 w-6" />
             </Link>
-          </div>
         </div>
       </div>
     </footer>
