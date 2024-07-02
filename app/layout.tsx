@@ -27,9 +27,9 @@ export default function RootLayout({
       <body className={inter.className}>
       <ThemeProvider
             attribute="class"
-            defaultTheme="system"
+            defaultTheme="oscuro"
             enableSystem
-            themes={['blanco','oscuro']}
+            themes={['oscuro','blanco']}
             disableTransitionOnChange
           >
         <Navbar/>
