@@ -5,6 +5,7 @@ import { Calendar } from 'lucide-react';
 import { Gauge } from 'lucide-react';
 import { Lightbulb } from 'lucide-react';
 import { Thermometer } from 'lucide-react';
+import  Electric  from "@/public/Designer.jpeg";
 
 export default function Component() {
   return (
@@ -55,7 +56,7 @@ export default function Component() {
             </ul>
           </div>
           <Image
-            src="/placeholder.svg"
+            src={Electric}
             width="550"
             height="310"
             alt="Automatización Eléctrica"
