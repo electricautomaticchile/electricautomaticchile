@@ -32,7 +32,7 @@ export default function Component() {
           <Link href="#" className="hover:underline" prefetch={false}>
             Productos
           </Link>
-          <Link href="#" className="hover:underline" prefetch={false}>
+          <Link href="/formulario" className="hover:underline" prefetch={false}>
             Contacto
           </Link>
         </div>
