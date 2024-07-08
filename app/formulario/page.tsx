@@ -23,6 +23,10 @@ export default function Component() {
           <Label htmlFor="message">Mensaje</Label>
           <Textarea id="message" placeholder="Ingresa tu mensaje" className="min-h-[120px]" />
         </div>
+        <div className="grid gap-2">
+          <Label htmlFor="fileInput">Adjunta Archivo</Label>
+          <Input  id="fileInput" name="file"  type="file" />
+        </div>
         <Button type="submit" className="w-full">
           Enviar
         </Button>
