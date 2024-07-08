@@ -30,7 +30,6 @@ export default function RootLayout({
       <ThemeProvider
             attribute="class"
             defaultTheme="blanco"
-            enableSystem
             themes={["blanco","oscuro"]}
             disableTransitionOnChange
           >
