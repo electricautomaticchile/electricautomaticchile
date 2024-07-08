@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/navbar/navbar"
 import Footer from "@/components/footer/footer"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Providers } from "./Providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,17 +26,19 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={inter.className}>
+      <Providers>
       <ThemeProvider
             attribute="class"
-            defaultTheme="oscuro"
+            defaultTheme="blanco"
             enableSystem
-            themes={['oscuro','blanco']}
+            themes={["blanco","oscuro"]}
             disableTransitionOnChange
           >
         <Navbar/>
         {children}
         <Footer/>
         </ThemeProvider>
+        </Providers>
         </body>
     </html>
   );
