@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import SignIn  from "@/components/sign-in";
+import {SignIn}  from "@/components/sign-in";
 
 
 function Component() {

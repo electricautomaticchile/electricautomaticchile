@@ -1,7 +1,7 @@
 import { Button } from "./ui/button"
 import { signIn } from "@/auth"
  
-function SignIn() {
+export function SignIn() {
   return (
     <form
       action={async () => {
@@ -14,4 +14,3 @@ function SignIn() {
   )
 } 
 
-export default SignIn
