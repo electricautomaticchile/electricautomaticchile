@@ -7,7 +7,7 @@ import { Zap } from 'lucide-react';
 import { ChevronRight } from 'lucide-react';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible"
 import { NavigationMenu, NavigationMenuList, NavigationMenuLink, NavigationMenuItem, NavigationMenuTrigger, NavigationMenuContent } from "@/components/ui/navigation-menu"
-import { ThemeToggle } from "@/components/theme-toggle"
+import  {ThemeToggle}  from "@/components/theme-toggle"
 
 export default function Component() {
   return (

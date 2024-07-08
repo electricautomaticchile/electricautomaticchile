@@ -9,7 +9,9 @@ import Payments from "./Payments";
 import ConsumedFourHour from "./consumedforhour";
 import SectorEnergy from "./sectorenergy";
 
+
 export default function Component() {
+ 
   return (
     <div className="grid min-h-screen w-full overflow-hidden lg:grid-cols-[280px_1fr]">
       <Navbar />
