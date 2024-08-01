@@ -114,17 +114,6 @@ Librerias
 [Auth.js](https://authjs.dev/getting-started/installation?framework=next.js)
 
 
-## Preguntas y respuestas
-
-#### Question 1
-
-Answer 1
-
-#### Question 2
-
-Answer 2
-
-
 ## Caracteristicas
 
 - Dark mode toggle
