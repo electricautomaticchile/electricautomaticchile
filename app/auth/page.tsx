@@ -9,7 +9,7 @@ import {SignIn}  from "@/components/sign-in";
 function Component() {
 
   return (
-    <div className=" w-3/4 max-h-full max-w-md mx-auto space-y-6">
+    <div className="min-h-screen w-full max-w-md mx-auto space-y-6 py-12">
       <div className="text-center">
         <h2 className="text-2xl font-bold">Autenticación</h2>
         <p className="text-muted-foreground">Inicia sesión para continuar.</p>
@@ -42,7 +42,7 @@ function Component() {
         </Link>
       </div>
     </div>
-    
+
   );
 }
 export default Component
