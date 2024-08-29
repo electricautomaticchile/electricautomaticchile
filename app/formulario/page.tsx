@@ -3,6 +3,8 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 
+
+
 export default function Component() {
   return (
     <div className="w-full max-w-md mx-auto space-y-6 py-12">
@@ -27,7 +29,7 @@ export default function Component() {
           <Label htmlFor="fileInput">Adjunta Archivo</Label>
           <Input  id="fileInput" name="file"  type="file" />
         </div>
-        <Button type="submit" className="w-full">
+        <Button  type="submit" className="w-full">
           Enviar
         </Button>
       </form>
