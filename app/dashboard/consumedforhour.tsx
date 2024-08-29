@@ -13,10 +13,10 @@ function LineChart(props: ChartProps) {
             {
               id: "Desktop",
               data: [
-                { x: "Jan", y: 43 },
+                { x: "Ene", y: 43 },
                 { x: "Feb", y: 137 },
                 { x: "Mar", y: 61 },
-                { x: "Apr", y: 145 },
+                { x: "Abri", y: 145 },
                 { x: "May", y: 26 },
                 { x: "Jun", y: 154 },
               ],
@@ -24,10 +24,10 @@ function LineChart(props: ChartProps) {
             {
               id: "Mobile",
               data: [
-                { x: "Jan", y: 60 },
+                { x: "Ener", y: 60 },
                 { x: "Feb", y: 48 },
                 { x: "Mar", y: 177 },
-                { x: "Apr", y: 78 },
+                { x: "Abri", y: 78 },
                 { x: "May", y: 96 },
                 { x: "Jun", y: 204 },
               ],
