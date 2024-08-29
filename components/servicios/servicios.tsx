@@ -33,8 +33,8 @@ export default function Component() {
               <li className="flex gap-4">
                 <Thermometer color="#e66100" className="w-6 h-6" />
                 <div>
-                  <h3 className="text-xl font-bold">Programación de Tareas</h3>
-                  <p className="text-muted-foreground">Programa y automatiza tus procesos eléctricos para mayor eficiencia.</p>
+                  <h3 className="text-xl font-bold">Programación de reposicion de suministro electrico</h3>
+                 <p className="text-muted-foreground">Programa y automatiza la reposicion de tu suministro eléctrico para mayor eficiencia.</p>
                 </div>
               </li>
               <li className="flex gap-4">
@@ -42,15 +42,15 @@ export default function Component() {
                 <div>
                   <h3 className="text-xl font-bold">Monitoreo de Consumo</h3>
                   <p className="text-muted-foreground">
-                    Supervisa y optimiza el consumo energético de tus dispositivos.
+                    Genera cambios de comportamiento a partir de la información recopilada.
                   </p>
                 </div>
               </li>
               <li className="flex gap-4">
                 <Calendar color="#e66100" className="w-6 h-6" />
                 <div>
-                  <h3 className="text-xl font-bold">Programación de Dispositivos</h3>
-                  <p className="text-muted-foreground">Programa y automatiza el funcionamiento de tus dispositivos.</p>
+                  <h3 className="text-xl font-bold">Generar alertas</h3>
+                  <p className="text-muted-foreground">Toma acciones oportunas ante cualquier eventualidad.</p>
                 </div>
               </li>
             </ul>
@@ -70,4 +70,3 @@ export default function Component() {
     </section>
   )
 }
-
