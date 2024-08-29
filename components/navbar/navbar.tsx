@@ -8,11 +8,13 @@ import { ChevronRight } from 'lucide-react';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible"
 import { NavigationMenu, NavigationMenuList, NavigationMenuLink, NavigationMenuItem, NavigationMenuTrigger, NavigationMenuContent } from "@/components/ui/navigation-menu"
 import  {ThemeToggle}  from "@/components/theme-toggle"
+import Image from "next/image";
+import icon from "@/public/android-chrome-512x512.png"
+
 
 export default function Component() {
   return (
     //Diseño dispositos moviles//
-
     <header className="flex h-20 w-full shrink-0 items-center px-4 md:px-20">
       <Sheet>
         <SheetTrigger asChild>
@@ -23,7 +25,11 @@ export default function Component() {
         </SheetTrigger>
         <SheetContent side="left">
           <Link href="/" className="flex items-center gap-2">
-            <Zap color="#e66100" className="h-6 w-6" />
+          <Image
+          src={icon}
+          className="h-20 w-20"
+          alt="Lol"
+          />
             <span className="text-lg font-semibold">Electricautomaticchile</span>
           </Link>
           <div className="grid gap-4 py-6">
@@ -39,7 +45,7 @@ export default function Component() {
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <div className="-mx-6 grid gap-6 bg-muted p-6">
-                  <Link href="#" className="group grid h-auto w-full justify-start gap-1" prefetch={false}>
+                  <Link href="/navservices/reposicion" className="group grid h-auto w-full justify-start gap-1" prefetch={false}>
                     <div className="text-sm font-medium leading-none group-hover:underline">Desarrollo web</div>
                     <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                       Control de Consumo
@@ -67,11 +73,13 @@ export default function Component() {
         </SheetContent>
       </Sheet>
 
-      <div className="w-[250px]">
+      <div className="w-[400px]">
         <Link href="/" className="items-center gap-2 mr-6 hidden lg:flex" prefetch={false}>
-          <Zap 
-          className="h-6 w-6"
-          color="#e66100" />
+          <Image
+          src={icon}
+          className="h-50 w-40"
+          alt="Lol"
+          />
           <span className="text-lg font-semibold">Electricautomaticchile</span>
         </Link>
       </div>
@@ -88,7 +96,7 @@ export default function Component() {
           </NavigationMenuLink>
           <NavigationMenuLink asChild>
             <Link
-              href="#"
+              href="/"
               className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
               prefetch={false}
             >
@@ -101,7 +109,7 @@ export default function Component() {
               <div className="grid w-[400px] p-2">
                 <NavigationMenuLink asChild>
                   <Link
-                    href="#"
+                    href="/navservices/consumo"
                     className="group grid h-auto w-full items-center justify-start gap-1 rounded-md bg-background p-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
                     prefetch={false}
                   >
@@ -113,25 +121,25 @@ export default function Component() {
                 </NavigationMenuLink>
                 <NavigationMenuLink asChild>
                   <Link
-                    href="#"
+                    href="/navservices/reposicion"
                     className="group grid h-auto w-full items-center justify-start gap-1 rounded-md bg-background p-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
                     prefetch={false}
                   >
-                    <div className="text-sm font-medium leading-none group-hover:underline">Monitoreo de Consumo</div>
+                    <div className="text-sm font-medium leading-none group-hover:underline">Reposición automatizada</div>
                     <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                      Supervisa y optimiza el consumo energético de tus dispositivos.
+                      Reposiciona el servicio del suministro electrico a distancia mediante nuestra plataforma web y movil.
                     </div>
                   </Link>
                 </NavigationMenuLink>
                 <NavigationMenuLink asChild>
                   <Link
-                    href="#"
+                    href="/navservices/hardware"
                     className="group grid h-auto w-full items-center justify-start gap-1 rounded-md bg-background p-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
                     prefetch={false}
                   >
-                    <div className="text-sm font-medium leading-none group-hover:underline">Estrategia digital</div>
+                    <div className="text-sm font-medium leading-none group-hover:underline">Integración en tableros y equipos</div>
                     <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                      Impulsamos tu presencia online.
+                      Implementar monitorio con un minimo impacto y bajo costo de mantenimiento.
                     </div>
                   </Link>
                 </NavigationMenuLink>
@@ -149,16 +157,19 @@ export default function Component() {
           </NavigationMenuLink>
         </NavigationMenuList>
       </NavigationMenu>
-     
+
       <div className="ml-auto flex gap-2">
-        <Link href="/auth">
+        <Link href="/auth/login">
         <Button>Iniciar sesión</Button>
+        </Link>
+        <Link href="/auth/resgister">
+        <Button>Registrarse</Button>
         </Link>
         <ThemeToggle/>
       </div>{" "}
+
+
     </header>
-  
+
   )
 }
-
-
