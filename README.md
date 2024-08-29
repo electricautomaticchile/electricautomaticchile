@@ -7,11 +7,14 @@
 Desarrollar y ofrecer soluciones tecnológicas innovadoras que optimicen la gestión del suministro eléctrico, contribuyendo a la eficiencia energética, la reducción de costos y la sostenibilidad ambiental, para el beneficio de nuestros clientes y la comunidad.
 
 
-## Instalacion y uso fisico
+## Instalacion y uso fisico/software
 
 - Se instala un dispositivo dentro del medidor de luz.
 - Se utiliza una plataforma web para administrar y programar cortes de servicio.
 - Se toma automáticamente la lectura del consumo energético y se envía un reporte a la plataforma web y cliente.
+- Se puede hacer una reposición automatizada o programada a distancia del suministro electrico.
+- Se puede generar reportes de consumo del suministro electrico de los 3 meses de consumo.
+- Control y gestion del consumo electrico.
 
 ## Colores Bases
 
