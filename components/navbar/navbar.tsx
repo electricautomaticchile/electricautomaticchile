@@ -45,22 +45,22 @@ export default function Component() {
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <div className="-mx-6 grid gap-6 bg-muted p-6">
+                  <Link href="/navservices/consumo" className="group grid h-auto w-full justify-start gap-1" prefetch={false}>
+                    <div className="text-sm font-medium leading-none group-hover:underline">Control de Consumo</div>
+                    <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                    Optimiza y reduce tu consumo energético con nuestras soluciones inteligentes.
+                    </div>
+                  </Link>
                   <Link href="/navservices/reposicion" className="group grid h-auto w-full justify-start gap-1" prefetch={false}>
-                    <div className="text-sm font-medium leading-none group-hover:underline">Desarrollo web</div>
+                    <div className="text-sm font-medium leading-none group-hover:underline">Reposición automatizada</div>
                     <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                      Control de Consumo
+                    Reposiciona el servicio del suministro electrico a distancia mediante nuestra plataforma web y movil.
                     </div>
                   </Link>
-                  <Link href="#" className="group grid h-auto w-full justify-start gap-1" prefetch={false}>
-                    <div className="text-sm font-medium leading-none group-hover:underline">Diseño gráfico</div>
+                  <Link href="/navservices/hardware" className="group grid h-auto w-full justify-start gap-1" prefetch={false}>
+                    <div className="text-sm font-medium leading-none group-hover:underline">Integración en tableros y equipos</div>
                     <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                      Monitoreo de Consumo
-                    </div>
-                  </Link>
-                  <Link href="#" className="group grid h-auto w-full justify-start gap-1" prefetch={false}>
-                    <div className="text-sm font-medium leading-none group-hover:underline">Estrategia digital</div>
-                    <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                      Programación de Dispositivos
+                    Implementar monitorio con un minimo impacto y bajo costo de mantenimiento.
                     </div>
                   </Link>
                 </div>
