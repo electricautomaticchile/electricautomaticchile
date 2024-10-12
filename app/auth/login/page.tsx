@@ -61,7 +61,7 @@ export default function Component() {
 
         </div>
         <div className="flex flex-col gap-2 py-2">
-        <Button onClick={() => signIn("google", { redirectTo: "/dashboard" })}>Iniciar sesión con Google
+        <Button onClick={() => signIn("google", { redirectTo: "/dashboard" })}>Iniciar sesión con Google.
         </Button>
         </div>
         <Link href="#" className="underline" prefetch={false}>
