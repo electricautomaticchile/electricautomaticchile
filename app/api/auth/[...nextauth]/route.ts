@@ -1,14 +1,17 @@
 import Google from "next-auth/providers/google"
 import NextAuth from "next-auth"
+import { MongoDBAdapter } from "@auth/mongodb-adapter"
+import client from "@/lib/db"
 
-const { handlers} = NextAuth({
-  providers: [
+const { handlers ,auth, signIn, signOut} = NextAuth({
+    adapter: MongoDBAdapter(client),
+    providers: [
     Google({
-      clientId:process.env.AUTH_GOOGLE_ID,
-      clientSecret:process.env.AUTH_GOOGLE_SECRET,
+        clientId: process.env.AUTH_GOOGLE_ID as string,
+        clientSecret: process.env.AUTH_GOOGLE_SECRET as string
     }),
-   
+
   ],
-  secret:process.env.AUTH_SECRET
+  secret:process.env.SECRET
 })
 export const { GET, POST } = handlers
