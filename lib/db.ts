@@ -14,22 +14,8 @@ const options = {
   },
 }
 
-let client: MongoClient
+// Creamos una nueva instancia de MongoClient cada vez
+const client = new MongoClient(uri, options)
 
-if (process.env.NODE_ENV === "development") {
-  let globalWithMongo = global as typeof globalThis & {
-    _mongoClient?: MongoClient
-  }
-
-  if (!globalWithMongo._mongoClient) {
-    globalWithMongo._mongoClient = new MongoClient(uri, options)
-  }
-  client = globalWithMongo._mongoClient
-} else {
-  // In production mode, it's best to not use a global variable.
-  client = new MongoClient(uri, options)
-}
-
-// Export a module-scoped MongoClient. By doing this in a
-// separate module, the client can be shared across functions.
+// Exportamos el cliente MongoDB
 export default client
