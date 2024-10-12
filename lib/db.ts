@@ -1,4 +1,3 @@
-// This approach is taken from https://github.com/vercel/next.js/tree/canary/examples/with-mongodb
 import { MongoClient, ServerApiVersion } from "mongodb"
 
 if (!process.env.MONGODB_URI) {
@@ -6,16 +5,25 @@ if (!process.env.MONGODB_URI) {
 }
 
 const uri = process.env.MONGODB_URI
-const options = {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  },
+const options = {}
+
+let clientPromise: Promise<MongoClient>
+
+if (process.env.NODE_ENV === "development") {
+  // En modo desarrollo, usa una variable global para preservar el valor
+  // a través de recargas de módulos causadas por HMR (Hot Module Replacement).
+  let globalWithMongo = global as typeof globalThis & {
+    _mongoClientPromise?: Promise<MongoClient>
+  }
+
+  if (!globalWithMongo._mongoClientPromise) {
+    globalWithMongo._mongoClientPromise = new MongoClient(uri, options).connect()
+  }
+  clientPromise = globalWithMongo._mongoClientPromise
+} else {
+  // En modo producción, es mejor no usar una variable global.
+  clientPromise = new MongoClient(uri, options).connect()
 }
 
-// Creamos una nueva instancia de MongoClient cada vez
-const client = new MongoClient(uri, options)
-
-// Exportamos el cliente MongoDB
-export default client
+// Exporta una promesa de MongoClient con alcance de módulo.
+export default clientPromise
