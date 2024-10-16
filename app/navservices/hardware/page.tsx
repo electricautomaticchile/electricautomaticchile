@@ -4,7 +4,7 @@ import { Zap, Cpu, BarChart2, WifiIcon } from "lucide-react"
 
 export default function Component() {
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className=" min- w-full max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle className="text-2xl font-bold">Arduino en Medidores de Electricidad en Chile</CardTitle>
       </CardHeader>
