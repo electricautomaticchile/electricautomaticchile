@@ -1,5 +1,4 @@
 "use client"
-
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,10 +20,6 @@ export default function FormularioRegistro() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
-  }
-
-  const handleSelectChange = (value: string) => {
-    setFormData(prev => ({ ...prev, tipoServicio: value }))
   }
 
   const handleCheckboxChange = (checked: boolean) => {
