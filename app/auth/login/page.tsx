@@ -22,7 +22,7 @@ export default function Component() {
   }
 
   return (
-    <div className="min-h-screen w-full max-w-md mx-auto space-y-6 py-60 ">
+    <div className="min-h-screen w-full max-w-md mx-auto space-y-6 py-40 ">
       <div className="text-center">
         <h2 className="text-2xl font-bold">Autenticación</h2>
         <p className="text-muted-foreground">Inicia sesión para continuar.</p>
@@ -54,15 +54,14 @@ export default function Component() {
             />
           </div>
         </div>
-        <div className="flex flex-col gap-2 py-2">
+        <form className="flex flex-col gap-2 py-2"
+         action="/api/google-sign-in"
+         method="GET">
           <Button type="submit" className="w-full">
-            Iniciar sesión
+            Iniciar sesión con Google
           </Button>
-
-        </div>
+        </form>
         <div className="flex flex-col gap-2 py-2">
-        <Button onClick={() => signIn("google", { redirectTo: "/dashboard" })}>Iniciar sesión con Google.
-        </Button>
         </div>
         <Link href="#" className="underline" prefetch={false}>
           <div className="text-center text-sm text-muted-foreground">
