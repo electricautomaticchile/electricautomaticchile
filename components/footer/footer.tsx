@@ -27,10 +27,10 @@ export default function Component() {
             Inicio
           </Link>
           <Link href="#" className="hover:underline" prefetch={false}>
-            Servicios
+            Nosotros
           </Link>
           <Link href="#" className="hover:underline" prefetch={false}>
-            Productos
+            Servicios
           </Link>
           <Link href="/formulario" className="hover:underline" prefetch={false}>
             Contacto
