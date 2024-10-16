@@ -162,7 +162,7 @@ export default function Component() {
         <Link href="/auth/login">
         <Button>Iniciar sesión</Button>
         </Link>
-        <Link href="/auth/resgister">
+        <Link href="/auth/register">
         <Button>Registrarse</Button>
         </Link>
         <ThemeToggle/>
