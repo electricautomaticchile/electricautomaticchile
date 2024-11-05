@@ -1,6 +1,6 @@
 import { Button } from "./ui/button"
 import { signIn } from "@/auth"
- 
+
 export function SignIn() {
   return (
     <form
@@ -12,5 +12,4 @@ export function SignIn() {
       <Button  className="w-full" type="submit">Iniciar Sesion con Google</Button>
     </form>
   )
-} 
-
+}
