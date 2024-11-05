@@ -1,8 +1,6 @@
 "use client";
 import Link from "next/link";
 import { Zap } from "lucide-react";
-import { Facebook } from "lucide-react";
-import { Instagram } from "lucide-react";
 import { Linkedin } from "lucide-react";
 import { Locate } from "lucide-react";
 import { Mail } from "lucide-react";
@@ -12,14 +10,18 @@ export default function Component() {
   return (
     <footer className=" flex flex-col  p-6 md:py-12 w-full h-full">
       <div className="container max-w-10xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 px-25 gap-8">
-        <div className="flex flex-col gap-4">
+        <div className="grid flex-col gap-5 items-center">
           <Link href="#" className="flex items-center gap-2" prefetch={false}>
             <Zap color="#e66100" className="h-6 w-6" />
             <span className="text-lg font-semibold">
               Electricautomaticchile
             </span>
           </Link>
-          <p className="text-muted-foreground"></p>
+          <Link href="/terminosycondiciones" className="flex items-center gap-2 px-6" prefetch={false}>
+            <span className="text-lg font-semibold">
+              Terminos y condiciones
+            </span>
+          </Link>
         </div>
         <div className="grid gap-2">
           <h3 className="text-lg font-semibold">Páginas</h3>
