@@ -4,7 +4,7 @@ import "../styles/globals.css";
 import Navbar from "@/components/navbar/navbar";
 import Footer from "@/components/footer/footer";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Providers } from "./Providers";
+
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es">
       <body className={inter.className}>
-        <Providers>
+       
           <ThemeProvider
             attribute="class"
             defaultTheme="blanco"
@@ -35,7 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </main>
             <Footer />
           </ThemeProvider>
-        </Providers>
+      
       </body>
     </html>
   );

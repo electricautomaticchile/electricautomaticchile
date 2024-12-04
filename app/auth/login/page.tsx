@@ -2,9 +2,8 @@
 import { useState } from "react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { signIn } from "next-auth/react"
+
 
 export default function Component() {
   const [clientNumber, setClientNumber] = useState("")
@@ -54,13 +53,7 @@ export default function Component() {
             />
           </div>
         </div>
-        <form className="flex flex-col gap-2 py-2"
-         action="/api/google-sign-in"
-         method="GET">
-          <Button type="submit" className="w-full">
-            Iniciar sesión con Google
-          </Button>
-        </form>
+        
         <div className="flex flex-col gap-2 py-2">
         </div>
         <Link href="#" className="underline" prefetch={false}>
