@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bolt, Bell, Map, Home, DollarSign, Settings, Package2, Menu } from 'lucide-react';
+import { Bolt, Bell, Map, Home, DollarSign, Settings, Package2, Menu, Battery } from 'lucide-react';
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
@@ -43,9 +43,10 @@ export default function Navbar({ onComponentClick }: NavbarProps) {
             </Button>
           </div>
           <div className={`flex-1 overflow-auto py-2 ${isMenuOpen ? 'block' : 'hidden'} lg:block`}>
-            <nav className="grid items-start px-4 text-sm font-medium">
+            <nav className="grid items-start px-4 text-l font-medium">
               <NavButton icon={<Home className="h-4 w-4" />} text="Inicio" onClick={() => onComponentClick(null)} />
               <NavButton icon={<Bolt className="h-4 w-4" />} text="Control de consumo" onClick={() => onComponentClick("EnergyMounth")} />
+              <NavButton icon={<Battery className="h-4 w-4" />} text="Corte y reposición" onClick={() => onComponentClick("ReposicionPage")} />
               <NavButton icon={<DollarSign className="h-4 w-4" />} text="Pagos" onClick={() => onComponentClick("Payments")} />
               <NavButton icon={<Map className="h-4 w-4" />} text="Sectores sin Energía" onClick={() => onComponentClick("SectorEnergy")} />
               <NavButton icon={<Settings className="h-4 w-4" />} text="Configuración" onClick={() => onComponentClick("Settings")} />

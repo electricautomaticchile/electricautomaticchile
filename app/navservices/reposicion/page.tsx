@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch"
 import { Settings, RefreshCw } from "lucide-react"
 
 export default function Component() {
+
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
@@ -19,14 +20,13 @@ export default function Component() {
             <CardDescription>En este panel muestra el estado en el que esta tu servicio de reposición automatizada viene activado por defecto pero tambien puedes desactivarlo por si no estas en casa/oficina por un periodo largo de tiempo</CardDescription>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-
                 <div className="flex items-center space-x-2">
-                  <Switch checked={true} />
-                  <span>Activo</span>
+                  <Switch 
+                  
+                  />
+
                 </div>
               </div>
-                <Switch checked={false}  />
-                <span>Desactivado</span>
             </div>
           </div>
         </div>
