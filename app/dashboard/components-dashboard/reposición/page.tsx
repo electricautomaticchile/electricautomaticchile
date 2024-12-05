@@ -13,7 +13,7 @@ import { format } from "date-fns"
 import { CalendarIcon } from 'lucide-react'
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
-export function ReposicionEnergia() {
+export default function ReposicionEnergia() {
   const [reposicionAutomatica, setReposicionAutomatica] = useState(false)
   const [fechaCorte, setFechaCorte] = useState<Date | undefined>(undefined)
   const { numeroCliente, setNumeroCliente, cliente, buscarCliente } = useCliente()
@@ -139,6 +139,4 @@ export function ReposicionEnergia() {
     </Card>
   )
 }
-
-export default ReposicionEnergia;
 
