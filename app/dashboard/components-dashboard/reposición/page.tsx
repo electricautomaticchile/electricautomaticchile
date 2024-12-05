@@ -1,3 +1,4 @@
+"use client"
 import { useState } from 'react'
 import { useCliente } from '../reposición/hooks/useCliente'
 import { Switch } from "@/components/ui/switch"
