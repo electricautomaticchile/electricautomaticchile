@@ -6,6 +6,7 @@ import Footer from "@/components/footer/footer";
 import { ThemeProvider } from "@/components/theme-provider";
 
 
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -21,8 +22,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body className={inter.className}>
-       
+      <body>
+    
           <ThemeProvider
             attribute="class"
             defaultTheme="blanco"
@@ -35,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </main>
             <Footer />
           </ThemeProvider>
-      
+ 
       </body>
     </html>
   );
