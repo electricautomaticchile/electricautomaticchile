@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+"use client"
+import { useState} from "react";
 import { X, Check } from "lucide-react";
 import {
     Card,
