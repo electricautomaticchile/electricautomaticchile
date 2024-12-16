@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { CalendarIcon } from 'lucide-react'
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { es } from 'date-fns/locale'
 
 export default function ReposicionEnergia() {
   const [reposicionAutomatica, setReposicionAutomatica] = useState(false)
@@ -91,7 +92,7 @@ export default function ReposicionEnergia() {
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {fechaCorte ? format(fechaCorte, "PPP") : <span>Seleccionar fecha</span>}
+                {fechaCorte ? format(fechaCorte, "PPP", { locale: es }) : <span>Seleccionar fecha</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
@@ -100,6 +101,7 @@ export default function ReposicionEnergia() {
                 selected={fechaCorte}
                 onSelect={setFechaCorte}
                 initialFocus
+                locale={es}
               />
             </PopoverContent>
           </Popover>
@@ -121,7 +123,7 @@ export default function ReposicionEnergia() {
         <Button 
           onClick={() => {
             if (fechaCorte && horaCorte) {
-              setMensajeConfirmacion(`Corte de servicio programado para ${format(fechaCorte, "PPP")} a las ${horaCorte}`);
+              setMensajeConfirmacion(`Corte de servicio programado para ${format(fechaCorte, "PPP", { locale: es })} a las ${horaCorte}`);
             }
           }}
           disabled={!fechaCorte || !horaCorte}
