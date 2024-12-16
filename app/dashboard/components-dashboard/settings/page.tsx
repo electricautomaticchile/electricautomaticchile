@@ -86,7 +86,6 @@ export default function CustomerProfileEdit() {
               <SelectContent>
                 <SelectItem value="standard">Estándar</SelectItem>
                 <SelectItem value="timeOfUse">Tiempo de uso</SelectItem>
-                <SelectItem value="renewable">100% Renovable</SelectItem>
               </SelectContent>
             </Select>
           </div>
