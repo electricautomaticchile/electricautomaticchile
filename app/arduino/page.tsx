@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -53,37 +53,7 @@ export default function Home() {
   const [tiempoTemporizador, setTiempoTemporizador] = useState<number>(5);
   const [temporizadorActivo, setTemporizadorActivo] = useState<boolean>(false);
 
-  // Verificar conexión
-  useEffect(() => {
-    const verificarConexion = async () => {
-      try {
-        const response = await fetch('http://localhost:5000/api/estado');
-        setConexionEstado(response.ok);
-      } catch {
-        setConexionEstado(false);
-      }
-    };
-
-    verificarConexion();
-    const interval = setInterval(verificarConexion, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Manejar temporizador
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (temporizadorActivo && modo === 'temporizador') {
-      interval = setInterval(() => {
-        toggleLED();
-      }, tiempoTemporizador * 1000);
-    }
-    return () => clearInterval(interval);
-  }, [temporizadorActivo, tiempoTemporizador]);
-
-  // Conectar a la base de datos al iniciar el componente
-
-
-  const toggleLED = async () => {
+  const toggleLED = useCallback(async () => {
     try {
       const response = await fetch('http://localhost:5000/api/led/toggle', {
         method: 'POST',
@@ -114,7 +84,36 @@ export default function Home() {
     } catch (error) {
       console.error('Error:', error);
     }
-  };
+  }, [modo]);
+
+  // Verificar conexión
+  useEffect(() => {
+    const verificarConexion = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/estado');
+        setConexionEstado(response.ok);
+      } catch {
+        setConexionEstado(false);
+      }
+    };
+
+    verificarConexion();
+    const interval = setInterval(verificarConexion, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Manejar temporizador
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (temporizadorActivo && modo === 'temporizador') {
+      interval = setInterval(() => {
+        toggleLED();
+      }, tiempoTemporizador * 1000);
+    }
+    return () => clearInterval(interval);
+  }, [temporizadorActivo, tiempoTemporizador, modo, toggleLED]);
+
+  // Conectar a la base de datos al iniciar el componente
 
   const datosGrafico = {
     labels: historial.slice(-10).map(h => new Date(h.timestamp).toLocaleTimeString()),
