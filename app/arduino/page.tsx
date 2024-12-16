@@ -27,7 +27,7 @@ ChartJS.register(
 
 
 
-export function arduino () {
+export function Arduino() {
   const [ledEstado, setLedEstado] = useState<boolean>(false);
   const [conexionEstado, setConexionEstado] = useState<boolean>(false);
   const [historial, setHistorial] = useState<HistorialCambio[]>([]);
@@ -109,24 +109,21 @@ export function arduino () {
       }
     ]
   };
-  const loadPDF = async () => {
+ 
+
+  // Definir la función cargarPDF
+  const cargarPDF = useCallback(async () => {
     const { PDFDownloadLink, Document, Page, Text, View } = await import('@react-pdf/renderer');
     return { PDFDownloadLink, Document, Page, Text, View };
-  };
-
-  // Crear una función asincrónica para cargar el PDF
-  const cargarPDF = async () => {
-    const { PDFDownloadLink, Document: PDFDocument, Page, Text, View } = await loadPDF();
-    return { PDFDownloadLink, PDFDocument, Page, Text, View };
-  };
+  }, []);
 
   // Llamar a la función asincrónica en un useEffect
   useEffect(() => {
     const obtenerPDF = async () => {
-      const { PDFDownloadLink, PDFDocument, Page, Text, View } = await cargarPDF();
+      const { PDFDownloadLink, Document, Page, Text, View } = await cargarPDF();
       
       const MyDocument: React.FC<MyDocumentProps> = ({ historial }) => (
-        <PDFDocument>
+        <Document>
           <Page size="A4">
             <View>
               <Text>Historial de Cambios</Text>
@@ -141,7 +138,7 @@ export function arduino () {
               )}
             </View>
           </Page>
-        </PDFDocument>
+        </Document>
       );
 
       // Almacenar el componente PDFDownloadLink en el estado
@@ -153,7 +150,7 @@ export function arduino () {
     };
     
     obtenerPDF();
-  }, []);
+  }, [cargarPDF, historial]);
 
   interface MyDocumentProps {
     historial: HistorialCambio[]; // Define el tipo de historial
@@ -246,4 +243,4 @@ export function arduino () {
   );
 }
 
-export default arduino
+export default Arduino
