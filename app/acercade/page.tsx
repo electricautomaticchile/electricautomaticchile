@@ -13,41 +13,41 @@ export default function AcercaDePage() {
 
         <div className="grid gap-8 md:grid-cols-2">
           {/* Características principales */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="p-6 rounded-lg shadow-md hover:shadow-orange-500 hover:border-orange-500 border transition-all duration-300">
             <h3 className="text-xl font-semibold text-orange-600 mb-4">
               Reposición del Servicio Automatizada
             </h3>
-            <p className="text-gray-600">
+            <p>
               Una vez regularizada la deuda, el servicio se repone automáticamente, 
               sin necesidad de intervención manual y sin tiempos de espera prolongados.
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="p-6 rounded-lg shadow-md hover:shadow-orange-500 hover:border-orange-500 border transition-all duration-300">
             <h3 className="text-xl font-semibold text-orange-600 mb-4">
               Toma de Lectura Automatizada
             </h3>
-            <p className="text-gray-600">
+            <p>
               El dispositivo registra el consumo energético y envía reportes instantáneos 
               a la plataforma web y al cliente vía mensaje de texto y correo electrónico.
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="p-6 rounded-lg shadow-md hover:shadow-orange-500 hover:border-orange-500 border transition-all duration-300">
             <h3 className="text-xl font-semibold text-orange-600 mb-4">
               Gestión Eficiente
             </h3>
-            <p className="text-gray-600">
+            <p>
               La plataforma web proporciona herramientas para la gestión del suministro 
               eléctrico, ofreciendo mayor control y transparencia.
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="p-6 rounded-lg shadow-md hover:shadow-orange-500 hover:border-orange-500 border transition-all duration-300">
             <h3 className="text-xl font-semibold text-orange-600 mb-4">
               Seguridad Avanzada
             </h3>
-            <p className="text-gray-600">
+            <p>
               Equipado con GPS para rastreo y capacidad de diagnóstico remoto 
               para reconfiguración y detección de fallas.
             </p>
@@ -55,11 +55,11 @@ export default function AcercaDePage() {
         </div>
 
         {/* Sección adicional */}
-        <div className="mt-12 bg-white p-8 rounded-lg shadow-md">
+        <div className="mt-12 p-8 rounded-lg shadow-md hover:shadow-orange-500 hover:border-orange-500 border transition-all duration-300">
           <h3 className="text-2xl font-semibold text-orange-600 mb-6">
             Nuestro Compromiso
           </h3>
-          <div className="space-y-4 text-gray-600">
+          <div className="space-y-4">
             <p>
               Ofrecemos programas completos de capacitación para personal técnico 
               y usuarios finales, cubriendo todos los aspectos de nuestra tecnología.
