@@ -12,9 +12,7 @@ import {
   Legend
 } from 'chart.js';
 import { EstadoLED, HistorialCambio } from '../../lib/constants';
-import { PDFDownloadLink, Document, Page, Text, View } from '@react-pdf/renderer'; // Importar componentes de @react-pdf/renderer
 import { Button } from '@/components/ui/button';
-
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -25,33 +23,18 @@ ChartJS.register(
   Legend
 );
 
-// Crear un componente de documento PDF
-interface MyDocumentProps {
-  historial: HistorialCambio[]; // Define el tipo de historial
-}
 
-const MyDocument: React.FC<MyDocumentProps> = ({ historial }) => (
-  <Document>
-    <Page size="A4">
-      <View>
-        <Text>Historial de Cambios</Text>
-        {historial.map((cambio, index) => (
-          <Text key={index}>
-            {`${index + 1}. ${new Date(cambio.timestamp).toLocaleString()} - LED ${cambio.estado ? 'Encendido' : 'Apagado'} - Modo: ${cambio.modo}`}
-          </Text>
-        ))}
-      </View>
-    </Page>
-  </Document>
-);
 
-export default function Home() {
+
+
+export function arduino () {
   const [ledEstado, setLedEstado] = useState<boolean>(false);
   const [conexionEstado, setConexionEstado] = useState<boolean>(false);
   const [historial, setHistorial] = useState<HistorialCambio[]>([]);
   const [modo, setModo] = useState<'manual' | 'temporizador' | 'secuencia'>('manual');
   const [tiempoTemporizador, setTiempoTemporizador] = useState<number>(5);
   const [temporizadorActivo, setTemporizadorActivo] = useState<boolean>(false);
+  const [PDFDownloadLinkComponent, setPDFDownloadLinkComponent] = useState<JSX.Element | null>(null);
 
   const toggleLED = useCallback(async () => {
     try {
@@ -126,7 +109,56 @@ export default function Home() {
       }
     ]
   };
+  const loadPDF = async () => {
+    const { PDFDownloadLink, Document, Page, Text, View } = await import('@react-pdf/renderer');
+    return { PDFDownloadLink, Document, Page, Text, View };
+  };
 
+  // Crear una función asincrónica para cargar el PDF
+  const cargarPDF = async () => {
+    const { PDFDownloadLink, Document: PDFDocument, Page, Text, View } = await loadPDF();
+    return { PDFDownloadLink, PDFDocument, Page, Text, View };
+  };
+
+  // Llamar a la función asincrónica en un useEffect
+  useEffect(() => {
+    const obtenerPDF = async () => {
+      const { PDFDownloadLink, PDFDocument, Page, Text, View } = await cargarPDF();
+      
+      const MyDocument: React.FC<MyDocumentProps> = ({ historial }) => (
+        <PDFDocument>
+          <Page size="A4">
+            <View>
+              <Text>Historial de Cambios</Text>
+              {historial.length > 0 ? (
+                historial.map((cambio, index) => (
+                  <Text key={index}>
+                    {`${index + 1}. ${new Date(cambio.timestamp).toLocaleString()} - LED ${cambio.estado ? 'Encendido' : 'Apagado'} - Modo: ${cambio.modo}`}
+                  </Text>
+                ))
+              ) : (
+                <Text>No hay cambios registrados.</Text>
+              )}
+            </View>
+          </Page>
+        </PDFDocument>
+      );
+
+      // Almacenar el componente PDFDownloadLink en el estado
+      setPDFDownloadLinkComponent(
+        <PDFDownloadLink document={<MyDocument historial={historial} />} fileName="historial_cambios.pdf">
+          <Button>Descargar Historial</Button>
+        </PDFDownloadLink>
+      );
+    };
+    
+    obtenerPDF();
+  }, []);
+
+  interface MyDocumentProps {
+    historial: HistorialCambio[]; // Define el tipo de historial
+  }
+  
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto space-y-8 ">
@@ -204,12 +236,14 @@ export default function Home() {
           <h2 className="text-xl font-bold mb-4">Gráfico de Actividad</h2>
           <Line data={datosGrafico} />
         </div>
+
+        {/* Mostrar el botón de descargar historial */}
         <div className="mt-4">
-            <PDFDownloadLink document={<MyDocument historial={historial} />} fileName="historial_cambios.pdf">
-              <Button>Descargar Historial</Button>
-            </PDFDownloadLink>
-          </div>
+          {PDFDownloadLinkComponent}
+        </div>
       </div>
     </div>
   );
 }
+
+export default arduino
