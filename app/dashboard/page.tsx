@@ -32,7 +32,7 @@ export default function Component() {
       case "EnergyMounth3":
         return <EnergyMounth3 />;
       case "Payments":
-        return <Payments showDownload={true} />;
+        return <Payments  />;
       case "ConsumedFourHour":
         return <ConsumedFourHour />;
       case "SectorEnergy":
@@ -51,7 +51,7 @@ export default function Component() {
               <EnergyMounth3 />
             </div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              <Payments showDownload={false} />
+              <Payments />
               <ConsumedFourHour />
               <SectorEnergy />
             </div>

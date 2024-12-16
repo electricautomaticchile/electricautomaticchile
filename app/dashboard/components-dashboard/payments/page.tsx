@@ -13,11 +13,9 @@ const paymentData = [
   { date: new Date('2023-04-10T00:00:00'), amount: 15000.00, consumption: 400, watts: 1600 },
 ]
 
-type PaymentsProps = {
-  showDownload: boolean;
-};
 
-const Payments = ({ showDownload }: PaymentsProps) => {
+
+const Payments = () => {
   // Removed isClient state and related logic
 
   return (
@@ -39,7 +37,7 @@ const Payments = ({ showDownload }: PaymentsProps) => {
                 <TableCell>{format(row.date, 'PPP', { locale: es })}</TableCell>
                 <TableCell>${row.amount.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</TableCell>
                 <TableCell>
-                  {showDownload && <PDFDownloadButton paymentData={[row]} />}
+                   <PDFDownloadButton paymentData={[row]} />
                 </TableCell>
               </TableRow>
             ))}
