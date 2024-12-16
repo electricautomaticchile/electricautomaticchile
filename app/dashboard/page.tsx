@@ -16,8 +16,15 @@ export default function Component() {
 
   const renderActiveComponent = () => {
     switch (activeComponent) {
-      case "EnergyMounth":
-        return <EnergyMounth />;
+      case "EnergyUsedMonth":
+        return (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <EnergyMounth />
+            <EnergyMounth3 />
+            <EnergyConsumed />
+            <ConsumedFourHour />
+          </div>
+        );
       case "AutomaticEnergy":
         return <AutomaticEnergy />;
       case "EnergyConsumed":
@@ -25,7 +32,7 @@ export default function Component() {
       case "EnergyMounth3":
         return <EnergyMounth3 />;
       case "Payments":
-        return <Payments />;
+        return <Payments showDownload={true} />;
       case "ConsumedFourHour":
         return <ConsumedFourHour />;
       case "SectorEnergy":
@@ -44,7 +51,7 @@ export default function Component() {
               <EnergyMounth3 />
             </div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              <Payments />
+              <Payments showDownload={false} />
               <ConsumedFourHour />
               <SectorEnergy />
             </div>
