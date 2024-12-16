@@ -1,5 +1,5 @@
 'use client'
-import { Card, CardHeader, CardDescription, CardTitle, CardContent } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { format } from 'date-fns'
 import dynamic from 'next/dynamic'
@@ -13,7 +13,7 @@ const paymentData = [
   { date: new Date('2023-04-10T00:00:00'), amount: 15000.00, consumption: 400, watts: 1600 },
 ]
 
-export type PaymentsProps = {
+type PaymentsProps = {
   showDownload: boolean;
 };
 
