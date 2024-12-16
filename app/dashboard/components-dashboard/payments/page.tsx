@@ -13,8 +13,11 @@ const paymentData = [
   { date: new Date('2023-04-10T00:00:00'), amount: 15000.00, consumption: 400, watts: 1600 },
 ]
 
+type PaymentsProps = {
+  showDownload: boolean;
+};
 
-const Payments = ({ showDownload }: { showDownload: boolean }) => {
+const Payments = ({ showDownload }: PaymentsProps) => {
   // Removed isClient state and related logic
 
   return (
