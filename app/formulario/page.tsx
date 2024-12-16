@@ -13,8 +13,23 @@ export default function FormularioContacto() {
   const manejarEnvio = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setEnviando(true)
-    // Aquí iría la lógica para enviar el formulario
-    await new Promise(resolve => setTimeout(resolve, 2000)) // Simulación de envío
+
+    const formData = new FormData(e.currentTarget); // Captura los datos del formulario
+
+    // Validar el tamaño del archivo
+    const archivo = formData.get('file') as File;
+    if (archivo && archivo.size > 10 * 1024 * 1024) { // 10 MB
+        alert("El archivo debe ser menor de 10 MB.");
+        setEnviando(false);
+        return;
+    }
+
+    // Enviar los datos a la API
+    await fetch('/api/enviarformulario', {
+        method: 'POST',
+        body: formData, // Enviar formData directamente
+    })
+
     setEnviando(false)
     setExito(true)
   }
@@ -45,9 +60,9 @@ export default function FormularioContacto() {
             <Label htmlFor="message">Mensaje</Label>
             <Textarea id="message" placeholder="Ingresa tu mensaje" className="min-h-[120px]" />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="fileInput">Adjunta Archivo</Label>
-            <Input  id="fileInput" name="file"  type="file" />
+          <div className="space-y-2">
+            <Label htmlFor="file">Archivo</Label>
+            <Input id="file" type="file" />
           </div>
           <Button type="submit" className="w-full" disabled={enviando}>
             {enviando ? "Enviando..." : "Enviar"}

@@ -1,0 +1,216 @@
+"use client"
+import { useState, useEffect } from 'react';
+import { Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
+import { EstadoLED, HistorialCambio } from '../../lib/constants';
+import { PDFDownloadLink, Document, Page, Text, View } from '@react-pdf/renderer'; // Importar componentes de @react-pdf/renderer
+import { Button } from '@/components/ui/button';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+// Crear un componente de documento PDF
+interface MyDocumentProps {
+  historial: HistorialCambio[]; // Define el tipo de historial
+}
+
+const MyDocument: React.FC<MyDocumentProps> = ({ historial }) => (
+  <Document>
+    <Page size="A4">
+      <View>
+        <Text>Historial de Cambios</Text>
+        {historial.map((cambio, index) => (
+          <Text key={index}>
+            {`${index + 1}. ${new Date(cambio.timestamp).toLocaleString()} - LED ${cambio.estado ? 'Encendido' : 'Apagado'} - Modo: ${cambio.modo}`}
+          </Text>
+        ))}
+      </View>
+    </Page>
+  </Document>
+);
+
+export default function Home() {
+  const [ledEstado, setLedEstado] = useState<boolean>(false);
+  const [conexionEstado, setConexionEstado] = useState<boolean>(false);
+  const [historial, setHistorial] = useState<HistorialCambio[]>([]);
+  const [modo, setModo] = useState<'manual' | 'temporizador' | 'secuencia'>('manual');
+  const [tiempoTemporizador, setTiempoTemporizador] = useState<number>(5);
+  const [temporizadorActivo, setTemporizadorActivo] = useState<boolean>(false);
+
+  // Verificar conexión
+  useEffect(() => {
+    const verificarConexion = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/estado');
+        setConexionEstado(response.ok);
+      } catch {
+        setConexionEstado(false);
+      }
+    };
+
+    verificarConexion();
+    const interval = setInterval(verificarConexion, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Manejar temporizador
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (temporizadorActivo && modo === 'temporizador') {
+      interval = setInterval(() => {
+        toggleLED();
+      }, tiempoTemporizador * 1000);
+    }
+    return () => clearInterval(interval);
+  }, [temporizadorActivo, tiempoTemporizador]);
+
+  // Conectar a la base de datos al iniciar el componente
+
+
+  const toggleLED = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/led/toggle', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ modo }),
+      });
+      const data = await response.json();
+      setLedEstado(data.estado);
+      
+      // Actualizar historial
+      const nuevoCambio = {
+        estado: data.estado,
+        timestamp: new Date().toISOString(),
+        modo
+      };
+      setHistorial(prev => [...prev, nuevoCambio]);
+
+      // Enviar datos a la base de datos
+      await fetch('http://localhost:5000/api/historial', { // Cambia la URL según tu API
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(nuevoCambio),
+      });
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const datosGrafico = {
+    labels: historial.slice(-10).map(h => new Date(h.timestamp).toLocaleTimeString()),
+    datasets: [
+      {
+        label: 'Estado LED',
+        data: historial.slice(-10).map(h => h.estado ? 1 : 0),
+        borderColor: 'rgb(234, 88, 12)', // Color naranja
+        tension: 0.7
+      }
+    ]
+  };
+
+  return (
+    <div className="min-h-screen p-8">
+      <div className="max-w-4xl mx-auto space-y-8 ">
+        {/* Estado de Conexión */}
+        <div className=" p-4 rounded-lg shadow-md hover:shadow-orange-500 hover:border-orange-500 border">
+          <div className="flex items-center space-x-2">
+            <div className={`w-3 h-3 rounded-full ${conexionEstado ? 'bg-green-500' : 'bg-red-500'}`} />
+            <span>{conexionEstado ? 'Conectado' : 'Desconectado'}</span>
+          </div>
+        </div>
+
+        {/* Control Principal */}
+        <div className=" p-6 rounded-lg shadow-md hover:shadow-orange-500 hover:border-orange-500 border">
+          <h2 className="text-xl font-bold mb-4">Control LED</h2>
+          <div className="flex items-center space-x-4">
+            <div className={`w-20 h-20 rounded-full ${ledEstado ? 'bg-orange-600' : 'bg-gray-600'}`} />
+            <div className="space-y-4">
+              <select 
+                className="border rounded text-black  p-2"
+                value={modo}
+                onChange={(e) => setModo(e.target.value as any)}
+              >
+                <option value="manual">Manual</option>
+                <option value="temporizador">Temporizador</option>
+                <option value="secuencia">Secuencia</option>
+              </select>
+
+              {modo === 'temporizador' && (
+                <div className="space-y-2">
+                  <input 
+                    type="number"
+                    value={tiempoTemporizador}
+                    onChange={(e) => setTiempoTemporizador(Number(e.target.value))}
+                    className="border rounded p-2 text-black"
+                    min="1"
+                  />
+                  <button
+                    onClick={() => setTemporizadorActivo(!temporizadorActivo)}
+                    className="px-4 py-2 rounded bg-orange-600"
+                  >
+                    {temporizadorActivo ? 'Detener' : 'Iniciar'} Temporizador
+                  </button>
+                </div>
+              )}
+
+              <button
+                onClick={toggleLED}
+                className="px-4 py-2  rounded bg-orange-600"
+                disabled={modo === 'temporizador' && temporizadorActivo}
+              >
+                {ledEstado ? 'Encender LED' : 'Apagar LED'}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Historial */}
+        <div className="p-6 rounded-lg shadow-md hover:shadow-orange-500 hover:border-orange-500 border">
+          <h2 className="text-xl font-bold mb-4">Historial de Cambios</h2>
+          <div className="max-h-60 overflow-y-auto">
+            {historial.slice().reverse().map((cambio, index) => (
+              <div key={index} className="border-b py-2">
+                <p>
+                  {new Date(cambio.timestamp).toLocaleString()} - 
+                  LED {cambio.estado ? 'Encendido' : 'Apagado'} - 
+                  Modo: {cambio.modo}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Gráfico */}
+        <div className=" p-6 rounded-lg shadow-md hover:shadow-orange-500 hover:border-orange-500 border mb-4">
+          <h2 className="text-xl font-bold mb-4">Gráfico de Actividad</h2>
+          <Line data={datosGrafico} />
+        </div>
+        <div className="mt-4">
+            <PDFDownloadLink document={<MyDocument historial={historial} />} fileName="historial_cambios.pdf">
+              <Button>Descargar Historial</Button>
+            </PDFDownloadLink>
+          </div>
+      </div>
+    </div>
+  );
+}
