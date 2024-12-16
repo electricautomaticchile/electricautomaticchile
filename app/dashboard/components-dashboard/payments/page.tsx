@@ -13,7 +13,7 @@ const paymentData = [
   { date: new Date('2023-04-10T00:00:00'), amount: 15000.00, consumption: 400, watts: 1600 },
 ]
 
-type PaymentsProps = {
+export type PaymentsProps = {
   showDownload: boolean;
 };
 
