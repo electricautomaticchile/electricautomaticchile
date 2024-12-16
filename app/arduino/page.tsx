@@ -27,7 +27,7 @@ ChartJS.register(
 
 
 
-export function Arduino() {
+export default function Arduino() {
   const [ledEstado, setLedEstado] = useState<boolean>(false);
   const [conexionEstado, setConexionEstado] = useState<boolean>(false);
   const [historial, setHistorial] = useState<HistorialCambio[]>([]);
@@ -242,5 +242,3 @@ export function Arduino() {
     </div>
   );
 }
-
-export default Arduino
