@@ -18,24 +18,24 @@ export default function Component() {
       <Sheet>
         <SheetTrigger asChild>
           <Button variant="outline" size="icon" className="lg:hidden">
-            <Menu  color="#e66100" className="h-6 w-6" />
+            <Menu  color="#e66100"/>
             <span className="sr-only">Toggle navigation menu</span>
           </Button>
         </SheetTrigger>
         <SheetContent side="left">
-          <Link href="/" className="flex items-center gap-2">
-          <Image
-          src={icon}
-          className="h-20 w-20"
-          alt="Lol"
-          />
+          <Link href="/" className="flex flex-col items-center gap-2">
+            <Image
+              src={icon}
+              className="h-20s w-20"
+              alt="alt"
+            />
             <span className="text-lg font-semibold">Electricautomaticchile</span>
           </Link>
           <div className="grid gap-4 py-6">
             <Link href="/" className="flex w-full items-center py-2 text-lg font-semibold" prefetch={false}>
               Inicio
             </Link>
-            <Link href="#" className="flex w-full items-center py-2 text-lg font-semibold" prefetch={false}>
+            <Link href="/acercade" className="flex w-full items-center py-2 text-lg font-semibold" prefetch={false}>
               Acerca de
             </Link>
             <Collapsible className="grid gap-4">
@@ -43,7 +43,7 @@ export default function Component() {
                 Servicios <ChevronRight color="#e66100" className="ml-auto h-5 w-5 transition-all" />
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <div className="-mx-6 grid gap-6 bg-muted p-6">
+                <div className="-mx-6 grid gap-6  p-6">
                   <Link href="/navservices/consumo" className="group grid h-auto w-full justify-start gap-1" prefetch={false}>
                     <div className="text-sm font-medium leading-none group-hover:underline">Control de Consumo</div>
                     <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
