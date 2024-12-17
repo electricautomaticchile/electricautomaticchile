@@ -125,16 +125,20 @@ export default function Arduino() {
       const MyDocument: React.FC<MyDocumentProps> = ({ historial }) => (
         <Document>
           <Page size="A4">
-            <View>
-              <Text>Historial de Cambios</Text>
+            <View style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+              <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 20 }}>Historial de Cambios</Text>
               {historial.length > 0 ? (
-                historial.map((cambio, index) => (
-                  <Text key={index}>
-                    {`${index + 1}. ${new Date(cambio.timestamp).toLocaleString()} - LED ${cambio.estado ? 'Encendido' : 'Apagado'} - Modo: ${cambio.modo}`}
-                  </Text>
-                ))
+                <View style={{ border: '1px solid orange', width: '100%', padding: 10 }}>
+                  {historial.map((cambio, index) => (
+                    <View key={index} style={{ borderBottom: '1px solid black', padding: 5 }}>
+                      <Text style={{ fontSize: 16 }}>
+                        {`${index + 1}. ${new Date(cambio.timestamp).toLocaleString()} - LED ${cambio.estado ? 'Encendido' : 'Apagado'} - Modo: ${cambio.modo}`}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
               ) : (
-                <Text>No hay cambios registrados.</Text>
+                <Text style={{ fontSize: 16 }}>No hay cambios registrados.</Text>
               )}
             </View>
           </Page>
