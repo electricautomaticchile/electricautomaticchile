@@ -113,32 +113,33 @@ export default function Arduino() {
 
   // Definir la función cargarPDF
   const cargarPDF = useCallback(async () => {
-    const { PDFDownloadLink, Document, Page, Text, View } = await import('@react-pdf/renderer');
-    return { PDFDownloadLink, Document, Page, Text, View };
+    const { PDFDownloadLink, Document, Page, Text, View, Image } = await import('@react-pdf/renderer');
+    return { PDFDownloadLink, Document, Page, Text, View ,Image };
   }, []);
 
   // Llamar a la función asincrónica en un useEffect
   useEffect(() => {
     const obtenerPDF = async () => {
-      const { PDFDownloadLink, Document, Page, Text, View } = await cargarPDF();
+      const { PDFDownloadLink, Document, Page, Text, View , Image } = await cargarPDF();
       
       const MyDocument: React.FC<MyDocumentProps> = ({ historial }) => (
         <Document>
-          <Page size="A4">
-            <View style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-              <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 20 }}>Historial de Cambios</Text>
+          <Page size="A4" style={{ padding: 0 }}>
+            <View style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: 20, backgroundColor: '#000' }}>
+              <Image src="public\android-chrome-512x512.png" style={{ width: 100, height: 100, marginBottom: 20 }} />
+              <Text style={{ fontSize: 28, fontWeight: 'bold', marginBottom: 10, color: '#FFA500', textAlign: 'center' }}>Historial de Cambios</Text>
               {historial.length > 0 ? (
-                <View style={{ border: '1px solid orange', width: '100%', padding: 10 }}>
+                <View style={{ border: '2px solid #FFA500', width: '100%', padding: 10, borderRadius: 5 }}>
                   {historial.map((cambio, index) => (
-                    <View key={index} style={{ borderBottom: '1px solid black', padding: 5 }}>
-                      <Text style={{ fontSize: 16 }}>
+                    <View key={index} style={{ borderBottom: '1px solid #FFF', padding: 5, backgroundColor: index % 2 === 0 ? '#1a1a1a' : '#333' }}>
+                      <Text style={{ fontSize: 16, color: '#FFF' }}>
                         {`${index + 1}. ${new Date(cambio.timestamp).toLocaleString()} - LED ${cambio.estado ? 'Encendido' : 'Apagado'} - Modo: ${cambio.modo}`}
                       </Text>
                     </View>
                   ))}
                 </View>
               ) : (
-                <Text style={{ fontSize: 16 }}>No hay cambios registrados.</Text>
+                <Text style={{ fontSize: 16, color: '#FFA500' }}>No hay cambios registrados.</Text>
               )}
             </View>
           </Page>
