@@ -15,11 +15,11 @@ export default function Component() {
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl">
-              Servicios de Automatización Eléctrica
+              Servicios de Automatización en electricidad
             </h1>
             <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              Optimiza tu hogar o negocio con nuestros servicios de
-              automatización eléctrica. Disfruta de un mayor control, eficiencia
+              Optimiza tu hogar o empresa con nuestros servicios de
+              automatización en electricidad. Disfruta de un mayor control, eficiencia
               energética y comodidad.
             </p>
           </div>

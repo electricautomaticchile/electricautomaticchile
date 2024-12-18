@@ -11,7 +11,7 @@ export default function Component() {
         </h2>
         <p className="max-w-[700px] text-muted-foreground md:text-xl">
           Empresa líder en soluciones tecnológicas para la gestión del
-          suministro eléctrico en América Latina, reconocida por su innovación,
+          suministro eléctrico, reconocida por su innovación,
           eficiencia y compromiso con la sostenibilidad.
         </p>
       </div>
