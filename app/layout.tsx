@@ -7,7 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 
 
 
-const inter = Inter({ subsets: ["latin"] });
+
 
 export const metadata: Metadata = {
   title: "Electricautomaticchile",
@@ -20,9 +20,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
     
           <ThemeProvider
-            attribute="class"
-            defaultTheme="blanco"
-            disableTransitionOnChange
+         attribute="class"
+         enableSystem
+         disableTransitionOnChange
           >
             <Navbar />
             <main className="container min-h-min mx-auto px-4 py-8">
