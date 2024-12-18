@@ -1,7 +1,9 @@
 "use client"
+
 import * as React from "react"
-import { Moon, Sun } from "lucide-react"
+import { Moon, MoonIcon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
+
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -13,35 +15,42 @@ import {
 export function ThemeToggle() {
   const { setTheme, theme } = useTheme()
   const availableThemes = ["blanco", "oscuro"]
+  const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
-    if (!theme) {
-      setTheme("blanco")
+    setMounted(true)
+  }, [])
+
+  React.useEffect(() => {
+    if (mounted && !theme) {
+      setTheme("oscuro")
     }
-  }, [theme, setTheme])
+  }, [mounted, theme, setTheme])
+
+  if (!mounted) return null
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="icon" onClick={() => setTheme(theme === "oscuro" ? "blanco" : "oscuro")}>
           {theme === "oscuro" ? (
-            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all" />
+            <Sun className="h-[1.2rem] w-[1.2rem] transition-all" />
           ) : (
-            <Moon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all" />
+            <Moon className="h-[1.2rem] w-[1.2rem] transition-all" />
           )}
           <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {availableThemes.map(theme =>
+        {availableThemes.map(theme => (
           <DropdownMenuItem key={theme} onClick={() => setTheme(theme)}>
             {theme === "oscuro" ? (
-              <Moon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all" />
+              <Moon className="h-[1.2rem] w-[1.2rem] transition-all" />
             ) : (
-              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all" />
+              <Sun className="h-[1.2rem] w-[1.2rem] transition-all" />
             )}
           </DropdownMenuItem>
-        )}
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   )
