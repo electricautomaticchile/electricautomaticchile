@@ -16,7 +16,26 @@ const paymentData = [
 
 
 const Payments = () => {
-  // Removed isClient state and related logic
+  // Define accountDetails, meterReadings y monthlyConsumption aquí
+  const accountDetails = {
+    electricityConsumption: 100,
+    administrationService: 10,
+    coordination: 5,
+    agreement: 0,
+    delayInterest: 0,
+    commonService: 2,
+    previousBalance: 0,
+    total: 117,
+  };
+
+  const meterReadings = {
+    current: 150,
+    previous: 100,
+    consumption: 50,
+    meterNumber: "12345",
+  };
+
+  const monthlyConsumption = [100, 120, 130, 110, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0];
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
@@ -37,7 +56,12 @@ const Payments = () => {
                 <TableCell>{format(row.date, 'PPP', { locale: es })}</TableCell>
                 <TableCell>${row.amount.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</TableCell>
                 <TableCell>
-                   <PDFDownloadButton paymentData={[row]} />
+                   <PDFDownloadButton 
+                     paymentData={[row]} 
+                     accountDetails={accountDetails}
+                     meterReadings={meterReadings}
+                     monthlyConsumption={monthlyConsumption}
+                   />
                 </TableCell>
               </TableRow>
             ))}
