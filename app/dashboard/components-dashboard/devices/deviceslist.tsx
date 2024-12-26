@@ -123,7 +123,6 @@ export default function Arduino() {
         <Document>
           <Page size="A4" style={{ padding: 0 }}>
             <View style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: 20, backgroundColor: '#000' }}>
-              <Image src="public\android-chrome-512x512.png" style={{ width: 100, height: 100, marginBottom: 20 }} />
               <Text style={{ fontSize: 28, fontWeight: 'bold', marginBottom: 10, color: '#FFA500', textAlign: 'center' }}>Historial de Cambios</Text>
               {historial.length > 0 ? (
                 <View style={{ border: '2px solid #FFA500', width: '100%', padding: 10, borderRadius: 5 }}>
