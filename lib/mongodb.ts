@@ -5,6 +5,10 @@ if (!process.env.MONGODB_URI) {
 }
 
 const uri = process.env.MONGODB_URI
+if (!uri.startsWith('mongodb://') && !uri.startsWith('mongodb+srv://')) {
+  throw new Error('La URI de MongoDB debe comenzar con "mongodb://" o "mongodb+srv://"')
+}
+
 const options = {}
 
 let client
