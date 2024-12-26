@@ -2,6 +2,8 @@
 import DeviceList from '@/app/dashboard/components-dashboard/devices/deviceslist'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
+// Añadir declaración de módulo explícita
+export {}
 
 export default function DevicesPage() {
  
