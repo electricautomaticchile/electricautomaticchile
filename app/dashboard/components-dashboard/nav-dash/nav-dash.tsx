@@ -46,6 +46,7 @@ export default function Navbar({ onComponentClick }: NavbarProps) {
             <nav className="grid items-start px-4 text-l font-medium">
               <NavButton icon={<Home className="h-4 w-4" />} text="Inicio" onClick={() => onComponentClick(null)} />
               <NavButton icon={<Bolt className="h-4 w-4" />} text="Graficos de energia" onClick={() => onComponentClick("EnergyUsedMonth")} />
+              <NavButton icon={<Bolt className="h-4 w-4" />} text="Dispositivos" onClick={() => onComponentClick("Devices")} />
               <NavButton icon={<Battery className="h-4 w-4" />} text="Corte y reposición" onClick={() => onComponentClick("ReposicionPage")} />
               <NavButton icon={<DollarSign className="h-4 w-4" />} text="Pagos" onClick={() => onComponentClick("Payments")} />
               <NavButton icon={<Map className="h-4 w-4" />} text="Sectores sin Energía" onClick={() => onComponentClick("SectorEnergy")} />
