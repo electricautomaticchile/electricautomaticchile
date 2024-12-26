@@ -11,6 +11,11 @@ import ConsumedFourHour from "./components-dashboard/consumed-for-hour/consumedf
 import SectorEnergy from "./components-dashboard/sector-energy/page";
 import Settings from "./components-dashboard/settings/page";
 import ReposicionPage from "./components-dashboard/reposición/page";
+import Devices from "./components-dashboard/devices/page"
+
+
+
+
 export default function Component() {
   const [activeComponent, setActiveComponent] = useState<string | null>(null);
 
@@ -31,6 +36,8 @@ export default function Component() {
         return <EnergyConsumed />;
       case "EnergyMounth3":
         return <EnergyMounth3 />;
+        case "Devices":
+          return <Devices/>
       case "Payments":
         return <Payments  />;
       case "ConsumedFourHour":

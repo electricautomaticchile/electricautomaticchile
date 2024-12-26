@@ -1,5 +1,6 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -8,6 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function CustomerProfileEdit() {
+  const { data: session } = useSession()
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -19,6 +21,17 @@ export default function CustomerProfileEdit() {
     paymentMethod: "",
     bankAccount: "",
   })
+
+  useEffect(() => {
+    if (session?.user) {
+      setFormData(prevData => ({
+        ...prevData,
+        firstName: session?.user?.name?.split(' ')[0] || '',
+        lastName: session?.user?.name?.split(' ')[1] || '',
+        email: session?.user?.email || '',
+      }))
+    }
+  }, [session])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target

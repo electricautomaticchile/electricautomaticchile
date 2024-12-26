@@ -9,9 +9,12 @@ import { NavigationMenu, NavigationMenuList, NavigationMenuLink, NavigationMenuI
 import  {ThemeToggle}  from "@/components/theme-toggle"
 import Image from "next/image";
 import icon from "@/public/android-chrome-512x512.png"
+import { signOut, useSession } from "next-auth/react"
 
 
 export default function Component() {
+  const { data: session } = useSession()
+
   return (
     //Diseño dispositos moviles//
     <header className="flex h-20 w-full shrink-0 items-center px-4 md:px-20">
@@ -36,7 +39,7 @@ export default function Component() {
               Inicio
             </Link>
             <Link href="/acercade" className="flex w-full items-center py-2 text-lg font-semibold" prefetch={false}>
-              Acerca de
+              Nosotros
             </Link>
             <Collapsible className="grid gap-4">
               <CollapsibleTrigger className="flex w-full items-center text-lg font-semibold [&[data-state=open]>svg]:rotate-90">
@@ -45,19 +48,19 @@ export default function Component() {
               <CollapsibleContent>
                 <div className="-mx-6 grid gap-6  p-6">
                   <Link href="/navservices/consumo" className="group grid h-auto w-full justify-start gap-1" prefetch={false}>
-                    <div className="text-sm font-medium leading-none group-hover:underline">Control de Consumo</div>
+                    <div className="text-sm font-medium leading-none">Control de Consumo</div>
                     <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                     Optimiza y reduce tu consumo energético con nuestras soluciones inteligentes.
                     </div>
                   </Link>
                   <Link href="/navservices/reposicion" className="group grid h-auto w-full justify-start gap-1" prefetch={false}>
-                    <div className="text-sm font-medium leading-none group-hover:underline">Reposición automatizada</div>
+                    <div className="text-sm font-medium leading-none">Reposición automatizada</div>
                     <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                     Reposiciona el servicio del suministro electrico a distancia mediante nuestra plataforma web y movil.
                     </div>
                   </Link>
                   <Link href="/navservices/hardware" className="group grid h-auto w-full justify-start gap-1" prefetch={false}>
-                    <div className="text-sm font-medium leading-none group-hover:underline">Integración en tableros y equipos</div>
+                    <div className="text-sm font-medium leading-none">Integración en tableros y equipos</div>
                     <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                     Implementar monitorio con un minimo impacto y bajo costo de mantenimiento.
                     </div>
@@ -87,7 +90,7 @@ export default function Component() {
           <NavigationMenuLink asChild>
             <Link
               href="/"
-              className="group inline-flex h-9 w-max items-center justify-center rounded-md  px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity- data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+              className="group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity- data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
               prefetch={false}
             >
               Inicio
@@ -96,23 +99,23 @@ export default function Component() {
           <NavigationMenuLink asChild>
             <Link
               href="/acercade"
-              className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+              className="group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
               prefetch={false}
             >
-              Acerca de
+              Nosotros
             </Link>
           </NavigationMenuLink>
           <NavigationMenuItem>
-            <NavigationMenuTrigger>Servicios</NavigationMenuTrigger>
+            <NavigationMenuTrigger className="focus:bg-orange-600">Servicios</NavigationMenuTrigger>
             <NavigationMenuContent>
               <div className="grid w-[400px] p-2">
                 <NavigationMenuLink asChild>
                   <Link
                     href="/navservices/consumo"
-                    className="group grid h-auto w-full items-center justify-start gap-1 rounded-md bg-background p-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+                    className="group grid h-auto w-full items-center justify-start gap-1 rounded-md bg-background p-4 text-sm font-medium transition-colors focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
                     prefetch={false}
                   >
-                    <div className="text-sm font-medium leading-none group-hover:underline">Control de Consumo</div>
+                    <div className="text-sm font-medium leading-none">Control de Consumo</div>
                     <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                       Optimiza y reduce tu consumo energético con nuestras soluciones inteligentes.
                     </div>
@@ -121,10 +124,10 @@ export default function Component() {
                 <NavigationMenuLink asChild>
                   <Link
                     href="/navservices/reposicion"
-                    className="group grid h-auto w-full items-center justify-start gap-1 rounded-md bg-background p-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+                    className="group grid h-auto w-full items-center justify-start gap-1 rounded-md bg-background p-4 text-sm font-medium transition-colors focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
                     prefetch={false}
                   >
-                    <div className="text-sm font-medium leading-none group-hover:underline">Reposición automatizada</div>
+                    <div className="text-sm font-medium leading-none">Reposición automatizada</div>
                     <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                       Reposiciona el servicio del suministro electrico a distancia mediante nuestra plataforma web y movil.
                     </div>
@@ -133,10 +136,10 @@ export default function Component() {
                 <NavigationMenuLink asChild>
                   <Link
                     href="/navservices/hardware"
-                    className="group grid h-auto w-full items-center justify-start gap-1 rounded-md bg-background p-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+                    className="group grid h-auto w-full items-center justify-start gap-1 rounded-md bg-background p-4 text-sm font-medium transition-colors focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
                     prefetch={false}
                   >
-                    <div className="text-sm font-medium leading-none group-hover:underline">Integración en tableros y equipos</div>
+                    <div className="text-sm font-medium leading-none">Integración en tableros y equipos</div>
                     <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                       Implementar monitorio con un minimo impacto y bajo costo de mantenimiento.
                     </div>
@@ -148,7 +151,7 @@ export default function Component() {
           <NavigationMenuLink asChild>
             <Link
               href="/formulario"
-              className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+              className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
               prefetch={false}
             >
               Contacto
@@ -158,12 +161,15 @@ export default function Component() {
       </NavigationMenu>
 
       <div className="ml-auto flex gap-2">
-        <Link href="/auth/login">
-        <Button>Iniciar sesión</Button>
-        </Link>
-        <Link href="/auth/registro">
-        <Button>Registrarse</Button>
-        </Link>
+        {session ? (
+          <Button onClick={() => signOut()}>
+            Cerrar sesión
+          </Button>
+        ) : (
+          <Link href="/auth/login">
+            <Button>Iniciar sesión</Button>
+          </Link>
+        )}
         <ThemeToggle/>
       </div>{" "}
 

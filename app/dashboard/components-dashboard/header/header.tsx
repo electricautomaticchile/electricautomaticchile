@@ -11,8 +11,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 
-const header = () => {
+const Header = () => {
+  const { data: session } = useSession();
+
   return (
     <header className="flex h-14 lg:h-[60px] items-center gap-4 border-b  px-6">
       <Link href="#" className="lg:hidden" prefetch={false}>
@@ -38,11 +41,11 @@ const header = () => {
             className="rounded-full border w-8 h-8"
           >
             <Image
-              src="/placeholder.svg"
+              src={session?.user?.image || "/placeholder.svg"}
               width="32"
               height="32"
               className="rounded-full"
-              alt="Avatar"
+              alt="Avatar del usuario"
             />
             <span className="sr-only">Toggle user menu</span>
           </Button>
@@ -63,4 +66,4 @@ const header = () => {
   );
 };
 
-export default header;
+export default Header;
