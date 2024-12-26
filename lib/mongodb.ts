@@ -1,25 +1,25 @@
-import { MongoClient } from "mongodb"
+const { MongoClient, ServerApiVersion } = require('mongodb');
+const uri = process.env.MONGODB_URI;
 
-const uri = process.env.MONGODB_URI
-const options = {}
-
-let client: MongoClient
-let clientPromise: Promise<MongoClient>
-
-if (process.env.NODE_ENV === "development") {
-  // En desarrollo, usa un cliente MongoDB nuevo
-  client = new MongoClient(uri, options)
-  clientPromise = client.connect().catch(err => {
-    console.error('Error de conexión a MongoDB:', err)
-    throw new Error('Error de conexión a MongoDB')
-  })
-} else {
-  // En producción, usa un cliente MongoDB existente
-  if (!global._mongoClientPromise) {
-    client = new MongoClient(uri, options)
-    global._mongoClientPromise = client.connect()
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
   }
-  clientPromise = global._mongoClientPromise
-}
+});
 
-export default clientPromise 
+async function run() {
+  try {
+    // Connect the client to the server	(optional starting in v4.7)
+    await client.connect();
+    // Send a ping to confirm a successful connection
+    await client.db("admin").command({ ping: 1 });
+    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+  } finally {
+    // Ensures that the client will close when you finish/error
+    await client.close();
+  }
+}
+run().catch(console.dir);
