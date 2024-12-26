@@ -2,6 +2,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { BoltIcon, GaugeIcon, BellIcon } from 'lucide-react'
 import test from "@/public/test.jpg"
+import Image from "next/image";
 
 function InfoCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
   return (
@@ -28,7 +29,7 @@ export default function Component() {
           </p>
         </div>
         <div className="flex-1">
-          <img 
+          <Image
             src={test.src}
             alt="Dashboard de control eléctrico"
             className="rounded-lg shadow-2xl"
