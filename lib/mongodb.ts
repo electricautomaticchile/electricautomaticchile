@@ -1,10 +1,6 @@
 import { MongoClient, ServerApiVersion } from "mongodb"
 
-if (!process.env.MONGODB_URI) {
-  throw new Error('Falta la variable de entorno MONGODB_URI')
-}
-
-const uri = process.env.MONGODB_URI
+const uri = "mongodb+srv://pipeaalzamora:Oeb67DAExUssGzW5@historial.0kbaq.mongodb.net/?retryWrites=true&w=majority&appName=historial"
 const options = {
   serverApi: {
     version: ServerApiVersion.v1,
