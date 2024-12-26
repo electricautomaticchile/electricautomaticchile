@@ -1,45 +1,64 @@
 "use client";
-import { Target } from "lucide-react";
-import { Telescope } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card"
+import { BoltIcon, GaugeIcon, BellIcon } from 'lucide-react'
+
+
+function InfoCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
+  return (
+    <div className="text-center p-6">
+      <div className="mb-4 flex justify-center">{icon}</div>
+      <h3 className="text-xl font-bold mb-2">{title}</h3>
+      <p >{description}</p>
+    </div>
+  )
+}
+
 
 export default function Component() {
   return (
     <div className="flex flex-col items-center justify-center space-y-8 py-12 md:py-16 lg:py-20">
-      <div className="space-y-4 text-center">
-        <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-          Electricautomaticchile
-        </h2>
-        <p className="max-w-[700px] text-muted-foreground md:text-xl">
-          Empresa líder en soluciones tecnológicas para la gestión del
-          suministro eléctrico, reconocida por su innovación,
-          eficiencia y compromiso con la sostenibilidad.
-        </p>
-      </div>
-      <div className="grid w-full max-w-4xl grid-cols-1 gap-8 md:grid-cols-2">
-        <div className="flex flex-col items-center justify-center space-y-4">
-          <Target className="h-12 w-12 text-primary" />
-          <div className="space-y-2 text-center">
-            <h3 className="text-xl font-bold">Nuestra Misión</h3>
-            <p className="text-muted-foreground">
-              Desarrollar y ofrecer soluciones tecnológicas innovadoras que
-              optimicen la gestión del suministro eléctrico, contribuyendo a la
-              eficiencia energética, la reducción de costos y la sostenibilidad
-              ambiental, para el beneficio de nuestros clientes y la comunidad.
-            </p>
+    <section className="container mx-auto px-4 py-16 md:py-24 flex flex-col md:flex-row items-center gap-8">
+        <div className="flex-1">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+            Con tu medidor bajo control tu servicio eléctrico
+            <span className="text-orange-500"> crece</span>
+          </h1>
+          <p className="text-gray-400 mb-8 text-lg">
+            Automatiza la reposición del servicio y gestiona el consumo eléctrico con tecnología de punta
+          </p>
+        </div>
+        <div className="flex-1">
+          <img 
+            src="/placeholder.svg?height=400&width=500" 
+            alt="Dashboard de control eléctrico"
+            className="rounded-lg shadow-2xl"
+          />
+        </div>
+      </section>
+      <section className=" py-16">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+            No necesitas esperas, <span className="text-orange-500">necesitas automatización</span>
+          </h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            <InfoCard
+              icon={<BoltIcon className="w-12 h-12 text-orange-500" />}
+              title="Reposición Automática"
+              description="Restauración inmediata del servicio tras la regularización del pago"
+            />
+            <InfoCard
+              icon={<GaugeIcon className="w-12 h-12 text-orange-500" />}
+              title="Lectura en Tiempo Real"
+              description="Monitoreo automático del consumo energético"
+            />
+            <InfoCard
+              icon={<BellIcon className="w-12 h-12 text-orange-500" />}
+              title="Notificaciones Instantáneas"
+              description="Alertas inmediatas sobre consumo y estado del servicio"
+            />
           </div>
         </div>
-        <div className="flex flex-col items-center justify-center space-y-4">
-          <Telescope className="h-12 w-12 text-primary" />
-          <div className="space-y-2 text-center">
-            <h3 className="text-xl font-bold">Nuestra Visión</h3>
-            <p className="text-muted-foreground">
-              Nuestra visión es convertirnos en la empresa de referencia en
-              nuestro mercado, a través de la innovación constante y el
-              compromiso con la excelencia.
-            </p>
-          </div>
-        </div>
-      </div>
+      </section>
     </div>
   );
 }

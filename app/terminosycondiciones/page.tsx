@@ -23,10 +23,10 @@ const PoliticasCondiciones = () => {
           Los presentes Términos y Condiciones rigen todo uso del sitio web de
           la Compañía{" "}
           <a
-            href="http://www.electricautomaticchile.cl"
+            href="http://www.electricautomaticchile.com"
             className="text-blue-500 underline"
           >
-            www.electricautomaticchile.cl
+            www.electricautomaticchile.com
           </a>{" "}
           (en adelante el “Sitio”) y todo el contenido, servicios y productos
           disponibles en el sitio web, las aplicaciones de iOS y Android,
@@ -39,10 +39,10 @@ const PoliticasCondiciones = () => {
           Electricautomaticchile. Además, acepta estar sujeto a la Política de
           Privacidad de la Compañía, a la que se puede acceder en{" "}
           <a
-            href="http://www.electricautomaticchile.cl/terminosycondiciones"
+            href="http://www.electricautomaticchile.com/terminosycondiciones"
             className="text-blue-500 underline"
           >
-            http://www.electricautomaticchile.cl/terminosycondiciones
+            http://www.electricautomaticchile.com/terminosycondiciones
           </a>
           .
         </p>
@@ -179,10 +179,10 @@ const PoliticasCondiciones = () => {
           asociados con ella. Para cerrar su Cuenta de Usuario, envíenos un
           correo electrónico a{" "}
           <a
-            href="mailto:Electricautomaticchile@gmail.com"
+            href="mailto:electricautomaticchile@gmail.com"
             className="text-blue-500 underline"
           >
-            Electricautomaticchile@gmail.com
+            electricautomaticchile@gmail.com
           </a>
           .
         </p>
@@ -388,10 +388,10 @@ const PoliticasCondiciones = () => {
         <p>
           Puede contactarnos por correo electrónico a{" "}
           <a
-            href="mailto:Electricautomaticchile@gmail.com"
+            href="mailto:electricautomaticchile@gmail.com"
             className="text-blue-500 underline"
           >
-            Electricautomaticchile@gmail.com
+            electricautomaticchile@gmail.com
           </a>
           .
         </p>
