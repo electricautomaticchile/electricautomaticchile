@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "./components-dashboard/nav-dash/nav-dash";
 import Header from "./components-dashboard/header/header";
 import EnergyMounth from "./components-dashboard/energy-mounth/energy-mounth";
@@ -18,6 +18,29 @@ import Devices from "./components-dashboard/devices/page"
 
 export default function Component() {
   const [activeComponent, setActiveComponent] = useState<string | null>(null);
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+
+    const handleActivity = () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        // Redirigir al login después de 1 minuto de inactividad
+        window.location.href = '/auth/login';
+      }, 60000); // 60000 ms = 1 minuto
+    };
+
+    // Escuchar eventos de actividad
+    window.addEventListener('mousemove', handleActivity);
+    window.addEventListener('keydown', handleActivity);
+
+    // Limpiar el evento al desmontar el componente
+    return () => {
+      clearTimeout(timeout);
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+    };
+  }, []);
 
   const renderActiveComponent = () => {
     switch (activeComponent) {
