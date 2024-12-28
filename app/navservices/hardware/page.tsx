@@ -6,7 +6,7 @@ export default function Component() {
   return (
     <Card className=" w-full max-w-2xl mb-32 mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold">Arduino en Medidores de Electricidad en Chile</CardTitle>
+        <CardTitle className="text-2xl font-bold">Dispositivos en Medidores de Electricidad en Chile</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
@@ -14,7 +14,7 @@ export default function Component() {
             <Zap className="h-6 w-6 text-yellow-500 mt-1" />
             <div>
               <h3 className="font-semibold">Medición de Consumo</h3>
-              <p className="text-sm text-muted-foreground">El Arduino mide el consumo eléctrico en tiempo real, registrando voltaje y corriente.</p>
+              <p className="text-sm text-muted-foreground">Mide el consumo eléctrico en tiempo real, registrando voltaje y corriente.</p>
             </div>
           </div>
 
@@ -43,7 +43,7 @@ export default function Component() {
           </div>
 
           <p className="text-sm text-muted-foreground mt-4">
-            En Chile, estos medidores inteligentes basados en Arduino ayudan a modernizar la red eléctrica,
+            En Chile, estos dispositivos inteligentes ayudan a modernizar la red eléctrica,
             permitiendo una gestión más eficiente de la energía y proporcionando a los usuarios un mejor
             control sobre su consumo eléctrico.
           </p>

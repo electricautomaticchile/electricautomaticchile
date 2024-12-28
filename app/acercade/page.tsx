@@ -96,7 +96,7 @@ export default function AcercaDePage() {
                   "Administración y programación de servicios",
                   "Monitoreo en tiempo real del consumo",
                   "Gestión automatizada de pagos y reconexiones",
-                  "Sistema de seguimiento GPS integrado",
+                  "Sistema de GPS integrado",
                   "Alertas y notificaciones instantáneas"
                 ].map((item, index) => (
                   <li key={index} className="flex items-center gap-2 ">

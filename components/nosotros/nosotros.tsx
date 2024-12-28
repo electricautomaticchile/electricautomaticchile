@@ -21,8 +21,8 @@ export default function Component() {
     <section className="container mx-auto px-4 py-16 md:py-24 flex flex-col md:flex-row items-center gap-8">
         <div className="flex-1">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            Con tu medidor bajo control tu servicio eléctrico
-            <span className="text-orange-500"> crece</span>
+            Con tu medidor bajo control tu consumo eléctrico
+            <span className="text-orange-500"> disminuye</span>
           </h1>
           <p className="text-gray-400 mb-8 text-lg">
             Automatiza la reposición del servicio y gestiona el consumo eléctrico con tecnología de punta
