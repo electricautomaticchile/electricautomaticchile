@@ -41,10 +41,6 @@ export default function Component() {
         <div className="grid gap-2">
           <h3 className="text-lg font-semibold">Contacto</h3>
           <div className="flex items-center gap-2">
-            <Phone color="#e66100" className="h-5 w-5 text-muted-foreground" />
-            <a href="tel:+56963567384">+56 (9) 6356-7384</a>
-          </div>
-          <div className="flex items-center gap-2">
             <Mail color="#e66100" className="h-5 w-5 text-muted-foreground" />
             <a href="mailito:Electricautomaticchile@gmail.com">
               Electricautomaticchile@gmail.com
