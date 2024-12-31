@@ -33,6 +33,8 @@ export default function Component() {
             src={test.src}
             alt="Dashboard de control eléctrico"
             className="rounded-lg shadow-2xl"
+            width={500}
+            height={300}
           />
         </div>
       </section>

@@ -1,6 +1,7 @@
 import { Target, Lightbulb, Users, Map, CheckCircle, BarChart, Telescope } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import Image from 'next/image';
+import cobertura from "@/public/corbetura.jpg"
 
 export default function AcercaDePage() {
   return (
@@ -149,7 +150,15 @@ export default function AcercaDePage() {
                   hogares con suministro eléctrico, estamos preparados para implementar nuestra 
                   tecnología donde sea necesario.
                 </p>
-            
+              </div>
+              <div className="flex justify-center">
+                <Image
+                  src={cobertura.src}
+                  alt="Imagen de cobertura nacional"
+                  className="w-full rounded-lg"
+                  width={500}
+                  height={300}
+                />
               </div>
             </div>
           </div>
