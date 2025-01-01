@@ -1,22 +1,29 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "../styles/globals.css";
 import Navbar from "@/components/navbar/navbar";
 import Footer from "@/components/footer/footer";
 import { Providers } from "./providers";
-
-
-
-
+import favicon from "@/app/favicon.ico"
 
 export const metadata: Metadata = {
   title: "Electricautomaticchile",
   description: "Automatización en electricidad",
+  icons: {},
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="es">
+      <link
+        rel="apple-touch-icon"
+        href={favicon.src}
+        type="image/png"
+        sizes="32x32"
+      />
       <body>
         <Providers>
           <Navbar />
