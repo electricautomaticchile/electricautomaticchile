@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import React, { useState } from 'react';
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -9,29 +9,37 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 export default function FormularioContacto() {
   const [enviando, setEnviando] = useState(false)
   const [exito, setExito] = useState(false)
+  const [nombre, setNombre] = useState('')
+  const [email, setEmail] = useState('')
+  const [mensaje, setMensaje] = useState('')
 
   const manejarEnvio = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setEnviando(true)
+    e.preventDefault();
+    setEnviando(true);
 
-    const formData = new FormData(e.currentTarget); // Captura los datos del formulario
-
-    // Validar el tamaño del archivo
-    const archivo = formData.get('file') as File;
-    if (archivo && archivo.size > 10 * 1024 * 1024) { // 10 MB
-        alert("El archivo debe ser menor de 10 MB.");
-        setEnviando(false);
-        return;
-    }
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      nombre,
+      email,
+      mensaje,
+      // archivo: formData.get('file'), // Si decides manejar el archivo
+    };
 
     // Enviar los datos a la API
-    await fetch('/api/enviarformulario', {
-        method: 'POST',
-        body: formData, // Enviar formData directamente
-    })
+    const response = await fetch('/api/envioformulario', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
 
-    setEnviando(false)
-    setExito(true)
+    if (!response.ok) {
+      alert("Error al enviar el formulario.");
+    }
+
+    setEnviando(false);
+    setExito(true);
   }
 
   return (
@@ -50,15 +58,15 @@ export default function FormularioContacto() {
         <form onSubmit={manejarEnvio} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Nombre</Label>
-            <Input id="name" placeholder="Ingresa tu nombre" />
+            <Input id="name" placeholder="Ingresa tu nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Correo electronico</Label>
-            <Input id="email" type="email" placeholder="Ingresa tu correo electronico" />
+            <Input id="email" type="email" placeholder="Ingresa tu correo electronico" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="message">Mensaje</Label>
-            <Textarea id="message" placeholder="Ingresa tu mensaje" className="min-h-[120px]" />
+            <Textarea id="message" placeholder="Ingresa tu mensaje" className="min-h-[120px]" value={mensaje} onChange={(e) => setMensaje(e.target.value)} required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="file">Archivo</Label>
