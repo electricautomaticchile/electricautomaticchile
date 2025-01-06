@@ -22,29 +22,29 @@ export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
 
-    // Validate the data (important to prevent bad data)
+    // Validar los datos
     if (!data.nombre || !data.email || !data.mensaje) {
       return NextResponse.json({ message: "Nombre, email y mensaje son requeridos." }, { status: 400 });
     }
 
-    // Connect to MongoDB
+    // Conectar a MongoDB
     await client.connect();
-    const db = client.db("historial"); // Replace with your database name
-    const collection = db.collection("formularios"); // Replace with your collection name
+    const db = client.db("historial"); // Reemplaza con tu nombre de base de datos
+    const collection = db.collection("formularios"); // Reemplaza con tu nombre de colección
 
-    // Insert the data into the collection
+    // Insertar los datos en la colección
     const result = await collection.insertOne({
       ...data,
-      fecha: new Date(), // Add a timestamp
+      fecha: new Date(), // Agregar una marca de tiempo
     });
 
-    // Send a successful response
+    // Respuesta exitosa
     return NextResponse.json({ message: "Formulario enviado exitosamente!", insertedId: result.insertedId }, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error al enviar el formulario:", error);
-    return NextResponse.json({ message: "Error al enviar el formulario." }, { status: 500 });
+    return NextResponse.json({ message: "Error al enviar el formulario: " + error.message }, { status: 500 }); // Detalle del error
   } finally {
-    // Ensures that the client will close when you finish/error
+    // Asegura que el cliente se cierre al finalizar/error
     await client.close();
   }
 }
