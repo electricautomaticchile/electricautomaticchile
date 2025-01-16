@@ -1,11 +1,5 @@
 "use client"
-
 import { useState } from 'react'
-
-// Function to update the state
-const handleSectionChange = (newSection) => {
-  setActiveSection(newSection);
-};
 import { FileText } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Sidebar } from "@/app/dashempresa/components/sidebar/sidebar"
@@ -31,14 +25,10 @@ export default function Dashboard() {
               Generar Reporte
             </Button>
           </div>
-
-       
-
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
             <SystemStatus />
             <RecentActivity />
           </div>
-
           <HourlyChart />
         </main>
       </div>
