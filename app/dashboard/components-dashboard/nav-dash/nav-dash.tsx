@@ -6,7 +6,6 @@ import Link from "next/link"
 interface NavbarProps {
   onComponentClick: (componentName: string | null) => void;
 }
-
 export default function Navbar({ onComponentClick }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -37,9 +36,11 @@ export default function Navbar({ onComponentClick }: NavbarProps) {
               <Package2 className="h-6 w-6 hidden lg:block" />
               <span className="">Dashboard</span>
             </Link>
-            <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
+            <Button variant="outline" size="icon" className="ml-auto h-8 w-8" onClick={() => {
+              alert("Se ha detectado una actividad en el dashboard");
+            }}>
               <Bell className="h-4 w-4" />
-              <span className="sr-only"></span>
+              <span className="sr-only">Notificaciones</span>
             </Button>
           </div>
           <div className={`flex-1 overflow-auto py-2 ${isMenuOpen ? 'block' : 'hidden'} lg:block`}>
