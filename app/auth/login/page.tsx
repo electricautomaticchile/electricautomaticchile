@@ -94,7 +94,7 @@ export default function Component() {
             </div>
           </div>
         </div>
-        <Link href="#" className="underline" prefetch={false}>
+        <Link href="/auth/recovery/" className="underline" prefetch={false}>
           <div className="text-center text-sm text-muted-foreground">
             ¿Olvidaste tu contraseña?{" "}
           </div>
