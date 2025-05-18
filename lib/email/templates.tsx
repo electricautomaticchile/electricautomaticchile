@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { IContactForm } from '../models/contacto-formulario';
+import Head from 'next/head';
+import Image from 'next/image';
 
 // Función para formatear el tipo de cotización
 const formatServicio = (servicio: string): string => {
@@ -291,7 +293,7 @@ interface UserRegistrationEmailProps {
 export function UserRegistrationEmail({ nombre, numeroCliente, correo, password }: UserRegistrationEmailProps) {
   return (
     <html>
-      <head>
+      <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <style dangerouslySetInnerHTML={{ __html: `
           body { 
@@ -360,14 +362,16 @@ export function UserRegistrationEmail({ nombre, numeroCliente, correo, password 
             color: #FB923C;
           }
         `}} />
-      </head>
+      </Head>
       <body>
         <div className="container">
           <div className="header">
-            <img 
+            <Image 
               src="https://electricautomaticchile.com/logo.png" 
-              alt="Electric Automatic Chile" 
-              className="logo" 
+              alt="Electric Automatic Chile"
+              className="logo"
+              width={200}
+              height={100}
             />
             <h1>¡Bienvenido a Electric Automatic Chile!</h1>
           </div>

@@ -692,4 +692,3 @@ export function SoporteTecnico({ reducida = false }: SoporteTecnicoProps) {
     </div>
   );
 }
-</code_block_to_apply_changes_from>
