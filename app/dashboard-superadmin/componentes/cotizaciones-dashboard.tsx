@@ -1,0 +1,739 @@
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle, XCircle, User, FileText, Send, Eye, Clock, FileCheck, UserPlus, ArrowRight, ExternalLink } from "lucide-react";
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import Link from 'next/link';
+import { RegistroClientes } from './registro-clientes';
+
+// Tipos para las cotizaciones
+type EstadoCotizacion = 'pendiente' | 'revisado' | 'cotizado' | 'aprobado' | 'rechazado';
+
+interface Cotizacion {
+  _id: string;
+  nombre: string;
+  email: string;
+  empresa?: string;
+  telefono?: string;
+  servicio: string;
+  plazo?: string;
+  mensaje: string;
+  archivo?: string;
+  estado: EstadoCotizacion;
+  fecha: string; // ISO date string
+  monto?: number;
+  comentarios?: string;
+}
+
+// Función para formatear el tipo de servicio
+const formatServicio = (servicio: string): string => {
+  if (servicio === 'cotizacion_reposicion') return 'Sistema de Reposición';
+  if (servicio === 'cotizacion_monitoreo') return 'Sistema de Monitoreo';
+  if (servicio === 'cotizacion_mantenimiento') return 'Mantenimiento';
+  if (servicio === 'cotizacion_completa') return 'Solución Integral';
+  return servicio.replace('cotizacion_', '').split('_').map(
+    word => word.charAt(0).toUpperCase() + word.slice(1)
+  ).join(' ');
+};
+
+// Componente para mostrar el estado de la cotización
+const EstadoBadge = ({ estado }: { estado: EstadoCotizacion }) => {
+  const getVariant = (): string => {
+    switch (estado) {
+      case 'pendiente': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'revisado': return 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'cotizado': return 'bg-purple-100 text-purple-800 border-purple-300';
+      case 'aprobado': return 'bg-green-100 text-green-800 border-green-300';
+      case 'rechazado': return 'bg-red-100 text-red-800 border-red-300';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
+  };
+
+  const getIcon = () => {
+    switch (estado) {
+      case 'pendiente': return <Clock className="h-3.5 w-3.5 mr-1" />;
+      case 'revisado': return <Eye className="h-3.5 w-3.5 mr-1" />;
+      case 'cotizado': return <FileText className="h-3.5 w-3.5 mr-1" />;
+      case 'aprobado': return <CheckCircle className="h-3.5 w-3.5 mr-1" />;
+      case 'rechazado': return <XCircle className="h-3.5 w-3.5 mr-1" />;
+      default: return null;
+    }
+  };
+
+  const getLabel = (): string => {
+    switch (estado) {
+      case 'pendiente': return 'Pendiente';
+      case 'revisado': return 'Revisado';
+      case 'cotizado': return 'Cotizado';
+      case 'aprobado': return 'Aprobado';
+      case 'rechazado': return 'Rechazado';
+      default: return estado;
+    }
+  };
+
+  return (
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getVariant()}`}>
+      {getIcon()}
+      {getLabel()}
+    </span>
+  );
+};
+
+interface CotizacionesDashboardProps {
+  reducida?: boolean;
+}
+
+export function CotizacionesDashboard({ reducida = false }: CotizacionesDashboardProps) {
+  // Estado para las cotizaciones
+  const [cotizaciones, setCotizaciones] = useState<Cotizacion[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [cotizacionSeleccionada, setCotizacionSeleccionada] = useState<Cotizacion | null>(null);
+  const [mostrarDetalles, setMostrarDetalles] = useState(false);
+  const [mostrarRegistroCliente, setMostrarRegistroCliente] = useState(false);
+  const [activeTab, setActiveTab] = useState("cotizaciones");
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [nuevoEstado, setNuevoEstado] = useState<EstadoCotizacion>("pendiente");
+  const [nuevoMonto, setNuevoMonto] = useState<string>('');
+  const [nuevosComentarios, setNuevosComentarios] = useState<string>('');
+  
+  // Cargar las cotizaciones desde la API
+  const cargarCotizaciones = async () => {
+    try {
+      setIsLoading(true);
+      setErrorMsg(null);
+      
+      const response = await fetch('/api/cotizaciones');
+      
+      if (!response.ok) {
+        throw new Error('Error al cargar las cotizaciones');
+      }
+      
+      const data = await response.json();
+      setCotizaciones(data.cotizaciones);
+    } catch (error) {
+      console.error('Error al cargar cotizaciones:', error);
+      setErrorMsg('Ocurrió un error al cargar las cotizaciones. Por favor, intente nuevamente.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Cargar las cotizaciones al montar el componente
+  useEffect(() => {
+    cargarCotizaciones();
+  }, []);
+  
+  // Actualizar el estado de una cotización
+  const actualizarCotizacion = async (id: string, estado: EstadoCotizacion, monto?: number, comentarios?: string) => {
+    try {
+      setIsUpdating(true);
+      setErrorMsg(null);
+      
+      const response = await fetch('/api/cotizaciones', {
+        method: 'PUT',
+        body: JSON.stringify({
+          id,
+          estado,
+          ...(monto && { monto }),
+          ...(comentarios && { comentarios })
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al actualizar la cotización');
+      }
+      
+      // Actualizar la cotización en el estado local
+      setCotizaciones(prevCotizaciones => 
+        prevCotizaciones.map(c => 
+          c._id === id 
+            ? { 
+                ...c, 
+                estado, 
+                ...(monto && { monto }),
+                ...(comentarios && { comentarios })
+              } 
+            : c
+        )
+      );
+      
+      // Si estamos actualizando la cotización seleccionada, actualizarla
+      if (cotizacionSeleccionada && cotizacionSeleccionada._id === id) {
+        setCotizacionSeleccionada({
+          ...cotizacionSeleccionada,
+          estado,
+          ...(monto && { monto }),
+          ...(comentarios && { comentarios })
+        });
+      }
+      
+      // Limpiar los campos del formulario
+      setNuevoEstado("pendiente");
+      setNuevoMonto('');
+      setNuevosComentarios('');
+      
+      // Cerrar el diálogo de detalles si está abierto
+      setMostrarDetalles(false);
+      
+    } catch (error) {
+      console.error('Error al actualizar cotización:', error);
+      setErrorMsg('Ocurrió un error al actualizar la cotización. Por favor, intente nuevamente.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+  
+  // Manejar el envío del formulario de actualización
+  const handleActualizarCotizacion = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!cotizacionSeleccionada || !nuevoEstado) {
+      return;
+    }
+    
+    const montoNumerico = nuevoMonto ? parseFloat(nuevoMonto) : undefined;
+    const comentarios = nuevosComentarios || undefined;
+    
+    actualizarCotizacion(
+      cotizacionSeleccionada._id, 
+      nuevoEstado as EstadoCotizacion,
+      montoNumerico,
+      comentarios
+    );
+  };
+  
+  // Obtener estadísticas de cotizaciones
+  const getEstadisticas = () => {
+    return {
+      total: cotizaciones.length,
+      pendientes: cotizaciones.filter(c => c.estado === 'pendiente').length,
+      aprobadas: cotizaciones.filter(c => c.estado === 'aprobado').length,
+      cotizadas: cotizaciones.filter(c => c.estado === 'cotizado').length,
+      urgentes: cotizaciones.filter(c => c.plazo === 'urgente').length
+    };
+  };
+  
+  const estadisticas = getEstadisticas();
+  
+  // Función para ver detalles de una cotización
+  const verDetalleCotizacion = (cotizacion: Cotizacion) => {
+    setCotizacionSeleccionada(cotizacion);
+    setMostrarDetalles(true);
+    
+    // Inicializar los campos de formulario con los valores actuales
+    setNuevoEstado(cotizacion.estado);
+    setNuevoMonto(cotizacion.monto?.toString() || '');
+    setNuevosComentarios(cotizacion.comentarios || '');
+  };
+  
+  // Función para registrar un cliente desde una cotización
+  const iniciarRegistroCliente = (cotizacion: Cotizacion) => {
+    setCotizacionSeleccionada(cotizacion);
+    setMostrarDetalles(false);
+    setMostrarRegistroCliente(true);
+    setActiveTab("registro");
+  };
+  
+  // Renderizar versión reducida para dashboard
+  if (reducida) {
+    // Mostrar solo las más recientes
+    const cotizacionesRecientes = cotizaciones.slice(0, 4);
+    
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-xl font-bold">Cotizaciones Recientes</CardTitle>
+              <CardDescription>Gestión de solicitudes de clientes</CardDescription>
+            </div>
+            <Link href="/dashboard-superadmin/cotizaciones">
+              <Button variant="ghost" size="sm" className="text-orange-600 hover:text-orange-700">
+                Ver todas <ArrowRight className="h-4 w-4 ml-1" />
+              </Button>
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="text-center py-6">Cargando cotizaciones...</div>
+          ) : (
+            <>
+              <div className="grid grid-cols-4 gap-3 mb-4">
+                <div className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-lg border border-orange-100 dark:border-orange-800/30">
+                  <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{estadisticas.total}</div>
+                  <div className="text-xs text-orange-800 dark:text-orange-300">Total cotizaciones</div>
+                </div>
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg border border-yellow-100 dark:border-yellow-800/30">
+                  <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{estadisticas.pendientes}</div>
+                  <div className="text-xs text-yellow-800 dark:text-yellow-300">Pendientes</div>
+                </div>
+                <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border border-purple-100 dark:border-purple-800/30">
+                  <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{estadisticas.cotizadas}</div>
+                  <div className="text-xs text-purple-800 dark:text-purple-300">Cotizadas</div>
+                </div>
+                <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-100 dark:border-green-800/30">
+                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">{estadisticas.aprobadas}</div>
+                  <div className="text-xs text-green-800 dark:text-green-300">Aprobadas</div>
+                </div>
+              </div>
+              
+              <div className="border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Cliente</TableHead>
+                      <TableHead>Servicio</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead className="text-right">Fecha</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {cotizacionesRecientes.map((cotizacion) => (
+                      <TableRow key={cotizacion._id}>
+                        <TableCell>
+                          <div className="font-medium">{cotizacion.nombre}</div>
+                          <div className="text-xs text-muted-foreground truncate max-w-[150px]">
+                            {cotizacion.email}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">{formatServicio(cotizacion.servicio)}</div>
+                        </TableCell>
+                        <TableCell>
+                          <EstadoBadge estado={cotizacion.estado} />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="text-sm">{format(new Date(cotizacion.fecha), 'dd MMM', { locale: es })}</div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  // Renderizar el diálogo de detalles de cotización
+  const renderDetallesCotizacion = () => {
+    if (!cotizacionSeleccionada) return null;
+    
+    return (
+      <Dialog open={mostrarDetalles} onOpenChange={setMostrarDetalles}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Detalles de Cotización</DialogTitle>
+            <DialogDescription>
+              Información completa de la solicitud de cotización
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Información del Cliente</h3>
+              <div className="mt-2 space-y-2">
+                <p><span className="font-semibold">Nombre:</span> {cotizacionSeleccionada.nombre}</p>
+                <p><span className="font-semibold">Email:</span> {cotizacionSeleccionada.email}</p>
+                {cotizacionSeleccionada.empresa && (
+                  <p><span className="font-semibold">Empresa:</span> {cotizacionSeleccionada.empresa}</p>
+                )}
+                {cotizacionSeleccionada.telefono && (
+                  <p><span className="font-semibold">Teléfono:</span> {cotizacionSeleccionada.telefono}</p>
+                )}
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Detalles de la Solicitud</h3>
+              <div className="mt-2 space-y-2">
+                <p>
+                  <span className="font-semibold">Servicio:</span> {formatServicio(cotizacionSeleccionada.servicio)}
+                </p>
+                {cotizacionSeleccionada.plazo && (
+                  <p>
+                    <span className="font-semibold">Plazo:</span> {cotizacionSeleccionada.plazo}
+                  </p>
+                )}
+                <p>
+                  <span className="font-semibold">Fecha:</span> {
+                    format(new Date(cotizacionSeleccionada.fecha), "dd 'de' MMMM 'de' yyyy, HH:mm", { locale: es })
+                  }
+                </p>
+                <p>
+                  <span className="font-semibold">Estado actual:</span> <EstadoBadge estado={cotizacionSeleccionada.estado} />
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mb-4">
+            <h3 className="text-sm font-medium text-gray-500">Mensaje</h3>
+            <div className="mt-2 p-3  rounded-md">
+              <p className="whitespace-pre-wrap">{cotizacionSeleccionada.mensaje}</p>
+            </div>
+          </div>
+          
+          {/* Formulario para actualizar la cotización */}
+          <form onSubmit={handleActualizarCotizacion} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="estado" className="block text-sm font-medium">
+                  Actualizar Estado
+                </label>
+                <select
+                  id="estado"
+                  value={nuevoEstado}
+                  onChange={(e) => setNuevoEstado(e.target.value as EstadoCotizacion)}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+                >
+                  <option value="" disabled>Seleccionar estado</option>
+                  <option value="pendiente">Pendiente</option>
+                  <option value="revisado">Revisado</option>
+                  <option value="cotizado">Cotizado</option>
+                  <option value="aprobado">Aprobado</option>
+                  <option value="rechazado">Rechazado</option>
+                </select>
+              </div>
+              
+              <div>
+                <label htmlFor="monto" className="block text-sm font-medium">
+                  Monto (opcional)
+                </label>
+                <input
+                  type="number"
+                  id="monto"
+                  value={nuevoMonto}
+                  onChange={(e) => setNuevoMonto(e.target.value)}
+                  placeholder="Ej: 1500000"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label htmlFor="comentarios" className="block text-sm font-medium">
+                Comentarios (opcional)
+              </label>
+              <textarea
+                id="comentarios"
+                value={nuevosComentarios}
+                onChange={(e) => setNuevosComentarios(e.target.value)}
+                rows={3}
+                placeholder="Detalles adicionales o comentarios sobre la cotización"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+              />
+            </div>
+            
+            {errorMsg && (
+              <div className="p-3 bg-red-50 text-red-700 rounded-md">
+                {errorMsg}
+              </div>
+            )}
+            
+            <DialogFooter>
+              <Button 
+                type="submit" 
+                disabled={isUpdating || !nuevoEstado}
+                className="bg-orange-600 hover:bg-orange-700"
+              >
+                {isUpdating ? 'Actualizando...' : 'Actualizar Cotización'}
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => cotizacionSeleccionada && iniciarRegistroCliente(cotizacionSeleccionada)}
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Registrar como Cliente
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+  
+  // Versión completa del componente
+  return (
+    <div className="space-y-4">
+      <Tabs defaultValue="cotizaciones" value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="cotizaciones" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Gestión de Cotizaciones
+          </TabsTrigger>
+          <TabsTrigger value="registro" className="flex items-center gap-2">
+            <UserPlus className="h-4 w-4" />
+            Registro de Clientes
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="cotizaciones" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold">Gestión de Cotizaciones</CardTitle>
+              <CardDescription>
+                Administre todas las solicitudes de cotización de sus clientes
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-5 gap-4 mb-6">
+                <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg border border-orange-100 dark:border-orange-800/30">
+                  <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">{estadisticas.total}</div>
+                  <div className="text-sm text-orange-800 dark:text-orange-300">Total cotizaciones</div>
+                </div>
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-100 dark:border-yellow-800/30">
+                  <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">{estadisticas.pendientes}</div>
+                  <div className="text-sm text-yellow-800 dark:text-yellow-300">Pendientes</div>
+                </div>
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800/30">
+                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                    {cotizaciones.filter(c => c.estado === 'revisado').length}
+                  </div>
+                  <div className="text-sm text-blue-800 dark:text-blue-300">Revisadas</div>
+                </div>
+                <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg border border-purple-100 dark:border-purple-800/30">
+                  <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">{estadisticas.cotizadas}</div>
+                  <div className="text-sm text-purple-800 dark:text-purple-300">Cotizadas</div>
+                </div>
+                <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-100 dark:border-green-800/30">
+                  <div className="text-3xl font-bold text-green-600 dark:text-green-400">{estadisticas.aprobadas}</div>
+                  <div className="text-sm text-green-800 dark:text-green-300">Aprobadas</div>
+                </div>
+              </div>
+              
+              {isLoading ? (
+                <div className="text-center py-10">Cargando cotizaciones...</div>
+              ) : (
+                <div className="border rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Cliente</TableHead>
+                        <TableHead>Servicio</TableHead>
+                        <TableHead>Fecha</TableHead>
+                        <TableHead>Estado</TableHead>
+                        <TableHead className="text-right">Acciones</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {cotizaciones.map((cotizacion) => (
+                        <TableRow key={cotizacion._id}>
+                          <TableCell>
+                            <div className="font-medium">{cotizacion.nombre}</div>
+                            <div className="text-sm text-muted-foreground">{cotizacion.email}</div>
+                          </TableCell>
+                          <TableCell>{formatServicio(cotizacion.servicio)}</TableCell>
+                          <TableCell>
+                            {format(new Date(cotizacion.fecha), 'dd MMM yyyy', { locale: es })}
+                          </TableCell>
+                          <TableCell>
+                            <EstadoBadge estado={cotizacion.estado} />
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button variant="ghost" size="sm" onClick={() => verDetalleCotizacion(cotizacion)}>
+                                <Eye className="h-4 w-4" />
+                                <span className="sr-only">Ver</span>
+                              </Button>
+                              
+                              {(cotizacion.estado === 'aprobado' || cotizacion.estado === 'cotizado') && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="text-orange-600 hover:text-orange-700"
+                                  onClick={() => iniciarRegistroCliente(cotizacion)}
+                                >
+                                  <UserPlus className="h-4 w-4" />
+                                  <span className="sr-only">Registrar Cliente</span>
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="registro" className="mt-6">
+          {cotizacionSeleccionada && mostrarRegistroCliente ? (
+            <div>
+              <Card className="mb-4">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-xl font-bold">Registro desde Cotización Aprobada</CardTitle>
+                      <CardDescription>Creando un nuevo cliente basado en la cotización #{cotizacionSeleccionada._id}</CardDescription>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => setActiveTab("cotizaciones")}>
+                      Volver a Cotizaciones
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-orange-50 border border-orange-200 rounded-md p-3 mb-4">
+                    <div className="flex items-start gap-3">
+                      <FileCheck className="h-5 w-5 text-orange-600 mt-0.5" />
+                      <div>
+                        <h3 className="font-medium text-orange-800">Detalles de la cotización aprobada</h3>
+                        <dl className="grid grid-cols-2 gap-2 mt-2 text-sm">
+                          <div>
+                            <dt className="text-gray-500">Cliente:</dt>
+                            <dd className="font-medium">{cotizacionSeleccionada.nombre}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-gray-500">Email:</dt>
+                            <dd>{cotizacionSeleccionada.email}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-gray-500">Teléfono:</dt>
+                            <dd>{cotizacionSeleccionada.telefono || 'No especificado'}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-gray-500">Empresa:</dt>
+                            <dd>{cotizacionSeleccionada.empresa || 'No especificada'}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-gray-500">Servicio:</dt>
+                            <dd>{formatServicio(cotizacionSeleccionada.servicio)}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-gray-500">Monto:</dt>
+                            <dd className="font-medium">${cotizacionSeleccionada.monto?.toLocaleString('es-CL') || 'No definido'}</dd>
+                          </div>
+                        </dl>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <RegistroClientes 
+                cotizacionInicial={{
+                  nombre: cotizacionSeleccionada.nombre,
+                  correo: cotizacionSeleccionada.email,
+                  telefono: cotizacionSeleccionada.telefono || '',
+                  empresa: cotizacionSeleccionada.empresa || '',
+                  montoMensual: cotizacionSeleccionada.monto || 0,
+                  planSugerido: 
+                    cotizacionSeleccionada.servicio === 'cotizacion_reposicion' ? 'estandar' : 
+                    cotizacionSeleccionada.servicio === 'cotizacion_monitoreo' ? 'basico' : 
+                    cotizacionSeleccionada.servicio === 'cotizacion_completa' ? 'premium' : 'basico'
+                }}
+                onComplete={() => {
+                  setActiveTab("cotizaciones");
+                  setMostrarRegistroCliente(false);
+                  setCotizacionSeleccionada(null);
+                }}
+              />
+            </div>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold">Registro de Clientes</CardTitle>
+                <CardDescription>
+                  Registre nuevos clientes en el sistema
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <UserPlus className="h-10 w-10 mx-auto text-gray-400 mb-3" />
+                  <h3 className="text-lg font-medium mb-2">Registrar un nuevo cliente</h3>
+                  <p className="text-gray-500 mb-4 max-w-md mx-auto">
+                    Puede crear un cliente desde cero o seleccionar una cotización aprobada para completar el registro automáticamente.
+                  </p>
+                  <div className="flex justify-center gap-4">
+                    <Button variant="outline" onClick={() => setActiveTab("cotizaciones")}>
+                      Seleccionar una cotización
+                    </Button>
+                    <Button className="bg-orange-600 hover:bg-orange-700" onClick={() => setMostrarRegistroCliente(true)}>
+                      Crear cliente desde cero
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
+          {mostrarRegistroCliente && !cotizacionSeleccionada && <RegistroClientes />}
+        </TabsContent>
+      </Tabs>
+      
+      {/* Diálogo de detalles */}
+      {renderDetallesCotizacion()}
+      
+      {/* Modal de registro de cliente */}
+      <Dialog open={mostrarRegistroCliente} onOpenChange={setMostrarRegistroCliente}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Registrar Nuevo Cliente</DialogTitle>
+            <DialogDescription>
+              Complete los datos para registrar un nuevo cliente desde esta cotización
+            </DialogDescription>
+          </DialogHeader>
+          
+          {cotizacionSeleccionada && (
+            <RegistroClientes 
+              cotizacionInicial={{
+                nombre: cotizacionSeleccionada.nombre,
+                correo: cotizacionSeleccionada.email,
+                telefono: cotizacionSeleccionada.telefono || '',
+                empresa: cotizacionSeleccionada.empresa,
+                montoMensual: cotizacionSeleccionada.monto || 0,
+                planSugerido: cotizacionSeleccionada.servicio === 'cotizacion_completa' ? 'premium' : 'basico'
+              }}
+              onComplete={() => {
+                setMostrarRegistroCliente(false);
+                // Actualizar cotización a estado "aprobado" después de registrar cliente
+                actualizarCotizacion(cotizacionSeleccionada._id, 'aprobado');
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+} 
