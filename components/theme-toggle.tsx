@@ -1,57 +1,39 @@
 "use client"
 
 import * as React from "react"
-import { Moon, MoonIcon, Sun } from "lucide-react"
-import { useTheme } from "next-themes"
-
+import { Moon, Sun } from "lucide-react"
+import { useAppContext } from "@/lib/context/AppContext"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 export function ThemeToggle() {
-  const { setTheme, theme } = useTheme()
-  const availableThemes = ["blanco", "oscuro"]
-  const [mounted, setMounted] = React.useState(false)
-
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  React.useEffect(() => {
-    if (mounted && !theme) {
-      setTheme("oscuro")
-    }
-  }, [mounted, theme, setTheme])
-
-  if (!mounted) return null
+  const { isDarkMode, toggleDarkMode } = useAppContext()
+  
+  // Función de manejo de clic con prevención de doble clic
+  const handleToggle = React.useCallback(() => {
+    toggleDarkMode();
+    console.log("Tema cambiado, ahora isDarkMode:", !isDarkMode);
+  }, [isDarkMode, toggleDarkMode]);
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon" onClick={() => setTheme(theme === "oscuro" ? "blanco" : "oscuro")}>
-          {theme === "oscuro" ? (
-            <Sun className="h-[1.2rem] w-[1.2rem] transition-all" />
-          ) : (
-            <Moon className="h-[1.2rem] w-[1.2rem] transition-all" />
-          )}
-          <span className="sr-only">Toggle theme</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {availableThemes.map(theme => (
-          <DropdownMenuItem key={theme} onClick={() => setTheme(theme)}>
-            {theme === "oscuro" ? (
-              <Moon className="h-[1.2rem] w-[1.2rem] transition-all" />
-            ) : (
-              <Sun className="h-[1.2rem] w-[1.2rem] transition-all" />
-            )}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Button 
+      variant="outline" 
+      size="icon" 
+      onClick={handleToggle}
+      title={`Cambiar a modo ${isDarkMode ? 'claro' : 'oscuro'}`}
+      className="transition-all duration-200 relative"
+      aria-label="Toggle theme"
+    >
+      <Sun 
+        className={`h-[1.2rem] w-[1.2rem] text-orange-300 absolute transition-all duration-300 ${
+          isDarkMode ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+        }`} 
+      />
+      <Moon 
+        className={`h-[1.2rem] w-[1.2rem]  absolute transition-all duration-300 ${
+          isDarkMode ? 'opacity-0 scale-75' : 'opacity-100 scale-100'
+        }`} 
+      />
+      <span className="sr-only">Cambiar tema</span>
+    </Button>
   )
 }
