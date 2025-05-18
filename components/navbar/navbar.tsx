@@ -10,171 +10,133 @@ import  {ThemeToggle}  from "@/components/theme-toggle"
 import Image from "next/image";
 import icon from "@/public/android-chrome-512x512.png"
 import { signOut, useSession } from "next-auth/react"
-
+import { useEffect, useState } from "react"
 
 export default function Component() {
   const { data: session } = useSession()
+  const [scrolled, setScrolled] = useState(false)
+
+  // Efecto para detectar scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const offset = window.scrollY
+      if (offset > 50) {
+        setScrolled(true)
+      } else {
+        setScrolled(false)
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [])
 
   return (
     //Diseño dispositos moviles//
-    <header className="flex h-20 w-full shrink-0 items-center px-4 md:px-20">
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="outline" size="icon" className="lg:hidden">
-            <Menu  color="#e66100"/>
-            <span className="sr-only">Toggle navigation menu</span>
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left">
-          <Link href="/" className="flex flex-col items-center gap-2">
+    <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+      scrolled ? "bg-background/90 backdrop-blur-md shadow-md" : "bg-background"
+    }`}>
+      <div className="flex h-20 w-full shrink-0 items-center px-4 md:px-20">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="icon" className="lg:hidden">
+              <Menu color="#e66100"/>
+              <span className="sr-only">Toggle navigation menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left">
+            <Link href="/" className="flex flex-col items-center gap-2">
+              <Image
+                src={icon}
+                className="h-20 w-20 transition-transform duration-300 hover:scale-105"
+                alt="Electricautomaticchile logo"
+              />
+              <span className="text-lg font-semibold">Electricautomaticchile</span>
+            </Link>
+            <div className="grid gap-4 py-6">
+              <Link href="/" className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-orange-500" prefetch={false}>
+                Inicio
+              </Link>
+              <Link href="/acercade" className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-orange-500" prefetch={false}>
+                Nosotros
+              </Link>
+              <Link href="/navservices" className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-orange-500" prefetch={false}>
+                Servicios
+              </Link>
+              <Link href="/formulario" className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-orange-500" prefetch={false}>
+                Contacto
+              </Link>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        <div className="w-[400px]">
+          <Link href="/" className="items-center gap-2 mr-6 hidden lg:flex transition-transform duration-300 hover:scale-105" prefetch={false}>
             <Image
               src={icon}
-              className="h-20s w-20"
-              alt="alt"
+              className="h-14 w-14"
+              alt="Electricautomaticchile logo"
             />
             <span className="text-lg font-semibold">Electricautomaticchile</span>
           </Link>
-          <div className="grid gap-4 py-6">
-            <Link href="/" className="flex w-full items-center py-2 text-lg font-semibold" prefetch={false}>
-              Inicio
-            </Link>
-            <Link href="/acercade" className="flex w-full items-center py-2 text-lg font-semibold" prefetch={false}>
-              Nosotros
-            </Link>
-            <Collapsible className="grid gap-4">
-              <CollapsibleTrigger className="flex w-full items-center text-lg font-semibold [&[data-state=open]>svg]:rotate-90">
-                Servicios <ChevronRight color="#e66100" className="ml-auto h-5 w-5 transition-all" />
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className="-mx-6 grid gap-6  p-6">
-                  <Link href="/navservices/consumo" className="group grid h-auto w-full justify-start gap-1" prefetch={false}>
-                    <div className="text-sm font-medium leading-none">Control de Consumo</div>
-                    <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                    Optimiza y reduce tu consumo energético con nuestras soluciones inteligentes.
-                    </div>
-                  </Link>
-                  <Link href="/navservices/reposicion" className="group grid h-auto w-full justify-start gap-1" prefetch={false}>
-                    <div className="text-sm font-medium leading-none">Reposición automatizada</div>
-                    <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                    Reposiciona el servicio del suministro electrico a distancia mediante nuestra plataforma web y movil.
-                    </div>
-                  </Link>
-                  <Link href="/navservices/hardware" className="group grid h-auto w-full justify-start gap-1" prefetch={false}>
-                    <div className="text-sm font-medium leading-none">Integración en tableros y equipos</div>
-                    <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                    Implementar monitorio con un minimo impacto y bajo costo de mantenimiento.
-                    </div>
-                  </Link>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-            <Link href="/formulario" className="flex w-full items-center py-2 text-lg font-semibold" prefetch={false}>
-              Contacto
-            </Link>
-          </div>
-        </SheetContent>
-      </Sheet>
+        </div>
+        <NavigationMenu className="hidden lg:flex">
+          <NavigationMenuList>
+            <NavigationMenuLink asChild>
+              <Link
+                href="/"
+                className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+                prefetch={false}
+              >
+                Inicio
+              </Link>
+            </NavigationMenuLink>
+            <NavigationMenuLink asChild>
+              <Link
+                href="/acercade"
+                className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+                prefetch={false}
+              >
+                Nosotros
+              </Link>
+            </NavigationMenuLink>
+            <NavigationMenuLink asChild>
+              <Link
+                href="/navservices"
+                className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+                prefetch={false}
+              >
+                Servicios
+              </Link>
+            </NavigationMenuLink>
+            <NavigationMenuLink asChild>
+              <Link
+                href="/formulario"
+                className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+                prefetch={false}
+              >
+                Contacto
+              </Link>
+            </NavigationMenuLink>
+          </NavigationMenuList>
+        </NavigationMenu>
 
-      <div className="w-[400px]">
-        <Link href="/" className="items-center gap-2 mr-6 hidden lg:flex" prefetch={false}>
-          <Image
-          src={icon}
-          className="h-50 w-40"
-          alt="Lol"
-          />
-          <span className="text-lg font-semibold">Electricautomaticchile</span>
-        </Link>
+        <div className="ml-auto flex gap-2">
+          {session ? (
+            <Button className="transition-all duration-200 hover:bg-orange-600" onClick={() => signOut()}>
+              Cerrar sesión
+            </Button>
+          ) : (
+            <Link href="/auth/login">
+              <Button className="transition-all duration-200 hover:bg-orange-600">Iniciar sesión</Button>
+            </Link>
+          )}
+          <ThemeToggle/>
+        </div>
+
       </div>
-      <NavigationMenu className="hidden lg:flex">
-        <NavigationMenuList>
-          <NavigationMenuLink asChild>
-            <Link
-              href="/"
-              className="group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity- data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
-              prefetch={false}
-            >
-              Inicio
-            </Link>
-          </NavigationMenuLink>
-          <NavigationMenuLink asChild>
-            <Link
-              href="/acercade"
-              className="group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
-              prefetch={false}
-            >
-              Nosotros
-            </Link>
-          </NavigationMenuLink>
-          <NavigationMenuItem>
-            <NavigationMenuTrigger className="focus:bg-orange-600">Servicios</NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <div className="grid w-[400px] p-2">
-                <NavigationMenuLink asChild>
-                  <Link
-                    href="/navservices/consumo"
-                    className="group grid h-auto w-full items-center justify-start gap-1 rounded-md bg-background p-4 text-sm font-medium transition-colors focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
-                    prefetch={false}
-                  >
-                    <div className="text-sm font-medium leading-none">Control de Consumo</div>
-                    <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                      Optimiza y reduce tu consumo energético con nuestras soluciones inteligentes.
-                    </div>
-                  </Link>
-                </NavigationMenuLink>
-                <NavigationMenuLink asChild>
-                  <Link
-                    href="/navservices/reposicion"
-                    className="group grid h-auto w-full items-center justify-start gap-1 rounded-md bg-background p-4 text-sm font-medium transition-colors focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
-                    prefetch={false}
-                  >
-                    <div className="text-sm font-medium leading-none">Reposición automatizada</div>
-                    <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                      Reposiciona el servicio del suministro electrico a distancia mediante nuestra plataforma web y movil.
-                    </div>
-                  </Link>
-                </NavigationMenuLink>
-                <NavigationMenuLink asChild>
-                  <Link
-                    href="/navservices/hardware"
-                    className="group grid h-auto w-full items-center justify-start gap-1 rounded-md bg-background p-4 text-sm font-medium transition-colors focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
-                    prefetch={false}
-                  >
-                    <div className="text-sm font-medium leading-none">Integración en tableros y equipos</div>
-                    <div className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                      Implementar monitorio con un minimo impacto y bajo costo de mantenimiento.
-                    </div>
-                  </Link>
-                </NavigationMenuLink>
-              </div>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
-          <NavigationMenuLink asChild>
-            <Link
-              href="/formulario"
-              className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
-              prefetch={false}
-            >
-              Contacto
-            </Link>
-          </NavigationMenuLink>
-        </NavigationMenuList>
-      </NavigationMenu>
-
-      <div className="ml-auto flex gap-2">
-        {session ? (
-          <Button onClick={() => signOut()}>
-            Cerrar sesión
-          </Button>
-        ) : (
-          <Link href="/auth/login">
-            <Button>Iniciar sesión</Button>
-          </Link>
-        )}
-        <ThemeToggle/>
-      </div>{" "}
-
-
     </header>
-
   )
 }
