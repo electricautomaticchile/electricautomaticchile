@@ -1,6 +1,7 @@
 import { MongoClient, ServerApiVersion } from "mongodb"
 
-const uri = "mongodb+srv://pipeaalzamora:Oeb67DAExUssGzW5@historial.0kbaq.mongodb.net/?retryWrites=true&w=majority&appName=historial"
+// Utilizar variables de entorno para las credenciales
+const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/electricautomaticchile";
 const options = {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -9,6 +10,11 @@ const options = {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   }
+}
+
+// Validar que la URI de MongoDB está configurada
+if (!process.env.MONGODB_URI) {
+  console.warn("La variable de entorno MONGODB_URI no está configurada. Usando URI local por defecto.");
 }
 
 let client
