@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import clientPromise from '@/lib/mongodb';
-import mongoose from 'mongoose';
+import connectToDatabase from '@/lib/db/mongodb';
 import { ContactoFormulario } from '@/lib/models/contacto-formulario';
 
 // Marcar explícitamente como ruta dinámica
@@ -8,8 +7,8 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    // Conectar a MongoDB
-    await mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/electricautomaticchile");
+    // Usar la conexión persistente
+    await connectToDatabase();
     
     // Obtener parámetro seguro para exportación estática
     const estado = request.nextUrl ? request.nextUrl.searchParams.get('estado') : null;
@@ -34,11 +33,6 @@ export async function GET(request: NextRequest) {
       message: "Error al obtener cotizaciones",
       error: error.message 
     }, { status: 500 });
-  } finally {
-    // Cerrar conexión
-    if (mongoose.connection.readyState === 1) {
-      await mongoose.disconnect();
-    }
   }
 }
 
@@ -62,8 +56,8 @@ export async function PUT(request: NextRequest) {
       }, { status: 400 });
     }
     
-    // Conectar a MongoDB
-    await mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/electricautomaticchile");
+    // Usar la conexión persistente
+    await connectToDatabase();
     
     // Actualizar cotización
     const resultado = await ContactoFormulario.findByIdAndUpdate(
@@ -94,10 +88,5 @@ export async function PUT(request: NextRequest) {
       message: "Error al actualizar cotización",
       error: error.message 
     }, { status: 500 });
-  } finally {
-    // Cerrar conexión
-    if (mongoose.connection.readyState === 1) {
-      await mongoose.disconnect();
-    }
   }
 } 

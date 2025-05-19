@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import clientPromise from '@/lib/mongodb';
+import connectToDatabase from '@/lib/db/mongodb';
+import mongoose from 'mongoose';
 
 // Marcar explícitamente como ruta dinámica para evitar renderizado estático
 export const dynamic = 'force-dynamic';
@@ -7,9 +8,17 @@ export const dynamic = 'force-dynamic';
 // Función para manejar todas las notificaciones
 export async function GET(request: NextRequest) {
   try {
-    // Conectar a la base de datos
-    const db = await clientPromise;
-    const notificacionesCollection = db.db("electricautomaticchile").collection("notificaciones");
+    // Conectar a la base de datos usando la conexión persistente
+    await connectToDatabase();
+    
+    // Verificar que la conexión esté establecida
+    if (!mongoose.connection || !mongoose.connection.db) {
+      throw new Error("No se pudo establecer conexión con la base de datos");
+    }
+    
+    // Usar directamente mongoose
+    const db = mongoose.connection.db;
+    const notificacionesCollection = db.collection("notificaciones");
     
     // Obtener filtro desde la URL, pero de forma segura para exportación estática
     // En lugar de crear una URL del request, obtenemos el parámetro directamente

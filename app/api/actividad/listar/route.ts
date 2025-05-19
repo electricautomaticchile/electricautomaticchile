@@ -1,14 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import clientPromise from '@/lib/mongodb';
+import connectToDatabase from '@/lib/db/mongodb';
+import mongoose from 'mongoose';
 
 // Marcar explícitamente como ruta dinámica
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    // Conectar a la base de datos
-    const db = await clientPromise;
-    const actividadesCollection = db.db("electricautomaticchile").collection("actividades");
+    // Conectar a la base de datos usando la conexión persistente
+    await connectToDatabase();
+    
+    // Verificar que la conexión esté establecida
+    if (!mongoose.connection || !mongoose.connection.db) {
+      throw new Error("No se pudo establecer conexión con la base de datos");
+    }
+    
+    // Usar directamente mongoose
+    const db = mongoose.connection.db;
+    const actividadesCollection = db.collection("actividades");
     
     // Obtener parámetros directamente de nextUrl (forma segura)
     const { searchParams } = request.nextUrl || { searchParams: new URLSearchParams() };
