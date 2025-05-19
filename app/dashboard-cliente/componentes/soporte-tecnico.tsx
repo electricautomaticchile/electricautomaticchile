@@ -447,12 +447,10 @@ export function SoporteTecnico({ reducida = false }: SoporteTecnicoProps) {
                           />
                         </div>
                         <div className="flex justify-end gap-2">
-                          {ticket.estado !== 'resuelto' && (
-                            <Button variant="outline" type="button" className="flex items-center gap-1">
-                              <CheckCircle2 className="h-4 w-4" />
-                              Marcar como resuelto
-                            </Button>
-                          )}
+                          <Button variant="outline" type="button" className="flex items-center gap-1">
+                            <CheckCircle2 className="h-4 w-4" />
+                            Marcar como resuelto
+                          </Button>
                           <Button type="submit" disabled={!nuevoMensaje.trim()}>Enviar respuesta</Button>
                         </div>
                       </form>
