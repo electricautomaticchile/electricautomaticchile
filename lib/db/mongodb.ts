@@ -31,8 +31,6 @@ export async function connectToDatabase() {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
       ssl: true,
       tls: true,
       tlsAllowInvalidCertificates: false,

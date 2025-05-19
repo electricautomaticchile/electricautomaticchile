@@ -12,8 +12,6 @@ const options = {
   tls: true,
   tlsAllowInvalidCertificates: false,
   tlsAllowInvalidHostnames: false,
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
   connectTimeoutMS: 30000,
   socketTimeoutMS: 45000
 }
