@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 
+// Marcar explícitamente como ruta dinámica para evitar renderizado estático
+export const dynamic = 'force-dynamic';
+
 // Función para manejar todas las notificaciones
 export async function GET(request: NextRequest) {
   try {
@@ -8,10 +11,9 @@ export async function GET(request: NextRequest) {
     const db = await clientPromise;
     const notificacionesCollection = db.db("electricautomaticchile").collection("notificaciones");
     
-    // Usar URL para obtener parámetros
-    // En lugar de usar nextUrl.searchParams, usamos un enfoque estático
-    const url = new URL(request.url);
-    const filtro = url.searchParams.get("filtro") || "todas";
+    // Obtener filtro desde la URL, pero de forma segura para exportación estática
+    // En lugar de crear una URL del request, obtenemos el parámetro directamente
+    const filtro = request.nextUrl ? request.nextUrl.searchParams.get("filtro") || "todas" : "todas";
     
     // Construir el query
     let query: any = {};

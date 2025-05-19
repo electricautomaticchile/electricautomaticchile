@@ -3,14 +3,16 @@ import clientPromise from '@/lib/mongodb';
 import mongoose from 'mongoose';
 import { ContactoFormulario } from '@/lib/models/contacto-formulario';
 
+// Marcar explícitamente como ruta dinámica
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     // Conectar a MongoDB
     await mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/electricautomaticchile");
     
-    // Usar URL para obtener parámetros estáticamente
-    const url = new URL(request.url);
-    const estado = url.searchParams.get('estado');
+    // Obtener parámetro seguro para exportación estática
+    const estado = request.nextUrl ? request.nextUrl.searchParams.get('estado') : null;
     
     // Construir filtro
     let filter: any = {};
