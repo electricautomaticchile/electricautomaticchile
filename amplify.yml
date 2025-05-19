@@ -13,6 +13,12 @@ frontend:
     baseDirectory: .next
     files:
       - '**/*'
+  # Configuración específica para SSR de Next.js
+  customHeaders:
+    - pattern: '**/*'
+      headers:
+        - key: 'Cache-Control'
+          value: 'public, max-age=0, must-revalidate'
   cache:
     paths:
       - node_modules/**/* 
