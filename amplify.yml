@@ -3,12 +3,12 @@ frontend:
   phases:
     preBuild:
       commands:
-        - node -v
-        - npm -v
         - npm install
+        - cat .env.build >> .env.production
     build:
       commands:
-        - npm run amplify:build
+        -  env | grep -e AUTH_GOOGLE_ID -e AUTH_GOOGLE_SECRET -e AUTH_SECRET -e MONGODB_URI -e NEXTAUTH_URL -e RESEND_API_KEY -e EMAIL_FROM -e EMAIL_TO  >> .env.production
+        - npm run build
   artifacts:
     baseDirectory: .next
     files:
@@ -19,8 +19,13 @@ frontend:
       headers:
         - key: 'Cache-Control'
           value: 'public, max-age=0, must-revalidate'
+  # Configuración de timeout para SSR
+  serverConfig:
+    timeoutsInSeconds:
+      default: 30
   buildPath: /
   appRoot: /
   cache:
     paths:
+      - .next/cache/**/*
       - node_modules/**/* 

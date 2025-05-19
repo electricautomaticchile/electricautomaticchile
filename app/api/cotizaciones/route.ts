@@ -1,17 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/db/mongodb';
 import { ContactoFormulario } from '@/lib/models/contacto-formulario';
+import { apiLogger } from '@/lib/logger';
 
 // Marcar explícitamente como ruta dinámica
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  const startTime = Date.now();
+  apiLogger.info('Iniciando solicitud GET /api/cotizaciones');
+  
   try {
     // Usar la conexión persistente
+    apiLogger.debug('Conectando a la base de datos...');
     await connectToDatabase();
     
     // Obtener parámetro seguro para exportación estática
     const estado = request.nextUrl ? request.nextUrl.searchParams.get('estado') : null;
+    apiLogger.debug('Parámetro de filtro:', { estado });
     
     // Construir filtro
     let filter: any = {};
@@ -20,14 +26,19 @@ export async function GET(request: NextRequest) {
     }
     
     // Consultar cotizaciones
+    apiLogger.debug('Ejecutando consulta a la colección cotizaciones...');
     const cotizaciones = await ContactoFormulario.find(filter)
       .sort({ fecha: -1 }) // Ordenar por fecha descendente (más recientes primero)
       .lean();
+    
+    const responseTime = Date.now() - startTime;
+    apiLogger.info(`Consulta completada en ${responseTime}ms - Resultados: ${cotizaciones.length}`);
       
     return NextResponse.json({ cotizaciones }, { status: 200 });
     
   } catch (error: any) {
-    console.error('Error al obtener cotizaciones:', error);
+    const responseTime = Date.now() - startTime;
+    apiLogger.error(`Error al obtener cotizaciones (${responseTime}ms):`, error);
     
     return NextResponse.json({ 
       message: "Error al obtener cotizaciones",
