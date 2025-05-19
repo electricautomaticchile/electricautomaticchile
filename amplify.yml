@@ -8,7 +8,7 @@ frontend:
         - npm install
     build:
       commands:
-        - npm run build
+        - npm run amplify:build
   artifacts:
     baseDirectory: .next
     files:
@@ -19,6 +19,8 @@ frontend:
       headers:
         - key: 'Cache-Control'
           value: 'public, max-age=0, must-revalidate'
+  buildPath: /
+  appRoot: /
   cache:
     paths:
       - node_modules/**/* 

@@ -5,7 +5,12 @@ const nextConfig = {
   },
   // Desactivar la exportación estática
   output: 'standalone',
-  // Configuración específica para Amplify
+  // Forzar el modo SSR para las API routes
+  experimental: {
+    serverComponentsExternalPackages: ['mongoose', 'mongodb'],
+    esmExternals: 'loose',
+  },
+  // Generar ID único para cada build
   generateBuildId: async () => {
     return 'build-id-' + Date.now()
   }
