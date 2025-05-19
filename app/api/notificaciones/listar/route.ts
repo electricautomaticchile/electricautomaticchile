@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 
+// Función para manejar todas las notificaciones
 export async function GET(request: NextRequest) {
   try {
     // Conectar a la base de datos
     const db = await clientPromise;
     const notificacionesCollection = db.db("electricautomaticchile").collection("notificaciones");
     
-    // Obtener parámetros de consulta
-    const searchParams = request.nextUrl.searchParams;
-    const filtro = searchParams.get("filtro") || "todas";
+    // Usar URL para obtener parámetros
+    // En lugar de usar nextUrl.searchParams, usamos un enfoque estático
+    const url = new URL(request.url);
+    const filtro = url.searchParams.get("filtro") || "todas";
     
     // Construir el query
     let query: any = {};

@@ -8,9 +8,9 @@ export async function GET(request: NextRequest) {
     // Conectar a MongoDB
     await mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/electricautomaticchile");
     
-    // Obtener parámetros de consulta (para filtrado futuro)
-    const searchParams = request.nextUrl.searchParams;
-    const estado = searchParams.get('estado');
+    // Usar URL para obtener parámetros estáticamente
+    const url = new URL(request.url);
+    const estado = url.searchParams.get('estado');
     
     // Construir filtro
     let filter: any = {};

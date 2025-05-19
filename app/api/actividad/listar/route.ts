@@ -7,12 +7,12 @@ export async function GET(request: NextRequest) {
     const db = await clientPromise;
     const actividadesCollection = db.db("electricautomaticchile").collection("actividades");
     
-    // Obtener parámetros de consulta
-    const searchParams = request.nextUrl.searchParams;
-    const limite = parseInt(searchParams.get("limite") || "50");
-    const severidad = searchParams.get("severidad");
-    const resultado = searchParams.get("resultado");
-    const busqueda = searchParams.get("busqueda");
+    // Obtener parámetros usando URL directamente (compatible con exportación estática)
+    const url = new URL(request.url);
+    const limite = parseInt(url.searchParams.get("limite") || "50");
+    const severidad = url.searchParams.get("severidad");
+    const resultado = url.searchParams.get("resultado");
+    const busqueda = url.searchParams.get("busqueda");
     
     // Construir el query
     let query: any = {};
