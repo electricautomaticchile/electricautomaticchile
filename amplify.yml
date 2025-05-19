@@ -5,7 +5,7 @@ frontend:
       commands:
         - node -v
         - npm -v
-        - npm ci
+        - npm install
         - chmod +x scripts/update-mongodb-ip.js
         - node scripts/update-mongodb-ip.js
     build:
