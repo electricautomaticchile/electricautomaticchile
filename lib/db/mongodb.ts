@@ -37,8 +37,6 @@ export async function connectToDatabase() {
       tls: true,
       tlsAllowInvalidCertificates: false,
       tlsAllowInvalidHostnames: false,
-      minPoolSize: 1,
-      maxPoolSize: 10,
       connectTimeoutMS: 30000,
       socketTimeoutMS: 45000
     };

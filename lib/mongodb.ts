@@ -14,8 +14,6 @@ const options = {
   tlsAllowInvalidHostnames: false,
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  minPoolSize: 1,
-  maxPoolSize: 10,
   connectTimeoutMS: 30000,
   socketTimeoutMS: 45000
 }
