@@ -7,9 +7,17 @@ const options = {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  }
+  },
+  ssl: true,
+  tls: true,
+  tlsAllowInvalidCertificates: false,
+  tlsAllowInvalidHostnames: false,
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  minPoolSize: 1,
+  maxPoolSize: 10,
+  connectTimeoutMS: 30000,
+  socketTimeoutMS: 45000
 }
 
 // Validar que la URI de MongoDB está configurada

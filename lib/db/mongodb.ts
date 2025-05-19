@@ -33,9 +33,17 @@ export async function connectToDatabase() {
       bufferCommands: false,
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      ssl: true,
+      tls: true,
+      tlsAllowInvalidCertificates: false,
+      tlsAllowInvalidHostnames: false,
+      minPoolSize: 1,
+      maxPoolSize: 10,
+      connectTimeoutMS: 30000,
+      socketTimeoutMS: 45000
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI).then(() => {
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then(() => {
       return mongoose;
     });
   }
