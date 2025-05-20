@@ -3,6 +3,7 @@
 import { SessionProvider } from "next-auth/react"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AppContextProvider } from "@/lib/context/AppContext"
+import { SocketProvider } from "@/lib/socket/socket-provider"
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -17,7 +18,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
         themes={['light', 'dark']}
       >
         <AppContextProvider>
-          {children}
+          <SocketProvider>
+            {children}
+          </SocketProvider>
         </AppContextProvider>
       </ThemeProvider>
     </SessionProvider>
