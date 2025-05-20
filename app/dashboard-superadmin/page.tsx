@@ -5,6 +5,7 @@ import { Encabezado } from './componentes/encabezado';
 import { GestionEmpresas } from './componentes/gestion-empresas';
 import { EstadisticasGlobales } from './componentes/estadisticas-globales';
 import { Notificaciones } from './componentes/notificaciones';
+import { Mensajeria } from './componentes/mensajeria';
 import { Configuracion } from './componentes/configuracion';
 import { RegistrosActividad } from './componentes/registros-actividad';
 import { FacturacionGlobal } from './componentes/facturacion-global';
@@ -13,6 +14,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { signOut } from 'next-auth/react';
 
 /**
  * Dashboard para Superadmin (Electric Automatic Chile)
@@ -30,7 +32,7 @@ export default function DashboardSuperadmin() {
       clearTimeout(temporizador);
       temporizador = setTimeout(() => {
         setSesionActiva(false);
-        window.location.href = '/auth/login';
+        signOut({ callbackUrl: '/auth/login' });
       }, 1800000); // 30 minutos
     };
 
@@ -62,6 +64,8 @@ export default function DashboardSuperadmin() {
         return <EstadisticasGlobales />;
       case "notificaciones":
         return <Notificaciones />;
+      case "mensajeria":
+        return <div className="flex flex-col gap-4"><h2 className="text-2xl font-bold">Centro de Mensajes</h2><Mensajeria /></div>;
       case "configuracion":
         return <Configuracion />;
       case "registros-actividad":
@@ -76,10 +80,11 @@ export default function DashboardSuperadmin() {
           <>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-6">
               <EstadisticasGlobales reducida={true} />
-              <FacturacionGlobal reducida={true} />
+              <Mensajeria reducida={true} />
               <Notificaciones reducida={true} />
             </div>
-            <div className="grid gap-6 md:grid-cols-1 mb-6">
+            <div className="grid gap-6 md:grid-cols-2 mb-6">
+              <FacturacionGlobal reducida={true} />
               <GestionEmpresas reducida={true} />
             </div>
             <div className="grid gap-6 md:grid-cols-1">

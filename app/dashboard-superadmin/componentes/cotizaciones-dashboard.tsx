@@ -38,6 +38,8 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Link from 'next/link';
 import { RegistroClientes } from './registro-clientes';
+import { useToast } from "@/components/ui/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 
 // Tipos para las cotizaciones
 type EstadoCotizacion = 'pendiente' | 'revisado' | 'cotizado' | 'aprobado' | 'rechazado';
@@ -129,6 +131,9 @@ export function CotizacionesDashboard({ reducida = false }: CotizacionesDashboar
   const [nuevoEstado, setNuevoEstado] = useState<EstadoCotizacion>("pendiente");
   const [nuevoMonto, setNuevoMonto] = useState<string>('');
   const [nuevosComentarios, setNuevosComentarios] = useState<string>('');
+  const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+  const [cotizacionAEliminar, setCotizacionAEliminar] = useState<string | null>(null);
+  const { toast } = useToast();
   
   // Cargar las cotizaciones desde la API
   const cargarCotizaciones = async () => {
@@ -215,6 +220,71 @@ export function CotizacionesDashboard({ reducida = false }: CotizacionesDashboar
     } finally {
       setIsUpdating(false);
     }
+  };
+  
+  // Confirmar eliminación de cotización
+  const confirmarEliminarCotizacion = (id: string) => {
+    setCotizacionAEliminar(id);
+    setMostrarConfirmacion(true);
+  };
+  
+  // Eliminar cotización
+  const eliminarCotizacion = async () => {
+    if (!cotizacionAEliminar) return;
+    
+    try {
+      setIsUpdating(true);
+      setErrorMsg(null);
+      
+      const response = await fetch(`/api/cotizaciones?id=${cotizacionAEliminar}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al eliminar la cotización');
+      }
+      
+      // Eliminar la cotización del estado local
+      setCotizaciones(prevCotizaciones => 
+        prevCotizaciones.filter(c => c._id !== cotizacionAEliminar)
+      );
+      
+      // Cerrar el diálogo de confirmación
+      setMostrarConfirmacion(false);
+      setCotizacionAEliminar(null);
+      
+      // Cerrar el diálogo de detalles si la cotización eliminada es la seleccionada
+      if (cotizacionSeleccionada && cotizacionSeleccionada._id === cotizacionAEliminar) {
+        setMostrarDetalles(false);
+        setCotizacionSeleccionada(null);
+      }
+      
+      // Mostrar notificación de éxito
+      toast({
+        title: "Cotización eliminada",
+        description: "La cotización ha sido eliminada correctamente.",
+        variant: "success"
+      });
+      
+    } catch (error) {
+      console.error('Error al eliminar cotización:', error);
+      setErrorMsg('Ocurrió un error al eliminar la cotización. Por favor, intente nuevamente.');
+      
+      // Mostrar notificación de error
+      toast({
+        title: "Error al eliminar",
+        description: "No se pudo eliminar la cotización. Intente nuevamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+  
+  // Cancelar eliminación
+  const cancelarEliminarCotizacion = () => {
+    setMostrarConfirmacion(false);
+    setCotizacionAEliminar(null);
   };
   
   // Manejar el envío del formulario de actualización
@@ -484,6 +554,17 @@ export function CotizacionesDashboard({ reducida = false }: CotizacionesDashboar
                 <UserPlus className="h-4 w-4 mr-2" />
                 Registrar como Cliente
               </Button>
+              <Button 
+                type="button" 
+                variant="destructive" 
+                onClick={() => {
+                  setMostrarDetalles(false);
+                  confirmarEliminarCotizacion(cotizacionSeleccionada._id);
+                }}
+              >
+                <XCircle className="h-4 w-4 mr-2" />
+                Eliminar Cotización
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -586,6 +667,16 @@ export function CotizacionesDashboard({ reducida = false }: CotizacionesDashboar
                                   <span className="sr-only">Registrar Cliente</span>
                                 </Button>
                               )}
+                              
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="text-red-600 hover:text-red-700"
+                                onClick={() => confirmarEliminarCotizacion(cotizacion._id)}
+                              >
+                                <XCircle className="h-4 w-4" />
+                                <span className="sr-only">Eliminar</span>
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -734,6 +825,43 @@ export function CotizacionesDashboard({ reducida = false }: CotizacionesDashboar
           )}
         </DialogContent>
       </Dialog>
+      
+      {/* Diálogo de confirmación para eliminar cotización */}
+      <Dialog open={mostrarConfirmacion} onOpenChange={setMostrarConfirmacion}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirmar Eliminación</DialogTitle>
+            <DialogDescription>
+              ¿Está seguro de que desea eliminar esta cotización? Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-gray-500">
+              Al eliminar esta cotización, se perderán todos los datos asociados, incluyendo los comentarios y el historial de cambios.
+            </p>
+          </div>
+          <DialogFooter className="flex space-x-2 sm:justify-between">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={cancelarEliminarCotizacion}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              type="button" 
+              variant="destructive"
+              onClick={eliminarCotizacion}
+              disabled={isUpdating}
+            >
+              {isUpdating ? 'Eliminando...' : 'Eliminar Cotización'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Componente para mostrar notificaciones */}
+      <Toaster />
     </div>
   );
 } 

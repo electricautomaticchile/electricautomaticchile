@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -8,13 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Settings, Shield, Bell, Database, Key, Server, Users, RefreshCw, Clock } from 'lucide-react';
+import { Settings, Shield, Bell, Database, Key, Server, Users, RefreshCw, Clock, UserPlus, Upload, User, X } from 'lucide-react';
+import { toast } from "@/components/ui/use-toast";
+import { useSession } from "next-auth/react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface ConfiguracionProps {
   reducida?: boolean;
 }
 
 export function Configuracion({ reducida = false }: ConfiguracionProps) {
+  const { data: session, update } = useSession();
   const [notificacionesEmail, setNotificacionesEmail] = useState(true);
   const [notificacionesSistema, setNotificacionesSistema] = useState(true);
   const [backupAutomatico, setBackupAutomatico] = useState(true);
@@ -22,6 +26,201 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
   const [modoMantenimiento, setModoMantenimiento] = useState(false);
   const [intervaloActualizacion, setIntervaloActualizacion] = useState('5');
   const [periodoRetencion, setPeriodoRetencion] = useState('90');
+  const [creandoSuperusuario, setCreandoSuperusuario] = useState(false);
+  const [superusuarioCreado, setSuperusuarioCreado] = useState<{
+    numeroCliente: string;
+    password: string;
+  } | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(session?.user?.image || null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Función para crear un superusuario
+  const crearSuperusuario = async () => {
+    if (creandoSuperusuario) return;
+    
+    try {
+      setCreandoSuperusuario(true);
+      
+      const respuesta = await fetch('/api/admin/crear-superadmin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const resultado = await respuesta.json();
+      
+      if (!respuesta.ok) {
+        throw new Error(resultado.message || 'Error al crear el superusuario');
+      }
+      
+      // Mostrar notificación de éxito
+      toast({
+        title: "Superusuario creado con éxito",
+        description: `Se ha creado un superusuario con número de cliente: ${resultado.numeroCliente}`,
+        variant: "success",
+      });
+      
+      // Guardar los datos del superusuario
+      setSuperusuarioCreado({
+        numeroCliente: resultado.numeroCliente,
+        password: resultado.password
+      });
+      
+    } catch (error: any) {
+      console.error('Error al crear superusuario:', error);
+      
+      toast({
+        title: "Error al crear superusuario",
+        description: error.message || "No se pudo crear el superusuario. Inténtelo nuevamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setCreandoSuperusuario(false);
+    }
+  };
+  
+  // Función para manejar la subida de imagen de perfil
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Validar el tipo de archivo
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Formato incorrecto",
+        description: "Por favor, seleccione un archivo de imagen válido (JPG, PNG, GIF).",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Validar el tamaño (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Archivo demasiado grande",
+        description: "La imagen debe tener un tamaño máximo de 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      setUploadingImage(true);
+      
+      // Crear un lector de archivos para mostrar vista previa
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setProfileImage(event.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+      
+      // Crear un FormData para enviar la imagen
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      // Subir la imagen al servidor
+      const uploadResponse = await fetch('/api/user/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!uploadResponse.ok) {
+        throw new Error('Error al subir la imagen');
+      }
+      
+      const uploadResult = await uploadResponse.json();
+      
+      // Actualizar la imagen de perfil en la base de datos
+      const updateResponse = await fetch('/api/user/update-profile-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageUrl: uploadResult.imageUrl,
+        }),
+      });
+      
+      if (!updateResponse.ok) {
+        throw new Error('Error al actualizar la imagen de perfil');
+      }
+      
+      // Actualizar la sesión con la nueva URL de imagen
+      update({ 
+        user: { 
+          ...session?.user, 
+          image: uploadResult.imageUrl 
+        } 
+      });
+      
+      toast({
+        title: "Imagen actualizada",
+        description: "Tu foto de perfil ha sido actualizada correctamente.",
+        variant: "success",
+      });
+      
+    } catch (error) {
+      console.error('Error al subir la imagen:', error);
+      toast({
+        title: "Error al actualizar la imagen",
+        description: "No se pudo subir la imagen. Inténtelo nuevamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+  
+  const removeProfileImage = async () => {
+    if (!profileImage) return;
+    
+    try {
+      setUploadingImage(true);
+      
+      // Eliminar la imagen de perfil en la base de datos
+      const response = await fetch('/api/user/update-profile-image', {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al eliminar la imagen de perfil');
+      }
+      
+      // Actualizar la sesión sin imagen
+      update({ 
+        user: { 
+          ...session?.user, 
+          image: null 
+        } 
+      });
+      
+      setProfileImage(null);
+      
+      toast({
+        title: "Imagen eliminada",
+        description: "Tu foto de perfil ha sido eliminada.",
+        variant: "default",
+      });
+      
+    } catch (error) {
+      console.error('Error al eliminar la imagen:', error);
+      toast({
+        title: "Error al eliminar la imagen",
+        description: "No se pudo eliminar la imagen. Inténtelo nuevamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+  
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
   
   // Para la versión reducida del componente
   if (reducida) {
@@ -102,7 +301,7 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
       </div>
 
       <Tabs defaultValue="general" className="mb-4">
-        <TabsList className="mb-4 grid grid-cols-4 gap-4">
+        <TabsList className="mb-4 grid grid-cols-5 gap-4">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             <span>General</span>
@@ -118,6 +317,10 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
           <TabsTrigger value="sistema" className="flex items-center gap-2">
             <Server className="h-4 w-4" />
             <span>Sistema</span>
+          </TabsTrigger>
+          <TabsTrigger value="perfil" className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            <span>Perfil</span>
           </TabsTrigger>
         </TabsList>
         
@@ -196,66 +399,18 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
                   <div className="space-y-0.5">
                     <Label htmlFor="refresh-interval">Intervalo de Actualización (minutos)</Label>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Tiempo entre actualizaciones automáticas del tablero
+                      Frecuencia de actualización automática de los datos en el panel
                     </p>
                   </div>
                   <div className="w-20">
-                    <Select 
-                      value={intervaloActualizacion} 
-                      onValueChange={setIntervaloActualizacion}
-                    >
-                      <SelectTrigger id="refresh-interval">
-                        <SelectValue placeholder="Intervalo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">1</SelectItem>
-                        <SelectItem value="5">5</SelectItem>
-                        <SelectItem value="10">10</SelectItem>
-                        <SelectItem value="15">15</SelectItem>
-                        <SelectItem value="30">30</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Apariencia</CardTitle>
-              <CardDescription>
-                Personalice la apariencia del sistema
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-6">
-                <div className="space-y-2">
-                  <Label>Tema Predeterminado</Label>
-                  <div className="flex gap-4">
-                    <div className="flex items-center space-x-2">
-                      <input type="radio" id="theme-light" name="theme" className="h-4 w-4" defaultChecked />
-                      <Label htmlFor="theme-light">Claro</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input type="radio" id="theme-dark" name="theme" className="h-4 w-4" />
-                      <Label htmlFor="theme-dark">Oscuro</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input type="radio" id="theme-auto" name="theme" className="h-4 w-4" />
-                      <Label htmlFor="theme-auto">Automático (Sistema)</Label>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Color Principal</Label>
-                  <div className="flex gap-4">
-                    <div className="bg-orange-600 h-10 w-10 rounded-full border-2 border-white dark:border-gray-800 outline outline-2 outline-offset-2 outline-orange-600 cursor-pointer"></div>
-                    <div className="bg-blue-600 h-10 w-10 rounded-full border-2 border-white dark:border-gray-800 cursor-pointer"></div>
-                    <div className="bg-green-600 h-10 w-10 rounded-full border-2 border-white dark:border-gray-800 cursor-pointer"></div>
-                    <div className="bg-purple-600 h-10 w-10 rounded-full border-2 border-white dark:border-gray-800 cursor-pointer"></div>
-                    <div className="bg-gray-600 h-10 w-10 rounded-full border-2 border-white dark:border-gray-800 cursor-pointer"></div>
+                    <Input 
+                      id="refresh-interval" 
+                      value={intervaloActualizacion}
+                      onChange={(e) => setIntervaloActualizacion(e.target.value)}
+                      type="number" 
+                      min="1" 
+                      max="60"
+                    />
                   </div>
                 </div>
               </div>
@@ -263,6 +418,97 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
           </Card>
         </TabsContent>
         
+        <TabsContent value="perfil" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Configuración de Perfil</CardTitle>
+              <CardDescription>
+                Actualice su información personal y foto de perfil
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="user-name">Nombre</Label>
+                  <Input id="user-name" defaultValue={session?.user?.name || "Administrador"} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="user-email">Correo Electrónico</Label>
+                  <Input id="user-email" type="email" defaultValue={session?.user?.email || "admin@electricauto.cl"} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="user-client-number">Número de Cliente</Label>
+                  <Input id="user-client-number" readOnly defaultValue={session?.user?.clientNumber || "-------"} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="user-role">Rol</Label>
+                  <Input id="user-role" readOnly defaultValue={session?.user?.role === "admin" ? "Superadministrador" : "Administrador"} />
+                </div>
+              </div>
+              
+              <Separator className="my-6" />
+              
+              <div className="space-y-4">
+                <Label>Foto de Perfil</Label>
+                
+                <div className="flex flex-col items-center gap-6 md:flex-row">
+                  <div className="relative">
+                    <Avatar className="h-24 w-24 border-2 border-gray-200 dark:border-gray-700">
+                      <AvatarImage src={profileImage || "/avatars/admin.jpg"} />
+                      <AvatarFallback className="text-xl">
+                        {session?.user?.name?.charAt(0) || "A"}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    {profileImage && (
+                      <Button 
+                        variant="destructive" 
+                        size="icon" 
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                        onClick={removeProfileImage}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Sube una foto de perfil. Se recomienda una imagen cuadrada de al menos 250x250 píxeles.
+                    </p>
+                    
+                    <div className="flex flex-wrap gap-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={triggerFileInput}
+                        disabled={uploadingImage}
+                        className="flex items-center gap-2"
+                      >
+                        <Upload className="h-4 w-4" />
+                        {uploadingImage ? "Subiendo..." : "Cambiar Foto"}
+                      </Button>
+                      
+                      <input 
+                        type="file" 
+                        ref={fileInputRef}
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end mt-6">
+                <Button className="bg-orange-600 hover:bg-orange-700">
+                  Guardar Cambios
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+                
         <TabsContent value="seguridad" className="space-y-6">
           <Card>
             <CardHeader>
@@ -367,6 +613,51 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       Tiempo después del cual se cerrará la sesión por inactividad
                     </p>
+                  </div>
+                  
+                  <Separator className="my-4" />
+                  
+                  <h3 className="text-lg font-medium flex items-center gap-2">
+                    <UserPlus className="h-5 w-5 text-orange-600" />
+                    Crear Superusuario
+                  </h3>
+                  
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Crea un nuevo superusuario con acceso al dashboard de administración. 
+                      Este usuario tendrá permisos completos en todo el sistema.
+                    </p>
+                    
+                    {superusuarioCreado ? (
+                      <div className="rounded-md border border-green-200 bg-green-100 p-4 dark:border-green-800 dark:bg-green-950/50 my-4">
+                        <h4 className="font-semibold text-green-800 dark:text-green-300 mb-2">¡Superusuario creado con éxito!</h4>
+                        <p className="text-sm text-green-800 dark:text-green-300 mb-2">
+                          Guarde estas credenciales en un lugar seguro:
+                        </p>
+                        <div className="bg-white dark:bg-gray-800 p-3 rounded-md text-sm font-mono">
+                          <p><strong>Número de cliente:</strong> {superusuarioCreado.numeroCliente}</p>
+                          <p><strong>Contraseña:</strong> {superusuarioCreado.password}</p>
+                        </div>
+                        <p className="text-sm text-green-800 dark:text-green-300 mt-2">
+                          Utilice estas credenciales para acceder al dashboard de superadmin.
+                        </p>
+                        <Button 
+                          className="mt-4 bg-green-600 hover:bg-green-700"
+                          onClick={() => setSuperusuarioCreado(null)}
+                        >
+                          Cerrar
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button 
+                        onClick={crearSuperusuario} 
+                        className="bg-orange-600 hover:bg-orange-700"
+                        disabled={creandoSuperusuario}
+                      >
+                        {creandoSuperusuario ? 'Creando...' : 'Crear Superusuario'} 
+                        <UserPlus className="ml-2 h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>

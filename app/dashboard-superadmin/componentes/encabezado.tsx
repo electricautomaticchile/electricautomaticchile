@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { Bell, Settings, User, LogOut, Sun, Moon, MessageSquare } from 'lucide-react';
+import { Bell, Settings, User, LogOut, Sun, Moon, MessageSquare, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
@@ -13,14 +13,28 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
+import { useSocket } from '@/lib/socket/socket-provider';
+import { Badge } from '@/components/ui/badge';
+import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { signOut, useSession } from "next-auth/react";
 
 interface EncabezadoProps {
   tipoUsuario: 'superadmin' | 'admin' | 'cliente';
 }
 
 export function Encabezado({ tipoUsuario }: EncabezadoProps) {
-  const [mensajesNoLeidos, setMensajesNoLeidos] = useState(5);
-  const [notificacionesNoLeidas, setNotificacionesNoLeidas] = useState(3);
+  const { 
+    notifications, 
+    messages, 
+    unreadNotificationsCount,
+    unreadMessagesCount,
+    markNotificationAsRead,
+    markMessageAsRead,
+    connected
+  } = useSocket();
+  
+  const { data: session } = useSession();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -28,9 +42,31 @@ export function Encabezado({ tipoUsuario }: EncabezadoProps) {
     setMounted(true);
   }, []);
 
+  const formatearTiempo = (fecha: Date) => {
+    try {
+      return formatDistanceToNow(new Date(fecha), { 
+        addSuffix: true,
+        locale: es
+      });
+    } catch (error) {
+      return 'Fecha inválida';
+    }
+  };
+
   const cerrarSesion = () => {
-    // Lógica para cerrar sesión
-    window.location.href = '/auth/login';
+    signOut({ callbackUrl: '/auth/login' });
+  };
+
+  const verTodasNotificaciones = () => {
+    window.location.href = '/dashboard-superadmin/notificaciones';
+  };
+
+  const verTodosMensajes = () => {
+    window.location.href = '/dashboard-superadmin/mensajes';
+  };
+
+  const irAConfiguracion = () => {
+    window.location.href = '/dashboard-superadmin/configuracion';
   };
 
   return (
@@ -39,9 +75,22 @@ export function Encabezado({ tipoUsuario }: EncabezadoProps) {
         <div className="flex items-center gap-4">
           {tipoUsuario === 'superadmin' && (
             <div className="inline-flex items-center rounded-md bg-orange-50 px-2 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20 dark:bg-orange-900/20 dark:text-orange-300">
-              Superadministrador
+              <span className="mr-1">Superadministrador</span>
+              {connected && session && (
+                <span className="inline-flex items-center text-green-600 dark:text-green-400 text-xs">
+                  <span className="h-1.5 w-1.5 rounded-full bg-green-500 mr-1"></span>
+                  Usuario conectado con Superadministrador {session.user?.clientNumber}
+                </span>
+              )}
             </div>
           )}
+          
+          {/* Información del administrador */}
+          <div className="hidden md:flex flex-col ml-4">
+            <div className="font-medium text-sm">
+              {session?.user?.clientNumber || "-------"} - {session?.user?.email || "admin@electricauto.cl"}
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center gap-4">
@@ -62,9 +111,9 @@ export function Encabezado({ tipoUsuario }: EncabezadoProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
                 <MessageSquare className="h-5 w-5" />
-                {mensajesNoLeidos > 0 && (
+                {unreadMessagesCount > 0 && (
                   <span className="absolute top-1 right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] font-medium text-white flex items-center justify-center">
-                    {mensajesNoLeidos}
+                    {unreadMessagesCount}
                   </span>
                 )}
               </Button>
@@ -73,27 +122,34 @@ export function Encabezado({ tipoUsuario }: EncabezadoProps) {
               <DropdownMenuLabel>Mensajes</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <div className="max-h-80 overflow-y-auto">
-                <div className="p-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-md cursor-pointer">
-                  <div className="font-medium">Juan Pérez (Codelco)</div>
-                  <div className="text-gray-500 dark:text-gray-400 truncate">Consulta sobre la última actualización del sistema...</div>
-                  <div className="text-xs text-gray-400 mt-1">Hace 2 horas</div>
-                </div>
-                <div className="p-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-md cursor-pointer">
-                  <div className="font-medium">María Gómez (Enap)</div>
-                  <div className="text-gray-500 dark:text-gray-400 truncate">Necesito reprogramar la mantención del próximo...</div>
-                  <div className="text-xs text-gray-400 mt-1">Hace 4 horas</div>
-                </div>
-                <div className="p-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-md cursor-pointer">
-                  <div className="font-medium">Rodrigo Silva (Enel)</div>
-                  <div className="text-gray-500 dark:text-gray-400 truncate">Los reportes de consumo no están llegando...</div>
-                  <div className="text-xs text-gray-400 mt-1">Ayer</div>
-                </div>
+                {messages && messages.length > 0 ? (
+                  messages.slice(0, 5).map((msg) => (
+                    <div 
+                      key={msg.id} 
+                      className={`p-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-md cursor-pointer ${!msg.leido ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+                      onClick={() => markMessageAsRead(msg.id)}
+                    >
+                      <div className="font-medium">{msg.emisorNombre || 'Usuario'}</div>
+                      <div className="text-gray-500 dark:text-gray-400 truncate">{msg.contenido}</div>
+                      <div className="text-xs text-gray-400 mt-1">{formatearTiempo(msg.fecha)}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-6 text-center text-gray-500 dark:text-gray-400">
+                    <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No tienes mensajes nuevos</p>
+                  </div>
+                )}
               </div>
               <DropdownMenuSeparator />
               <div className="p-2">
-                <Link href="/dashboard-superadmin/mensajes" className="text-sm text-blue-600 hover:underline dark:text-blue-400">
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start text-sm text-blue-600 hover:underline dark:text-blue-400 p-0"
+                  onClick={verTodosMensajes}
+                >
                   Ver todos los mensajes
-                </Link>
+                </Button>
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -103,9 +159,9 @@ export function Encabezado({ tipoUsuario }: EncabezadoProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-5 w-5" />
-                {notificacionesNoLeidas > 0 && (
+                {unreadNotificationsCount > 0 && (
                   <span className="absolute top-1 right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] font-medium text-white flex items-center justify-center">
-                    {notificacionesNoLeidas}
+                    {unreadNotificationsCount}
                   </span>
                 )}
               </Button>
@@ -114,30 +170,47 @@ export function Encabezado({ tipoUsuario }: EncabezadoProps) {
               <DropdownMenuLabel>Notificaciones</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <div className="max-h-80 overflow-y-auto">
-                <div className="p-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-md cursor-pointer">
-                  <div className="font-medium text-orange-600">Alerta de sistema</div>
-                  <div className="text-gray-600 dark:text-gray-300">Detectada alta demanda en sector norte</div>
-                  <div className="text-xs text-gray-400 mt-1">Hace 30 minutos</div>
-                </div>
-                <div className="p-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-md cursor-pointer">
-                  <div className="font-medium text-green-600">Nueva empresa registrada</div>
-                  <div className="text-gray-600 dark:text-gray-300">Minera Los Pelambres completó su registro</div>
-                  <div className="text-xs text-gray-400 mt-1">Hace 2 horas</div>
-                </div>
-                <div className="p-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-md cursor-pointer">
-                  <div className="font-medium text-red-600">Error en dispositivo</div>
-                  <div className="text-gray-600 dark:text-gray-300">3 dispositivos desconectados en Antofagasta</div>
-                  <div className="text-xs text-gray-400 mt-1">Hace 5 horas</div>
-                </div>
+                {notifications && notifications.length > 0 ? (
+                  notifications.slice(0, 5).map((notif) => (
+                    <div 
+                      key={notif.id}
+                      className={`p-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-md cursor-pointer ${!notif.leida ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+                      onClick={() => markNotificationAsRead(notif.id)}
+                    >
+                      <div className={`font-medium ${
+                        notif.tipo === 'alerta' ? 'text-red-600' : 
+                        notif.tipo === 'info' ? 'text-blue-600' : 'text-green-600'
+                      }`}>
+                        {notif.titulo}
+                      </div>
+                      <div className="text-gray-600 dark:text-gray-300">{notif.descripcion}</div>
+                      <div className="flex items-center justify-between mt-1">
+                        <div className="text-xs text-gray-400">{formatearTiempo(notif.fecha)}</div>
+                        <Badge className={
+                          notif.prioridad === 'alta' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300' :
+                          notif.prioridad === 'media' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300' :
+                          'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300'
+                        }>
+                          {notif.prioridad}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-6 text-center text-gray-500 dark:text-gray-400">
+                    <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No tienes notificaciones nuevas</p>
+                  </div>
+                )}
               </div>
               <DropdownMenuSeparator />
-              <div className="p-2">
+              <div className="p-2 flex flex-col gap-2">
                 <Button 
                   variant="ghost" 
                   className="w-full justify-start text-sm text-blue-600 hover:underline dark:text-blue-400 p-0"
-                  onClick={() => setNotificacionesNoLeidas(0)}
+                  onClick={verTodasNotificaciones}
                 >
-                  Marcar todas como leídas
+                  Ver todas las notificaciones
                 </Button>
               </div>
             </DropdownMenuContent>
@@ -148,21 +221,33 @@ export function Encabezado({ tipoUsuario }: EncabezadoProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/avatars/admin.jpg" alt="Admin" />
-                  <AvatarFallback>SA</AvatarFallback>
+                  <AvatarImage src={session?.user?.image || "/avatars/admin.jpg"} alt="Admin" />
+                  <AvatarFallback>
+                    {session?.user?.name?.charAt(0) || 'SA'}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Mi cuenta</DropdownMenuLabel>
+              <DropdownMenuLabel>
+                <div className="flex flex-col">
+                  <span>Mi cuenta</span>
+                  <span className="text-xs text-gray-500">{session?.user?.email || "admin@electricauto.cl"}</span>
+                  <span className="text-xs text-gray-500">Cliente: {session?.user?.clientNumber}</span>
+                </div>
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="cursor-pointer">
                 <User className="mr-2 h-4 w-4" />
                 <span>Perfil</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuItem className="cursor-pointer" onClick={irAConfiguracion}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Configuración</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer">
+                <Mail className="mr-2 h-4 w-4" />
+                <span>electricautomaticchile@gmail.com</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="cursor-pointer" onClick={cerrarSesion}>
