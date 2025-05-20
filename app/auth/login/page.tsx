@@ -1,13 +1,14 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
-import { signIn } from "next-auth/react"
+import { signIn, useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertCircle, KeyRound, User, LockKeyhole } from 'lucide-react'
 import Image from 'next/image'
+import { useSearchParams, useRouter } from "next/navigation"
 
 export default function LoginPage() {
   const [clientNumber, setClientNumber] = useState("")
@@ -15,6 +16,49 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [sessionInfo, setSessionInfo] = useState<any>(null)
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  
+  // Obtener parámetros de la URL
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get("callbackUrl") || ""
+  
+  // Redireccionar automáticamente si el usuario ya está autenticado
+  useEffect(() => {
+    if (status === "authenticated" && session) {
+      const role = session.user?.role
+      // Priorizar siempre el dashboard de superadmin para roles admin/superadmin
+      const redirectPath = role === "admin" || role === "superadmin" 
+        ? "/dashboard-superadmin" 
+        : "/dashboard-empresa"
+      
+      // Si no hay callbackUrl específico O el usuario es admin/superadmin, usar redirectPath
+      const targetUrl = (role === "admin" || role === "superadmin") 
+        ? redirectPath 
+        : (callbackUrl || redirectPath)
+      
+      console.log("Redirigiendo a:", targetUrl, "Rol:", role)
+      // Usar router.push para evitar recargas de página y redirecciones infinitas
+      router.push(targetUrl)
+    }
+  }, [session, status, callbackUrl, router])
+  
+  // Mostrar información de la sesión para depuración
+  useEffect(() => {
+    if (session) {
+      console.log("Sesión activa:", session)
+      setSessionInfo(session)
+    }
+  }, [session])
+  
+  // Mostrar error si viene en la URL
+  useEffect(() => {
+    const errorParam = searchParams.get("error")
+    if (errorParam === "CredentialsSignin") {
+      setError("Credenciales incorrectas. Por favor, verifique su información.")
+    }
+  }, [searchParams])
 
   const validateClientNumber = (value: string) => {
     const regex = /^\d{6}-\d$/
@@ -51,20 +95,23 @@ export default function LoginPage() {
     setError("")
     
     try {
+      console.log("Iniciando sesión con:", { clientNumber, password })
       const result = await signIn('credentials', {
         clientNumber,
         password,
         redirect: false,
       })
       
+      console.log("Resultado del inicio de sesión:", result)
+      
       if (result?.error) {
         setError("Credenciales incorrectas. Por favor, verifique su información.")
       } else if (result?.ok) {
-        window.location.href = '/dashboard-empresa'
+        // La redirección se manejará en el useEffect
       }
     } catch (error) {
-      setError("Error al iniciar sesión. Intente nuevamente.")
       console.error('Error durante el login:', error)
+      setError("Error al iniciar sesión. Intente nuevamente.")
     } finally {
       setIsLoading(false)
     }
@@ -73,15 +120,32 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     try {
       await signIn('google', {
-        callbackUrl: '/dashboard-empresa'
+        callbackUrl: "/dashboard-superadmin" // Forzar redirección al dashboard-superadmin para login con Google
       })
     } catch (error) {
       console.error('Error durante el login con Google:', error)
     }
   }
 
+  // Si el usuario ya está autenticado y estamos esperando a redirigir, mostrar un mensaje
+  if (status === "authenticated") {
+    const role = session?.user?.role
+    const dashboardType = (role === "admin" || role === "superadmin") ? "superadmin" : "empresa"
+    
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-lg">
+          <CardHeader className="text-center">
+            <CardTitle>Sesión iniciada</CardTitle>
+            <CardDescription>Redirigiendo al dashboard de {dashboardType}...</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center  p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="w-full flex justify-center mb-8">
@@ -90,7 +154,7 @@ export default function LoginPage() {
           </div>
         </div>
         
-        <Card className="border-orange-200 dark:border-orange-900/40 shadow-xl ">
+        <Card className="border-orange-200 dark:border-orange-900/40 shadow-xl">
           <CardHeader className="space-y-2 text-center pb-6 border-b border-orange-100 dark:border-orange-900/30">
             <CardTitle className="text-2xl font-bold tracking-tight text-orange-700 dark:text-orange-500">Portal de Clientes</CardTitle>
             <CardDescription className="text-orange-700/70 dark:text-orange-300/70">
@@ -105,6 +169,21 @@ export default function LoginPage() {
                 <span>{error}</span>
               </div>
             )}
+            
+            {/* Información de depuración */}
+            {sessionInfo && (
+              <div className="bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 text-sm p-3 rounded-md mb-5">
+                <div className="font-bold">Estado de sesión: {status}</div>
+                <div>Usuario: {sessionInfo.user?.name}</div>
+                <div>Rol: {sessionInfo.user?.role}</div>
+                <div>ID: {sessionInfo.user?.id}</div>
+              </div>
+            )}
+            
+            {/* Estado de la sesión */}
+            <div className="mb-4 text-xs text-gray-500 dark:text-gray-400">
+              Estado de la sesión: {status}
+            </div>
             
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
@@ -163,6 +242,11 @@ export default function LoginPage() {
                 {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
               </Button>
             </form>
+            
+            {/* URL de callback para depuración */}
+            <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
+              Callback URL: {callbackUrl}
+            </div>
           </CardContent>
         </Card>
       </div>
