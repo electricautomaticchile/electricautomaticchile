@@ -15,6 +15,7 @@ import {
   X
 } from 'lucide-react';
 import { Logo } from '@/components/logo'; // Asumiendo que existe un componente Logo
+import { signOut } from "next-auth/react";
 
 interface BarrasNavegacionProps {
   onCambioComponente: (componente: string) => void;
@@ -31,8 +32,7 @@ export function BarrasNavegacion({ onCambioComponente }: BarrasNavegacionProps) 
   };
   
   const cerrarSesion = () => {
-    // Lógica para cerrar sesión
-    window.location.href = '/auth/login';
+    signOut({ callbackUrl: '/auth/login' });
   };
 
   return (

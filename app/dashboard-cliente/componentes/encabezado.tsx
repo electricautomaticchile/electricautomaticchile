@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { useTheme } from 'next-themes';
+import { signOut } from "next-auth/react";
 
 interface EncabezadoProps {
   tipoUsuario: 'superadmin' | 'admin' | 'cliente';
@@ -29,8 +30,7 @@ export function Encabezado({ tipoUsuario, nombreCliente = 'Usuario', numeroClien
   }, []);
 
   const cerrarSesion = () => {
-    // Lógica para cerrar sesión
-    window.location.href = '/auth/login';
+    signOut({ callbackUrl: '/auth/login' });
   };
 
   // Obtener iniciales para el avatar
