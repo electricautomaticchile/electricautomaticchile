@@ -22,6 +22,7 @@ import {
   CircleUserRound,
   Building
 } from 'lucide-react';
+import { signOut } from "next-auth/react";
 
 interface BarrasNavegacionProps {
   titulo?: string;
@@ -36,6 +37,10 @@ export function BarrasNavegacion({
 }: BarrasNavegacionProps) {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   
+  const cerrarSesion = () => {
+    signOut({ callbackUrl: '/auth/login' });
+  };
+
   return (
     <>
       {/* Sidebar (navegación lateral) */}
@@ -87,7 +92,7 @@ export function BarrasNavegacion({
           <Button variant="ghost" size="icon" className="rounded-full">
             <Settings className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="rounded-full text-red-600">
+          <Button variant="ghost" size="icon" className="rounded-full text-red-600" onClick={cerrarSesion}>
             <LogOut className="h-5 w-5" />
           </Button>
         </div>
@@ -152,7 +157,7 @@ export function BarrasNavegacion({
                 <span>Mensajes</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600">
+              <DropdownMenuItem className="text-red-600" onClick={cerrarSesion}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Cerrar Sesión</span>
               </DropdownMenuItem>
@@ -229,7 +234,7 @@ export function BarrasNavegacion({
                 Configuración
               </Button>
               
-              <Button variant="ghost" className="w-full justify-start text-red-600">
+              <Button variant="ghost" className="w-full justify-start text-red-600" onClick={cerrarSesion}>
                 <LogOut className="h-5 w-5 mr-3" />
                 Cerrar Sesión
               </Button>
