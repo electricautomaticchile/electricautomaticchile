@@ -1,10 +1,9 @@
 import mongoose from 'mongoose';
-import { dbLogger } from '@/lib/logger';
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/electricautomaticchile';
 
 if (!process.env.MONGODB_URI) {
-  dbLogger.warn("La variable de entorno MONGODB_URI no está configurada. Usando URI local por defecto.");
+  console.warn("La variable de entorno MONGODB_URI no está configurada. Usando URI local por defecto.");
 }
 
 // Configurar mongoose globalmente
@@ -44,14 +43,14 @@ export async function connectToDatabase() {
       return cached.conn;
     }
     // Si no está activa, resetear para intentar de nuevo
-    dbLogger.warn('Conexión inactiva, reiniciando...');
+    console.warn('Conexión inactiva, reiniciando...');
     cached.conn = null;
     cached.promise = null;
   }
 
   // Evitar múltiples intentos de conexión simultáneos
   if (cached.isConnecting) {
-    dbLogger.info('Conexión en progreso, esperando...');
+    console.log('Conexión en progreso, esperando...');
     try {
       // Esperar hasta que la conexión en progreso termine
       if (cached.promise) {
@@ -59,7 +58,7 @@ export async function connectToDatabase() {
       }
     } catch (error) {
       // Si hay error durante la espera, continuar con un nuevo intento
-      dbLogger.error('Error mientras esperaba conexión:', error);
+      console.error('Error mientras esperaba conexión:', error);
       cached.isConnecting = false;
     }
   }
@@ -87,16 +86,16 @@ export async function connectToDatabase() {
         retryReads: true,       // Reintentar lecturas fallidas
       };
 
-      dbLogger.info(`Intentando conexión a MongoDB (intento ${reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS})...`);
+      console.log(`Intentando conexión a MongoDB (intento ${reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS})...`);
 
       // Agregar oyentes de eventos para manejo de errores y reconexión
       mongoose.connection.on('error', (error) => {
-        dbLogger.error('MongoDB connection error:', error);
+        console.error('MongoDB connection error:', error);
         // No resetear conexión aquí para evitar bucles
       });
 
       mongoose.connection.on('disconnected', () => {
-        dbLogger.warn('MongoDB disconnected. Attempting to reconnect...');
+        console.warn('MongoDB disconnected. Attempting to reconnect...');
         if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
           reconnectAttempts++;
           cached.conn = null;
@@ -104,12 +103,12 @@ export async function connectToDatabase() {
           cached.isConnecting = false;
           // No llamar a connectToDatabase() aquí para evitar bucles
         } else {
-          dbLogger.critical(`Máximo número de intentos alcanzado (${MAX_RECONNECT_ATTEMPTS}). Deteniendo reconexión.`);
+          console.error(`Máximo número de intentos alcanzado (${MAX_RECONNECT_ATTEMPTS}). Deteniendo reconexión.`);
         }
       });
 
       mongoose.connection.on('connected', () => {
-        dbLogger.info('MongoDB connected successfully');
+        console.log('MongoDB connected successfully');
         reconnectAttempts = 0; // Resetear contador cuando se conecta exitosamente
       });
 
@@ -122,7 +121,7 @@ export async function connectToDatabase() {
     cached.conn = await cached.promise;
     return cached.conn;
   } catch (e) {
-    dbLogger.error('Error al conectar a MongoDB:', e);
+    console.error('Error al conectar a MongoDB:', e);
     cached.promise = null;
     throw e;
   } finally {
