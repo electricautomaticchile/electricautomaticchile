@@ -1,78 +1,84 @@
 import { NextRequest, NextResponse } from 'next/server';
-import connectToDatabase from '@/lib/db/mongodb';
-import mongoose from 'mongoose';
+import { connectToDatabase } from '@/lib/db/mongodb';
+import Notificacion from '@/lib/models/notificacion';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 
-// Marcar explícitamente como ruta dinámica para evitar renderizado estático
+// Definir la ruta como dinámica para evitar pre-renderizado estático
 export const dynamic = 'force-dynamic';
 
-// Función para manejar todas las notificaciones
 export async function GET(request: NextRequest) {
   try {
-    // Conectar a la base de datos usando la conexión persistente
+    // Verificar autenticación
+    const session = await getServerSession(authOptions);
+    
+    if (!session || !session.user) {
+      return NextResponse.json({ 
+        message: "No autorizado" 
+      }, { status: 401 });
+    }
+    
+    // Conectar a la base de datos
     await connectToDatabase();
     
-    // Verificar que la conexión esté establecida
-    if (!mongoose.connection || !mongoose.connection.db) {
-      throw new Error("No se pudo establecer conexión con la base de datos");
-    }
+    // Obtener parámetros
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get('limit') || '50');
+    const page = parseInt(searchParams.get('page') || '1');
+    const skip = (page - 1) * limit;
     
-    // Usar directamente mongoose
-    const db = mongoose.connection.db;
-    const notificacionesCollection = db.collection("notificaciones");
+    // Obtener todas las notificaciones del usuario actual
+    const notificaciones = await Notificacion.find({ 
+      destinatario: session.user.id 
+    })
+      .sort({ fecha: -1 })
+      .skip(skip)
+      .limit(limit);
     
-    // Obtener filtro desde la URL, pero de forma segura para exportación estática
-    // En lugar de crear una URL del request, obtenemos el parámetro directamente
-    const filtro = request.nextUrl ? request.nextUrl.searchParams.get("filtro") || "todas" : "todas";
-    
-    // Construir el query
-    let query: any = {};
-    
-    if (filtro === "noLeidas") {
-      query.leida = false;
-    } else if (filtro !== "todas") {
-      query.tipo = filtro;
-    }
-    
-    // Buscar notificaciones y ordenarlas por fecha (más recientes primero)
-    const notificaciones = await notificacionesCollection.find(query)
-      .sort({ fecha: -1, id: -1 })
-      .toArray();
-    
-    // Obtener estadísticas
-    const totalNotificaciones = await notificacionesCollection.countDocuments();
-    const noLeidas = await notificacionesCollection.countDocuments({ leida: false });
-    const alertas = await notificacionesCollection.countDocuments({ tipo: 'alerta' });
-    const alertasNoLeidas = await notificacionesCollection.countDocuments({ 
-      tipo: 'alerta',
-      leida: false
+    // Obtener contadores para el resumen
+    const totalNotificaciones = await Notificacion.countDocuments({ 
+      destinatario: session.user.id 
     });
-    const info = await notificacionesCollection.countDocuments({ tipo: 'info' });
-    const infoNoLeidas = await notificacionesCollection.countDocuments({ 
+    
+    const noLeidas = await Notificacion.countDocuments({ 
+      destinatario: session.user.id,
+      leida: false 
+    });
+    
+    const alertas = await Notificacion.countDocuments({ 
+      destinatario: session.user.id,
+      tipo: 'alerta'
+    });
+    
+    const alertasNoLeidas = await Notificacion.countDocuments({ 
+      destinatario: session.user.id,
+      tipo: 'alerta',
+      leida: false 
+    });
+    
+    const info = await Notificacion.countDocuments({ 
+      destinatario: session.user.id,
+      tipo: 'info'
+    });
+    
+    const infoNoLeidas = await Notificacion.countDocuments({ 
+      destinatario: session.user.id,
       tipo: 'info',
       leida: false 
     });
-    const exito = await notificacionesCollection.countDocuments({ tipo: 'exito' });
-    const exitoNoLeidas = await notificacionesCollection.countDocuments({ 
+    
+    const exito = await Notificacion.countDocuments({ 
+      destinatario: session.user.id,
+      tipo: 'exito'
+    });
+    
+    const exitoNoLeidas = await Notificacion.countDocuments({ 
+      destinatario: session.user.id,
       tipo: 'exito',
       leida: false 
     });
     
-    // Si no hay datos reales, generamos datos de ejemplo
-    if (totalNotificaciones === 0) {
-      // En un entorno real, no generaríamos datos ficticios
-      return NextResponse.json({
-        notificaciones: [],
-        resumen: {
-          total: 0,
-          noLeidas: 0,
-          alertas: { total: 0, noLeidas: 0 },
-          info: { total: 0, noLeidas: 0 },
-          exito: { total: 0, noLeidas: 0 }
-        }
-      });
-    }
-    
-    // Retornar tanto las notificaciones como el resumen
+    // Retornar datos
     return NextResponse.json({ 
       notificaciones,
       resumen: {
@@ -90,6 +96,12 @@ export async function GET(request: NextRequest) {
           total: exito,
           noLeidas: exitoNoLeidas
         }
+      },
+      pagination: {
+        page,
+        limit,
+        total: totalNotificaciones,
+        pages: Math.ceil(totalNotificaciones / limit)
       }
     }, { status: 200 });
     
