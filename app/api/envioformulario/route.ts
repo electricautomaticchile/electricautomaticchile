@@ -4,6 +4,9 @@ import { z } from 'zod';
 import { connectToDatabase } from '@/lib/db/mongodb';
 import { ContactoFormulario } from '@/lib/models/contacto-formulario';
 import { sendContactNotification, sendAutoResponse } from '@/lib/email/emailService';
+import Notificacion from '@/lib/models/notificacion';
+import { broadcastNotification } from '@/lib/socket/socket-service';
+import mongoose from 'mongoose';
 
 // Esquema de validación con Zod
 const contactFormSchema = z.object({
@@ -22,10 +25,42 @@ const contactFormSchema = z.object({
   }),
   plazo: z.enum(['urgente', 'pronto', 'normal', 'planificacion']).optional(),
   mensaje: z.string().min(5, "Los detalles deben tener al menos 5 caracteres"),
-  archivo: z.string().optional(),
-  archivoBase64: z.string().optional(),
-  archivoTipo: z.string().optional(),
+  archivoUrl: z.string().optional(), // URL del archivo subido a S3
+  archivo: z.string().optional(), // Nombre del archivo
+  archivoBase64: z.string().optional(), // Contenido del archivo en base64 para adjuntar al correo
+  archivoTipo: z.string().optional(), // Tipo MIME del archivo
 });
+
+// Definir una interfaz para los usuarios administradores
+interface AdminUser {
+  _id: mongoose.Types.ObjectId;
+  email: string;
+  role: string;
+}
+
+// Función para encontrar usuarios administradores
+async function findAdminUsers(): Promise<AdminUser[]> {
+  try {
+    // Verificar que la conexión esté lista
+    if (mongoose.connection.readyState !== 1) {
+      console.log('La conexión a MongoDB no está lista');
+      return [];
+    }
+    
+    // Obtener todos los administradores
+    const db = mongoose.connection.db;
+    if (!db) {
+      console.log('No se pudo acceder a la base de datos');
+      return [];
+    }
+    
+    const users = await db.collection('users').find({ role: 'admin' }).toArray();
+    return users as AdminUser[];
+  } catch (error) {
+    console.error('Error al buscar administradores:', error);
+    return [];
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -89,6 +124,47 @@ export async function POST(request: NextRequest) {
     } catch (emailError) {
       // No interrumpimos el flujo si falla el correo
     }
+    
+    // Crear notificación en el sistema para todos los administradores
+    try {
+      // Obtener los administradores
+      const adminUsers = await findAdminUsers();
+      
+      if (adminUsers.length > 0) {
+        // Determinar la prioridad según el plazo
+        let prioridad = 'media';
+        if (data.plazo === 'urgente') prioridad = 'alta';
+        
+        // Crear una notificación para cada administrador
+        for (const admin of adminUsers) {
+          const nuevaNotificacion = new Notificacion({
+            tipo: 'info',
+            titulo: 'Nueva solicitud de cotización',
+            descripcion: `${data.nombre} ha solicitado una cotización para ${formatServicio(data.servicio)}${data.plazo ? ` con plazo ${formatPlazo(data.plazo)}` : ''}`,
+            destinatario: admin._id,
+            prioridad: prioridad,
+            fecha: new Date(),
+            leida: false,
+            enlace: `/dashboard-superadmin/cotizaciones`
+          });
+          
+          await nuevaNotificacion.save();
+        }
+        
+        // Enviar notificación en tiempo real a todos los administradores
+        broadcastNotification({
+          id: new mongoose.Types.ObjectId().toString(),
+          tipo: 'info',
+          titulo: 'Nueva solicitud de cotización',
+          descripcion: `${data.nombre} ha solicitado una cotización para ${formatServicio(data.servicio)}${data.plazo ? ` con plazo ${formatPlazo(data.plazo)}` : ''}`,
+          fecha: new Date(),
+          prioridad: data.plazo === 'urgente' ? 'alta' : 'media'
+        });
+      }
+    } catch (notifError) {
+      console.error('Error al crear notificación de nueva cotización:', notifError);
+      // No interrumpimos el flujo si falla la notificación
+    }
 
     // Respuesta exitosa (incluso si el correo falló)
     return NextResponse.json({ 
@@ -111,4 +187,24 @@ export async function POST(request: NextRequest) {
       error: error.message 
     }, { status: 500 });
   }
+}
+
+// Función para formatear el servicio
+function formatServicio(servicio: string): string {
+  if (servicio === 'cotizacion_reposicion') return 'Sistema de Reposición';
+  if (servicio === 'cotizacion_monitoreo') return 'Sistema de Monitoreo';
+  if (servicio === 'cotizacion_mantenimiento') return 'Mantenimiento';
+  if (servicio === 'cotizacion_completa') return 'Solución Integral';
+  return servicio.replace('cotizacion_', '').split('_').map(
+    word => word.charAt(0).toUpperCase() + word.slice(1)
+  ).join(' ');
+}
+
+// Función para formatear el plazo
+function formatPlazo(plazo: string): string {
+  if (plazo === 'urgente') return 'urgente (1-2 días)';
+  if (plazo === 'pronto') return 'pronto (3-7 días)';
+  if (plazo === 'normal') return 'normal (1-2 semanas)';
+  if (plazo === 'planificacion') return 'en planificación (1 mes o más)';
+  return plazo;
 }
