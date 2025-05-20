@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import useDocumentos, { TipoDocumento, EntidadRelacionada } from '../hooks/useDocumentos';
+import Image from 'next/image';
 
 interface DocumentoUploaderProps {
   tipoDocumento: TipoDocumento;
@@ -148,7 +149,13 @@ const DocumentoUploader: React.FC<DocumentoUploaderProps> = ({
           <div className="documento-seleccionado">
             {vistaPrevia && (
               <div className="vista-previa">
-                <img src={vistaPrevia} alt="Vista previa" style={{ maxHeight: '150px', maxWidth: '100%' }} />
+                <Image 
+                  src={vistaPrevia} 
+                  alt="Vista previa" 
+                  width={200} 
+                  height={150} 
+                  style={{ maxHeight: '150px', maxWidth: '100%', objectFit: 'contain' }} 
+                />
               </div>
             )}
             

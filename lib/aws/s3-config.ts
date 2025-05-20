@@ -28,4 +28,5 @@ export const bucketConfig = {
   ],
 };
 
-export default { s3Client, bucketConfig }; 
+const s3Module = { s3Client, bucketConfig };
+export default s3Module; 

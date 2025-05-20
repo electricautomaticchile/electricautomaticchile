@@ -47,7 +47,7 @@ export function Notificaciones({ reducida = false }: NotificacionesProps) {
     markNotificationAsRead 
   } = useSocket();
 
-  // Cargar notificaciones desde la API
+  // Cargar notificaciones al montar el componente
   useEffect(() => {
     const cargarNotificaciones = async () => {
       try {
@@ -86,6 +86,29 @@ export function Notificaciones({ reducida = false }: NotificacionesProps) {
     cargarNotificaciones();
   }, []);
   
+  // Actualizar el resumen de notificaciones
+  const actualizarResumen = () => {
+    const total = notificaciones.length;
+    const noLeidas = notificaciones.filter(n => !n.leida).length;
+    
+    const alertas = notificaciones.filter(n => n.tipo === 'alerta').length;
+    const alertasNoLeidas = notificaciones.filter(n => n.tipo === 'alerta' && !n.leida).length;
+    
+    const info = notificaciones.filter(n => n.tipo === 'info').length;
+    const infoNoLeidas = notificaciones.filter(n => n.tipo === 'info' && !n.leida).length;
+    
+    const exito = notificaciones.filter(n => n.tipo === 'exito').length;
+    const exitoNoLeidas = notificaciones.filter(n => n.tipo === 'exito' && !n.leida).length;
+    
+    setResumenNotificaciones({
+      total,
+      noLeidas,
+      alertas: { total: alertas, noLeidas: alertasNoLeidas },
+      info: { total: info, noLeidas: infoNoLeidas },
+      exito: { total: exito, noLeidas: exitoNoLeidas }
+    });
+  };
+  
   // Integrar notificaciones de sockets con las cargadas desde la API
   useEffect(() => {
     if (socketNotifications.length > 0) {
@@ -112,7 +135,7 @@ export function Notificaciones({ reducida = false }: NotificacionesProps) {
       // Actualizar resumen
       actualizarResumen();
     }
-  }, [socketNotifications]);
+  }, [socketNotifications, actualizarResumen]);
   
   // Función para formatear el tiempo relativo
   const formatearTiempo = (fecha: Date): string => {
@@ -194,29 +217,6 @@ export function Notificaciones({ reducida = false }: NotificacionesProps) {
     } catch (error) {
       console.error('Error al marcar todas las notificaciones como leídas:', error);
     }
-  };
-  
-  // Actualizar el resumen de notificaciones
-  const actualizarResumen = () => {
-    const total = notificaciones.length;
-    const noLeidas = notificaciones.filter(n => !n.leida).length;
-    
-    const alertas = notificaciones.filter(n => n.tipo === 'alerta').length;
-    const alertasNoLeidas = notificaciones.filter(n => n.tipo === 'alerta' && !n.leida).length;
-    
-    const info = notificaciones.filter(n => n.tipo === 'info').length;
-    const infoNoLeidas = notificaciones.filter(n => n.tipo === 'info' && !n.leida).length;
-    
-    const exito = notificaciones.filter(n => n.tipo === 'exito').length;
-    const exitoNoLeidas = notificaciones.filter(n => n.tipo === 'exito' && !n.leida).length;
-    
-    setResumenNotificaciones({
-      total,
-      noLeidas,
-      alertas: { total: alertas, noLeidas: alertasNoLeidas },
-      info: { total: info, noLeidas: infoNoLeidas },
-      exito: { total: exito, noLeidas: exitoNoLeidas }
-    });
   };
   
   const getIconoNotificacion = (tipo: string) => {

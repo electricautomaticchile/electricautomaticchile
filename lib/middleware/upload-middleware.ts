@@ -51,4 +51,5 @@ export const uploadErrorHandler = (err: any, req: NextApiRequest, res: NextApiRe
   next();
 };
 
-export default { upload, uploadErrorHandler }; 
+const uploadMiddleware = { upload, uploadErrorHandler };
+export default uploadMiddleware; 
