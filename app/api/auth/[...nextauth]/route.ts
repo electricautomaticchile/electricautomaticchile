@@ -41,5 +41,6 @@ declare module "next-auth/jwt" {
 
 // Exportar el handler de NextAuth
 export { authOptions }
-export const handler = NextAuth(authOptions)
-export { handler as GET, handler as POST } 
+const handler = NextAuth(authOptions)
+export const GET = handler
+export const POST = handler 

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
@@ -55,6 +55,44 @@ export default function MensajesPage() {
     markMessageAsRead
   } = useSocket();
 
+  // Función para cargar mensajes, usando useCallback
+  const cargarMensajesConversacion = useCallback(async (conversacionId: string) => {
+    try {
+      setCargando(true);
+      const response = await fetch(`/api/mensajes/listar?conversacionId=${conversacionId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setMensajes(data.mensajes);
+        
+        // Marcar mensajes como leídos
+        data.mensajes.forEach((msg: Mensaje) => {
+          if (!msg.leido) {
+            markMessageAsRead(msg.id);
+          }
+        });
+        
+        // Actualizar contador de no leídos en la lista de conversaciones
+        setConversaciones(prev => 
+          prev.map(conv => 
+            conv.id === conversacionId 
+              ? { ...conv, noLeidos: 0 } 
+              : conv
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Error al cargar mensajes:', error);
+    } finally {
+      setCargando(false);
+    }
+  }, [markMessageAsRead, setMensajes, setCargando, setConversaciones]);
+  
   // Cargar conversaciones desde la API
   useEffect(() => {
     const cargarConversaciones = async () => {
@@ -129,44 +167,7 @@ export default function MensajesPage() {
         leaveConversation(conversacionActiva);
       };
     }
-  }, [conversacionActiva, connected, joinConversation, leaveConversation]);
-  
-  const cargarMensajesConversacion = async (conversacionId: string) => {
-    try {
-      setCargando(true);
-      const response = await fetch(`/api/mensajes/listar?conversacionId=${conversacionId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setMensajes(data.mensajes);
-        
-        // Marcar mensajes como leídos
-        data.mensajes.forEach((msg: Mensaje) => {
-          if (!msg.leido) {
-            markMessageAsRead(msg.id);
-          }
-        });
-        
-        // Actualizar contador de no leídos en la lista de conversaciones
-        setConversaciones(prev => 
-          prev.map(conv => 
-            conv.id === conversacionId 
-              ? { ...conv, noLeidos: 0 } 
-              : conv
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Error al cargar mensajes:', error);
-    } finally {
-      setCargando(false);
-    }
-  };
+  }, [conversacionActiva, connected, joinConversation, leaveConversation, cargarMensajesConversacion]);
   
   const enviarMensaje = async () => {
     if (!nuevoMensaje.trim() || !conversacionActiva) return;

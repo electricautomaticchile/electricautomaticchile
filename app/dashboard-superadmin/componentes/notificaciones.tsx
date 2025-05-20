@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
@@ -87,7 +87,7 @@ export function Notificaciones({ reducida = false }: NotificacionesProps) {
   }, []);
   
   // Actualizar el resumen de notificaciones
-  const actualizarResumen = () => {
+  const actualizarResumen = useCallback(() => {
     const total = notificaciones.length;
     const noLeidas = notificaciones.filter(n => !n.leida).length;
     
@@ -107,7 +107,7 @@ export function Notificaciones({ reducida = false }: NotificacionesProps) {
       info: { total: info, noLeidas: infoNoLeidas },
       exito: { total: exito, noLeidas: exitoNoLeidas }
     });
-  };
+  }, [notificaciones]);
   
   // Integrar notificaciones de sockets con las cargadas desde la API
   useEffect(() => {
