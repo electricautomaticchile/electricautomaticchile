@@ -18,11 +18,31 @@ const options = {
 
 // Validar que la URI de MongoDB está configurada
 if (!process.env.MONGODB_URI) {
-  console.warn("La variable de entorno MONGODB_URI no está configurada. Usando URI local por defecto.");
+  console.warn("⚠️ La variable de entorno MONGODB_URI no está configurada. Usando URI local por defecto.");
 }
 
+// Manejar la conexión con más detalle
 let client
 let clientPromise: Promise<MongoClient>
+
+// Crear una promesa envuelta para proporcionar más información sobre errores
+const createMongoClient = async (): Promise<MongoClient> => {
+  try {
+    console.log("🔄 Intentando conectar a MongoDB...");
+    const newClient = new MongoClient(uri, options);
+    const connectedClient = await newClient.connect();
+    console.log("✅ Conexión a MongoDB establecida exitosamente");
+    return connectedClient;
+  } catch (error: any) {
+    console.error("❌ Error al conectar a MongoDB:", {
+      message: error.message,
+      name: error.name,
+      code: error.code,
+      uri: uri.split("@").length > 1 ? uri.split("@")[1] : "URI sin @"
+    });
+    throw error;
+  }
+};
 
 if (process.env.NODE_ENV === "development") {
   let globalWithMongo = global as typeof globalThis & {
@@ -31,12 +51,12 @@ if (process.env.NODE_ENV === "development") {
 
   if (!globalWithMongo._mongoClientPromise) {
     client = new MongoClient(uri, options)
-    globalWithMongo._mongoClientPromise = client.connect()
+    globalWithMongo._mongoClientPromise = createMongoClient();
   }
   clientPromise = globalWithMongo._mongoClientPromise
 } else {
   client = new MongoClient(uri, options)
-  clientPromise = client.connect()
+  clientPromise = createMongoClient();
 }
 
 export default clientPromise 

@@ -39,7 +39,51 @@ declare module "next-auth/jwt" {
   }
 }
 
-// Configuración de NextAuth
-const handler = NextAuth(authOptions)
-export const GET = handler
-export const POST = handler 
+// Manejar errores en la inicialización del controlador
+let GET: any;
+let POST: any;
+
+try {
+  console.log("🔄 Inicializando NextAuth...");
+  console.log("Variables de entorno configuradas:", {
+    NEXTAUTH_URL: !!process.env.NEXTAUTH_URL,
+    NEXTAUTH_SECRET: !!process.env.NEXTAUTH_SECRET,
+    AUTH_SECRET: !!process.env.AUTH_SECRET,
+    MONGODB_URI: !!process.env.MONGODB_URI,
+    GOOGLE_ID: !!process.env.GOOGLE_ID,
+    GOOGLE_SECRET: !!process.env.GOOGLE_SECRET,
+  });
+  
+  // Asegurarse que NEXTAUTH_SECRET tiene un valor
+  if (!authOptions.secret && !process.env.NEXTAUTH_SECRET) {
+    console.error("⚠️ No se ha configurado NEXTAUTH_SECRET. La autenticación puede fallar.");
+  }
+  
+  // Configuración de NextAuth
+  const handler = NextAuth(authOptions);
+  console.log("✅ NextAuth inicializado correctamente");
+  
+  GET = handler;
+  POST = handler;
+} catch (error: any) {
+  console.error("❌ Error al inicializar NextAuth:", {
+    message: error.message,
+    stack: error.stack
+  });
+  
+  // Proporcionar un handler alternativo para devolver el error
+  const errorHandler = async () => {
+    return new Response(JSON.stringify({
+      error: "Error al inicializar NextAuth",
+      details: error.message
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  };
+  
+  GET = errorHandler;
+  POST = errorHandler;
+}
+
+export { GET, POST }; 
