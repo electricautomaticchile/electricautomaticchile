@@ -136,7 +136,6 @@ const DocumentoSchema = new Schema<IDocumento>({
 // Índices compuestos para consultas frecuentes
 DocumentoSchema.index({ entidadRelacionada: 1, referenciaId: 1 });
 DocumentoSchema.index({ usuario: 1, tipoDocumento: 1 });
-DocumentoSchema.index({ 'etiquetas': 1 });
 
 // Método estático para buscar documentos por entidad
 DocumentoSchema.statics.buscarPorEntidad = async function(
