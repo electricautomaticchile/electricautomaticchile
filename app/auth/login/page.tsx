@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
@@ -10,7 +10,8 @@ import { AlertCircle, KeyRound, User, LockKeyhole } from 'lucide-react'
 import Image from 'next/image'
 import { useSearchParams, useRouter } from "next/navigation"
 
-export default function LoginPage() {
+// Componente para el contenido de login
+const LoginContent = () => {
   const [clientNumber, setClientNumber] = useState("")
   const [isValidFormat, setIsValidFormat] = useState(true)
   const [password, setPassword] = useState("")
@@ -251,5 +252,28 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+// Componente para el esqueleto de carga
+const LoginSkeleton = () => {
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="w-full max-w-md animate-pulse">
+        <div className="w-full flex justify-center mb-8">
+          <div className="w-20 h-20 rounded-full bg-orange-200 dark:bg-orange-800"></div>
+        </div>
+        <div className="h-[400px] bg-gray-200 dark:bg-gray-800 rounded-lg"></div>
+      </div>
+    </div>
+  )
+}
+
+// Componente principal que envuelve el contenido con Suspense
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginSkeleton />}>
+      <LoginContent />
+    </Suspense>
   )
 }
