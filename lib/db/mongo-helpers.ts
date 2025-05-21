@@ -112,7 +112,7 @@ export async function buscarConPaginacion<T>(
 export async function crearIndiceCompuesto(
   nombreModelo: string,
   campos: { [key: string]: 1 | -1 },
-  opciones: mongoose.IndexOptions = {}
+  opciones: mongoose.mongo.CreateIndexesOptions = {}
 ) {
   try {
     await conectarDB();
@@ -136,7 +136,7 @@ export async function crearIndiceTTL(
     const modelo = mongoose.model(nombreModelo);
     await modelo.collection.createIndex(
       { [campo]: 1 },
-      { expireAfterSeconds: segundos }
+      { expireAfterSeconds: segundos } as mongoose.mongo.CreateIndexesOptions
     );
     console.log(`Índice TTL creado en ${nombreModelo}.${campo} (${segundos} segundos)`);
   } catch (error) {
