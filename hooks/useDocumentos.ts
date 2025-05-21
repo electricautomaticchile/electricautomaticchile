@@ -122,13 +122,11 @@ export function useDocumentos() {
 
     try {
       // Combinar los headers adicionales con los predeterminados
-      // NOTA: Remover el Content-Type para que axios configure automáticamente el boundary correcto
       const headers: Record<string, string> = {
+        'Content-Type': 'multipart/form-data',
         ...(headersAdicionales || {})
       };
 
-      console.log('Iniciando subida de archivo:', opciones.archivo.name, 'tamaño:', opciones.archivo.size);
-      
       const response = await axios.post('/api/documentos', formData, {
         headers,
         onUploadProgress: (event) => {
@@ -139,27 +137,11 @@ export function useDocumentos() {
         }
       });
 
-      console.log('Archivo subido correctamente:', response.data);
       setEstadoSubida('exito');
       return response.data.documento;
     } catch (err: any) {
-      console.error('Error al subir documento:', err);
       setEstadoSubida('error');
-      
-      // Mejorar el manejo del error para incluir más detalles
-      let mensajeError = 'Error al subir el documento';
-      if (err.response?.data?.mensaje) {
-        mensajeError = err.response.data.mensaje;
-      } else if (err.message) {
-        mensajeError = `Error: ${err.message}`;
-      }
-      
-      console.error('Detalles del error:', {
-        mensaje: mensajeError,
-        status: err.response?.status || 'desconocido',
-        statusText: err.response?.statusText || 'desconocido'
-      });
-      
+      const mensajeError = err.response?.data?.mensaje || 'Error al subir el documento';
       setError(mensajeError);
       throw new Error(mensajeError);
     }

@@ -94,10 +94,9 @@ export default function FormularioContacto() {
       
       // Headers especiales para indicar que es un formulario público
       const headers = {
+        'Content-Type': 'multipart/form-data',
         'X-Form-Type': 'contacto'
       };
-      
-      console.log('Iniciando subida de archivo:', file.name, 'tamaño:', file.size);
       
       // Subir archivo a S3 mediante nuestra API
       const response = await axios.post('/api/documentos', formData, {
@@ -110,28 +109,11 @@ export default function FormularioContacto() {
         }
       });
       
-      console.log('Archivo subido correctamente:', response.data);
-      
       // Retornar la URL del archivo subido
       return response.data.documento.url;
     } catch (error: any) {
       console.error("Error al subir archivo:", error);
-      
-      // Mejorar el manejo del error para incluir más detalles
-      let mensajeError = 'Error al subir el archivo';
-      if (error.response?.data?.mensaje) {
-        mensajeError = error.response.data.mensaje;
-      } else if (error.message) {
-        mensajeError = `Error: ${error.message}`;
-      }
-      
-      console.error('Detalles del error:', {
-        mensaje: mensajeError,
-        status: error.response?.status || 'desconocido',
-        statusText: error.response?.statusText || 'desconocido',
-        data: error.response?.data
-      });
-      
+      const mensajeError = error.response?.data?.mensaje || 'Error al subir el archivo';
       throw new Error(mensajeError);
     } finally {
       setSubiendoArchivo(false);

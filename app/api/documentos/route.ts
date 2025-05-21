@@ -148,42 +148,8 @@ export async function POST(request: NextRequest) {
     );
   } catch (error: any) {
     console.error('Error al subir documento:', error);
-    
-    // Capturar detalles más específicos sobre el error
-    let mensajeError = error.message || 'Ocurrió un error al procesar el documento';
-    let errorDetallado = null;
-    
-    if (error.name === 'AxiosError') {
-      // Error de comunicación con S3 u otro servicio externo
-      mensajeError = `Error de comunicación: ${error.code} - ${error.message}`;
-      errorDetallado = {
-        code: error.code,
-        request: error.request?.method || 'unknown',
-        response: error.response?.status || 'unknown',
-      };
-    } else if (error.name === 'MongooseError' || error.name === 'ValidationError') {
-      // Error de base de datos
-      mensajeError = `Error de base de datos: ${error.message}`;
-      errorDetallado = {
-        name: error.name,
-        code: error.code,
-        keyPattern: error.keyPattern,
-      };
-    } else if (error.stack) {
-      // Incluir información del stack para depuración
-      errorDetallado = {
-        stack: error.stack.split('\n').slice(0, 3),
-      };
-    }
-    
-    console.error('Detalles adicionales:', errorDetallado);
-    
     return NextResponse.json(
-      { 
-        error: 'Error al procesar el documento', 
-        mensaje: mensajeError,
-        detalles: process.env.NODE_ENV === 'development' ? errorDetallado : undefined
-      },
+      { error: 'Error al procesar el documento', mensaje: error.message || 'Ocurrió un error al procesar el documento' },
       { status: 500 }
     );
   }
