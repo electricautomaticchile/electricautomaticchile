@@ -146,7 +146,7 @@ https://www.electricautomaticchile.com
 
 Este es un mensaje automático. Por favor, no responda directamente a este correo.
 
-© ${new Date().getFullYear()} Electric Automatic Chile. Todos los derechos reservados.`;
+© ${new Date().getFullYear()} Electricautomaticchile. Todos los derechos reservados.`;
     
     // Enviar el correo
     const data = await resend.emails.send({
@@ -187,9 +187,9 @@ export async function sendRegistrationConfirmation(
     // Preparar el texto plano del correo
     const textContent = `Estimado/a ${nombre},
 
-Nos complace informarle que su solicitud ha sido APROBADA y estamos creando su cuenta de usuario en nuestro sistema.
+Nos complace informarle que su solicitud ha sido APROBADA y hemos creado su cuenta de usuario en nuestro sistema.
 
-Dentro de los próximos 2 días hábiles, su cuenta estará completamente activada y recibirá acceso a todas las funcionalidades de nuestra plataforma.
+Dentro de los próximos minutos, su cuenta estará completamente activada y recibirá acceso a todas las funcionalidades de nuestra plataforma.
 
 Sus credenciales de acceso son:
 Número de cliente: ${numeroCliente}
@@ -204,7 +204,7 @@ https://electricautomaticchile.com/login
 Si tiene alguna pregunta o necesita asistencia, no dude en contactarnos.
 
 Saludos cordiales,
-Equipo de Electric Automatic Chile
+Equipo de Electricautomaticchile
 
 © ${new Date().getFullYear()} Electric Automatic Chile. Todos los derechos reservados.
 Este es un mensaje automático. Por favor, no responda directamente a este correo.`;

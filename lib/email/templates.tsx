@@ -275,7 +275,7 @@ export const AutoResponseEmail: React.FC<{
           Este es un mensaje automático. Por favor, no responda directamente a este correo.
         </p>
         <p style={{ marginTop: '10px' }}>
-          &copy; {new Date().getFullYear()} Electric Automatic Chile. Todos los derechos reservados.
+          &copy; {new Date().getFullYear()} Electricautomaticchile. Todos los derechos reservados.
         </p>
       </div>
     </div>
@@ -373,14 +373,14 @@ export function UserRegistrationEmail({ nombre, numeroCliente, correo, password 
               width={200}
               height={100}
             />
-            <h1>¡Bienvenido a Electric Automatic Chile!</h1>
+            <h1>¡Bienvenido a Electricautomaticchile!</h1>
           </div>
           <div className="content">
             <p>Estimado/a <strong>{nombre}</strong>,</p>
             
-            <p>Nos complace informarle que su solicitud ha sido <span className="important">aprobada</span> y estamos creando su cuenta de usuario en nuestro sistema.</p>
+            <p>Nos complace informarle que su solicitud ha sido <span className="important">aprobada</span> y hemos creado su cuenta de usuario en nuestro sistema.</p>
             
-            <p>Dentro de los próximos <span className="important">2 días hábiles</span>, su cuenta estará completamente activada y recibirá acceso a todas las funcionalidades de nuestra plataforma.</p>
+            <p>Dentro de los próximos <span className="important">minutos</span>, su cuenta estará completamente activada y recibirá acceso a todas las funcionalidades de nuestra plataforma.</p>
             
             <div className="credentials">
               <p><strong>Sus credenciales de acceso son:</strong></p>
@@ -402,10 +402,10 @@ export function UserRegistrationEmail({ nombre, numeroCliente, correo, password 
             <p>Si tiene alguna pregunta o necesita asistencia, no dude en contactarnos.</p>
             
             <p>Saludos cordiales,</p>
-            <p><strong>Equipo de Electric Automatic Chile</strong></p>
+            <p><strong>Equipo de Electricautomaticchile</strong></p>
           </div>
           <div className="footer">
-            <p>© {new Date().getFullYear()} Electric Automatic Chile. Todos los derechos reservados.</p>
+            <p>© {new Date().getFullYear()} Electricautomaticchile. Todos los derechos reservados.</p>
             <p>Este es un mensaje automático. Por favor, no responda directamente a este correo.</p>
           </div>
         </div>
