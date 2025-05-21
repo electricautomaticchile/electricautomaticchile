@@ -207,12 +207,13 @@ export class CacheManager {
     let count = 0;
     
     // Iterar sobre todas las claves y eliminar las que coincidan con el patrón
-    cache.keys().forEach(key => {
+    const keys = Array.from(cache.keys());
+    for (const key of keys) {
       if (key.includes(pattern)) {
         cache.delete(key);
         count++;
       }
-    });
+    }
     
     return count;
   }
