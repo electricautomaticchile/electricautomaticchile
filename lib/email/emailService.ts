@@ -206,14 +206,14 @@ Si tiene alguna pregunta o necesita asistencia, no dude en contactarnos.
 Saludos cordiales,
 Equipo de Electricautomaticchile
 
-© ${new Date().getFullYear()} Electric Automatic Chile. Todos los derechos reservados.
+© ${new Date().getFullYear()} Electricautomaticchile. Todos los derechos reservados.
 Este es un mensaje automático. Por favor, no responda directamente a este correo.`;
     
     // Enviar el correo
     const data = await resend.emails.send({
       from: FROM_EMAIL,
       to: correo,
-      subject: 'Bienvenido a Electric Automatic Chile - Su cuenta ha sido aprobada',
+      subject: 'Bienvenido a Electricautomaticchile - Su cuenta ha sido aprobada',
       html,
       text: textContent,
     });

@@ -199,10 +199,10 @@ export const ContactNotificationEmail: React.FC<{
     }}>
       <p>
         Este es un mensaje automático del sistema de cotizaciones de 
-        Electric Automatic Chile. Por favor, no responda directamente a este correo.
+        Electricautomaticchile. Por favor, no responda directamente a este correo.
       </p>
       <p style={{ marginTop: '10px', fontSize: '12px' }}>
-        &copy; {new Date().getFullYear()} Electric Automatic Chile. Todos los derechos reservados.
+        &copy; {new Date().getFullYear()} Electricautomaticchile. Todos los derechos reservados.
       </p>
     </div>
   </div>
@@ -227,7 +227,7 @@ export const AutoResponseEmail: React.FC<{
       borderBottom: '1px solid #eee',
       paddingBottom: '10px'
     }}>
-      Gracias por solicitar una cotización con Electric Automatic Chile
+      Gracias por solicitar una cotización con Electricautomaticchile
     </h2>
     
     <div style={{ marginTop: '20px' }}>
