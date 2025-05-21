@@ -17,13 +17,20 @@ const LoginContent = () => {
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const [sessionInfo, setSessionInfo] = useState<any>(null)
   const { data: session, status } = useSession()
   const router = useRouter()
   
   // Obtener parámetros de la URL
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get("callbackUrl") || ""
+  let callbackUrl = searchParams.get("callbackUrl") || ""
+  
+  // Si la callbackUrl contiene localhost y estamos en producción, corregirla
+  if (callbackUrl.includes('localhost') && process.env.NODE_ENV === 'production') {
+    // Obtener solo la parte de la ruta, eliminando el dominio
+    const path = new URL(callbackUrl).pathname
+    // Crear una URL absoluta basada en la ventana actual
+    callbackUrl = window.location.origin + path
+  }
   
   // Redireccionar automáticamente si el usuario ya está autenticado
   useEffect(() => {
@@ -39,19 +46,10 @@ const LoginContent = () => {
         ? redirectPath 
         : (callbackUrl || redirectPath)
       
-      console.log("Redirigiendo a:", targetUrl, "Rol:", role)
       // Usar router.push para evitar recargas de página y redirecciones infinitas
       router.push(targetUrl)
     }
   }, [session, status, callbackUrl, router])
-  
-  // Mostrar información de la sesión para depuración
-  useEffect(() => {
-    if (session) {
-      console.log("Sesión activa:", session)
-      setSessionInfo(session)
-    }
-  }, [session])
   
   // Mostrar error si viene en la URL
   useEffect(() => {
@@ -96,14 +94,11 @@ const LoginContent = () => {
     setError("")
     
     try {
-      console.log("Iniciando sesión con:", { clientNumber, password })
       const result = await signIn('credentials', {
         clientNumber,
         password,
         redirect: false,
       })
-      
-      console.log("Resultado del inicio de sesión:", result)
       
       if (result?.error) {
         setError("Credenciales incorrectas. Por favor, verifique su información.")
@@ -171,21 +166,6 @@ const LoginContent = () => {
               </div>
             )}
             
-            {/* Información de depuración */}
-            {sessionInfo && (
-              <div className="bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 text-sm p-3 rounded-md mb-5">
-                <div className="font-bold">Estado de sesión: {status}</div>
-                <div>Usuario: {sessionInfo.user?.name}</div>
-                <div>Rol: {sessionInfo.user?.role}</div>
-                <div>ID: {sessionInfo.user?.id}</div>
-              </div>
-            )}
-            
-            {/* Estado de la sesión */}
-            <div className="mb-4 text-xs text-gray-500 dark:text-gray-400">
-              Estado de la sesión: {status}
-            </div>
-            
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="clientNumber" className="text-sm font-medium text-orange-800 dark:text-orange-300">
@@ -243,11 +223,6 @@ const LoginContent = () => {
                 {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
               </Button>
             </form>
-            
-            {/* URL de callback para depuración */}
-            <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
-              Callback URL: {callbackUrl}
-            </div>
           </CardContent>
         </Card>
       </div>

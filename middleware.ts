@@ -24,9 +24,18 @@ export async function middleware(request: NextRequest) {
     
     // Si no hay token (usuario no autenticado), redirigir al login
     if (!token) {
+      // Crear URL para la redirección
       const url = new URL('/auth/login', request.url);
+      
+      // Obtener el host de producción desde las variables de entorno o usar el host actual
+      const productionHost = process.env.NEXTAUTH_URL || request.nextUrl.origin;
+      
+      // Crear la URL de callback correcta usando el host de producción
+      const callbackUrl = new URL(pathname, productionHost).toString();
+      
       // Guardar la URL original como callbackUrl para redireccionar después del login
-      url.searchParams.set('callbackUrl', encodeURI(request.url));
+      url.searchParams.set('callbackUrl', encodeURI(callbackUrl));
+      
       return NextResponse.redirect(url);
     }
     
