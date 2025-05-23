@@ -1,72 +1,228 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from 'next-auth/middleware';
+import { rateLimiter, authRateLimiter, contactRateLimiter, uploadRateLimiter, adminRateLimiter } from './lib/middleware/rate-limiter';
+import { securityHeaders, handleCors } from './lib/middleware/security-headers';
+import { logger } from './lib/utils/logger';
 
-// Este middleware se ejecuta antes de manejar las solicitudes
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+/**
+ * Rutas que requieren autenticación
+ */
+const PROTECTED_ROUTES = [
+  '/dashboard-cliente',
+  '/dashboard-empresa', 
+  '/dashboard-superadmin',
+  '/api/admin',
+  '/api/user',
+  '/api/cliente',
+  '/api/cotizaciones',
+  '/api/documentos',
+  '/api/devices',
+  '/api/mensajes',
+  '/api/notificaciones',
+  '/api/actividad'
+];
+
+/**
+ * Rutas públicas que no requieren autenticación
+ */
+const PUBLIC_ROUTES = [
+  '/',
+  '/auth',
+  '/formulario',
+  '/acercade',
+  '/navservices',
+  '/terminosycondiciones',
+  '/api/testdb',
+  '/api/envioformulario',
+  '/api/auth'
+];
+
+/**
+ * Verifica si una ruta requiere autenticación
+ */
+function requiresAuth(pathname: string): boolean {
+  return PROTECTED_ROUTES.some(route => pathname.startsWith(route));
+}
+
+/**
+ * Verifica si una ruta es pública
+ */
+function isPublicRoute(pathname: string): boolean {
+  return PUBLIC_ROUTES.some(route => pathname.startsWith(route));
+}
+
+/**
+ * Aplica rate limiting específico según la ruta
+ */
+function applyRateLimiting(request: NextRequest): NextResponse | null {
+  const pathname = request.nextUrl.pathname;
   
-  // Ignorar rutas de autenticación para evitar redirecciones en bucle
-  if (pathname.startsWith('/auth') || pathname === '/') {
-    return NextResponse.next();
+  // Rate limiting específico por tipo de endpoint
+  if (pathname.includes('/api/auth')) {
+    return authRateLimiter(request);
   }
   
-  // Verificar si la ruta es un dashboard
-  const isDashboardRoute = pathname.startsWith('/dashboard-');
+  if (pathname.includes('/api/envioformulario')) {
+    return contactRateLimiter(request);
+  }
   
-  // Si es una ruta de dashboard, verificar autenticación
-  if (isDashboardRoute) {
-    // Obtener el token de autenticación
-    const token = await getToken({ 
-      req: request, 
-      secret: process.env.NEXTAUTH_SECRET 
-    });
-    
-    // Si no hay token (usuario no autenticado), redirigir al login
-    if (!token) {
-      // Crear URL para la redirección
-      const url = new URL('/auth/login', request.url);
+  if (pathname.includes('/api/documentos')) {
+    return uploadRateLimiter(request);
+  }
+  
+  if (pathname.includes('/api/admin') || pathname.includes('/api/superadmin')) {
+    return adminRateLimiter(request);
+  }
+  
+  if (pathname.startsWith('/api/')) {
+    return rateLimiter()(request);
+  }
+  
+  return null;
+}
+
+/**
+ * Middleware principal de seguridad
+ */
+async function securityMiddleware(request: NextRequest): Promise<NextResponse> {
+  const pathname = request.nextUrl.pathname;
+  
+  // 1. Manejar CORS preflight requests
+  const corsResponse = handleCors(request);
+  if (corsResponse) {
+    return corsResponse;
+  }
+  
+  // 2. Aplicar rate limiting
+  const rateLimitResponse = applyRateLimiting(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+  
+  // 3. Aplicar headers de seguridad
+  const response = securityHeaders(request);
+  
+  // 4. Validaciones adicionales para rutas específicas
+  if (pathname.startsWith('/api/')) {
+    // Validar Content-Type para APIs que no sean GET
+    if (request.method !== 'GET' && request.method !== 'OPTIONS') {
+      const contentType = request.headers.get('content-type');
       
-      // Obtener el host de producción desde las variables de entorno o usar el host actual
-      const productionHost = process.env.NEXTAUTH_URL || request.nextUrl.origin;
-      
-      // Crear la URL de callback correcta usando el host de producción
-      const callbackUrl = new URL(pathname, productionHost).toString();
-      
-      // Guardar la URL original como callbackUrl para redireccionar después del login
-      url.searchParams.set('callbackUrl', encodeURI(callbackUrl));
-      
-      return NextResponse.redirect(url);
+      // Para endpoints que esperan JSON
+      if (pathname.includes('/api/') && !pathname.includes('/api/documentos')) {
+        if (!contentType || !contentType.includes('application/json')) {
+          return NextResponse.json(
+            { 
+              error: 'Content-Type inválido',
+              message: 'Se requiere Content-Type: application/json'
+            },
+            { status: 400 }
+          );
+        }
+      }
     }
     
-    const userRole = token.role as string;
-    
-    // Si el usuario es admin/superadmin y está intentando acceder al dashboard-empresa,
-    // redirigirlo al dashboard-superadmin
-    if ((userRole === "admin" || userRole === "superadmin") && pathname.startsWith('/dashboard-empresa')) {
-      const url = new URL('/dashboard-superadmin', request.url);
-      return NextResponse.redirect(url);
-    }
-    
-    // Si es dashboard-superadmin, verificar que sea admin
-    if (pathname.startsWith('/dashboard-superadmin')) {
-      if (userRole !== 'admin' && userRole !== 'superadmin') {
-        // Si no tiene el rol adecuado, redirigir al dashboard correspondiente a su rol
-        const url = new URL('/dashboard-empresa', request.url);
-        return NextResponse.redirect(url);
+    // Validar tamaño de request body
+    const contentLength = request.headers.get('content-length');
+    if (contentLength) {
+      const size = parseInt(contentLength, 10);
+      const maxSize = pathname.includes('/api/documentos') ? 50 * 1024 * 1024 : 1024 * 1024; // 50MB para docs, 1MB para otros
+      
+      if (size > maxSize) {
+        return NextResponse.json(
+          {
+            error: 'Request demasiado grande',
+            message: `El tamaño máximo permitido es ${maxSize / (1024 * 1024)}MB`
+          },
+          { status: 413 }
+        );
       }
     }
   }
   
-  // Procesar normalmente todas las demás rutas
-  return NextResponse.next();
+  // 5. Logging de seguridad en desarrollo
+  if (process.env.NODE_ENV === 'development') {
+    logger.debug(`Middleware de seguridad: ${request.method} ${pathname}`, {});
+  }
+  
+  return response;
 }
 
-// Configurar en qué rutas se aplicará el middleware
+/**
+ * Middleware de autenticación con next-auth
+ */
+const authMiddleware = withAuth(
+  function middleware(req) {
+    const pathname = req.nextUrl.pathname;
+    
+    // Logging de acceso autenticado
+    if (process.env.NODE_ENV === 'development') {
+      logger.auth(`Usuario autenticado accediendo a: ${pathname}`, {});
+    }
+    
+    return NextResponse.next();
+  },
+  {
+    callbacks: {
+      authorized: ({ token, req }) => {
+        const pathname = req.nextUrl.pathname;
+        
+        // Permitir acceso a rutas públicas sin token
+        if (isPublicRoute(pathname)) {
+          return true;
+        }
+        
+        // Requerir token para rutas protegidas
+        if (requiresAuth(pathname)) {
+          return !!token;
+        }
+        
+        return true;
+      }
+    },
+    pages: {
+      signIn: '/auth/login',
+      error: '/auth/error',
+    }
+  }
+);
+
+/**
+ * Middleware principal que combina seguridad y autenticación
+ */
+export default async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  
+  // Aplicar middleware de seguridad primero
+  const securityResponse = await securityMiddleware(request);
+  
+  // Si el middleware de seguridad retorna una respuesta (error), devolverla inmediatamente
+  if (securityResponse.status !== 200 && securityResponse.headers.get('next-url') === null) {
+    return securityResponse;
+  }
+  
+  // Si la ruta requiere autenticación, aplicar middleware de auth
+  if (requiresAuth(pathname)) {
+    return authMiddleware(request as any);
+  }
+  
+  return securityResponse;
+}
+
+/**
+ * Configuración de matcher para el middleware
+ */
 export const config = {
-  // Aplicar a todas las rutas excepto las estáticas y las API
   matcher: [
-    // Excluir archivos estáticos, API, y otros archivos del sistema
-    '/((?!api|_next/static|_next/image|_next/data|favicon.ico).*)',
+    /*
+     * Aplicar middleware a todas las rutas excepto:
+     * - archivos estáticos (_next/static)
+     * - archivos de imagen y otros assets
+     * - favicon, robots.txt, etc.
+     */
+    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|manifest.json).*)',
   ],
-}; 
+};
+
+// Exportar para testing
+export { requiresAuth, isPublicRoute, PROTECTED_ROUTES, PUBLIC_ROUTES }; 
