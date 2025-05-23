@@ -7,6 +7,7 @@ import { signIn, useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertCircle, KeyRound, User, LockKeyhole } from 'lucide-react'
+import Image from 'next/image'
 import { useSearchParams, useRouter } from "next/navigation"
 
 // Componente para el contenido de login
@@ -31,31 +32,26 @@ const LoginContent = () => {
     callbackUrl = window.location.origin + path
   }
   
-  // Manejar redirección después de autenticación exitosa
+  // Redireccionar automáticamente si el usuario ya está autenticado
   useEffect(() => {
-    if (status === "authenticated" && session?.user) {
-      const { role } = session.user
+    if (status === "authenticated" && session) {
+      const role = session.user?.role
+      // Priorizar siempre el dashboard de superadmin para roles admin/superadmin
+      const redirectPath = role === "admin" || role === "superadmin" 
+        ? "/dashboard-superadmin" 
+        : "/dashboard-empresa"
       
-      // Determinar el dashboard apropiado basado en el rol
-      let dashboardRoute = "/dashboard-empresa" // default
+      // Si no hay callbackUrl específico O el usuario es admin/superadmin, usar redirectPath
+      const targetUrl = (role === "admin" || role === "superadmin") 
+        ? redirectPath 
+        : (callbackUrl || redirectPath)
       
-      if (role === "admin" || role === "superadmin") {
-        dashboardRoute = "/dashboard-superadmin"
-      } else if (role === "cliente") {
-        dashboardRoute = "/dashboard-cliente"  
-      }
-      
-      // Si hay callbackUrl válida, usar esa; sino usar dashboard por defecto
-      const targetUrl = callbackUrl || dashboardRoute
-      
-      // Redirigir con un pequeño delay para que el usuario vea el mensaje
-      setTimeout(() => {
-        router.replace(targetUrl)
-      }, 1000)
+      // Usar router.push para evitar recargas de página y redirecciones infinitas
+      router.push(targetUrl)
     }
-  }, [status, session, router, callbackUrl])
+  }, [session, status, callbackUrl, router])
   
-  // Manejar errores en la URL
+  // Mostrar error si viene en la URL
   useEffect(() => {
     const errorParam = searchParams.get("error")
     if (errorParam === "CredentialsSignin") {
@@ -114,6 +110,16 @@ const LoginContent = () => {
       setError("Error al iniciar sesión. Intente nuevamente.")
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await signIn('google', {
+        callbackUrl: "/dashboard-superadmin" // Forzar redirección al dashboard-superadmin para login con Google
+      })
+    } catch (error) {
+      console.error('Error durante el login con Google:', error)
     }
   }
 

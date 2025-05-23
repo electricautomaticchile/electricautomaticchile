@@ -1,76 +1,25 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: [],
-    unoptimized: true // Mejor para Amplify
+    domains: ['lh3.googleusercontent.com']
   },
-  
-  // Configuración específica para AWS Amplify con API routes
+  // Configuración para SSR
   output: 'standalone',
+  // Asegurar que todas las rutas terminen con slash
   trailingSlash: true,
-  
-  // Configuración de cache
-  onDemandEntries: {
-    maxInactiveAge: 60 * 1000,
-    pagesBufferLength: 2,
-  },
-  
-  // Headers para controlar cache
-  async headers() {
-    return [
-      {
-        source: '/((?!api/).*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'no-cache, no-store, must-revalidate',
-          },
-          {
-            key: 'Pragma',
-            value: 'no-cache',
-          },
-          {
-            key: 'Expires',
-            value: '0',
-          },
-        ],
-      },
-      {
-        source: '/api/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'no-cache, no-store, must-revalidate',
-          },
-        ],
-      },
-    ];
-  },
-  
-  // Configuración experimental para Amplify
+  // Evitar exportación estática para todas las rutas
+  staticPageGenerationTimeout: 1000,
+  // Forzar el modo SSR para las API routes
   experimental: {
     serverComponentsExternalPackages: ['mongoose', 'mongodb'],
-    esmExternals: 'loose'
+    esmExternals: 'loose',
+    // Deshabilitar pre-renderizado estático para rutas de API
+    appDir: true
   },
-  
-  // Generar ID único para cada build para forzar invalidación de cache
+  // Generar ID único para cada build
   generateBuildId: async () => {
-    return 'amplify-build-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9)
-  },
-  
-  // Configuración adicional para evitar problemas de cache
-  poweredByHeader: false,
-  compress: true,
-  
-  // Configurar rewrites para manejar rutas dinámicas
-  async rewrites() {
-    return [
-      {
-        source: '/dashboard-:type',
-        destination: '/dashboard-:type',
-      },
-    ];
-  },
+    return 'build-id-' + Date.now()
+  }
 }
 
 export default nextConfig 

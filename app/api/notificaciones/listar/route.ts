@@ -3,7 +3,6 @@ import { connectToDatabase } from '@/lib/db/mongodb';
 import Notificacion from '@/lib/models/notificacion';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/options';
-import { logger } from '@/lib/utils/logger';
 
 // Definir la ruta como dinámica para evitar pre-renderizado estático
 export const dynamic = 'force-dynamic';
@@ -107,10 +106,10 @@ export async function GET(request: NextRequest) {
     }, { status: 200 });
     
   } catch (error: any) {
-    logger.error('Error al listar notificaciones', error);
+    console.error('Error al listar notificaciones:', error);
     
     return NextResponse.json({ 
-      message: "Error al listar notificaciones",
+      message: "Error al obtener las notificaciones",
       error: error.message 
     }, { status: 500 });
   }

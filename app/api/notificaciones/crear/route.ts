@@ -4,7 +4,6 @@ import Notificacion from '@/lib/models/notificacion';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 import { sendNotificationToUser, isUserConnected } from '@/lib/socket/socket-service';
-import { logger } from '@/lib/utils/logger';
 
 // Definir la ruta como dinámica para evitar pre-renderizado estático
 export const dynamic = 'force-dynamic';
@@ -70,10 +69,10 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
     
   } catch (error: any) {
-    logger.error('Error al crear notificación', error);
+    console.error('Error al crear notificación:', error);
     
     return NextResponse.json({ 
-      message: "Error al crear notificación",
+      message: "Error al crear la notificación",
       error: error.message 
     }, { status: 500 });
   }

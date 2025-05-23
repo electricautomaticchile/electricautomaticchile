@@ -4,7 +4,6 @@ import Mensaje from '@/lib/models/mensaje';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 import mongoose from 'mongoose';
-import { logger } from '@/lib/utils/logger';
 
 // Definir la ruta como dinámica para evitar pre-renderizado estático
 export const dynamic = 'force-dynamic';
@@ -67,10 +66,10 @@ export async function PUT(request: NextRequest) {
     }, { status: 200 });
     
   } catch (error: any) {
-    logger.error('Error al marcar mensaje como leído', error);
+    console.error('Error al marcar mensaje como leído:', error);
     
     return NextResponse.json({ 
-      message: "Error al marcar mensaje como leído",
+      message: "Error al marcar el mensaje como leído",
       error: error.message 
     }, { status: 500 });
   }

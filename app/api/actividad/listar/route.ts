@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/db/mongodb';
 import mongoose from 'mongoose';
-import { logger } from '@/lib/utils/logger';
 
 // Marcar explícitamente como ruta dinámica
 export const dynamic = 'force-dynamic';
@@ -117,10 +116,10 @@ export async function GET(request: NextRequest) {
     }, { status: 200 });
     
   } catch (error: any) {
-    logger.error('Error al listar registros de actividad', error);
+    console.error('Error al listar registros de actividad:', error);
     
     return NextResponse.json({ 
-      message: "Error al listar registros de actividad",
+      message: "Error al obtener los registros de actividad",
       error: error.message 
     }, { status: 500 });
   }

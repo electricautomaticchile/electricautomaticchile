@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendRegistrationConfirmation } from '@/lib/email/emailService';
-import { logger } from '@/lib/utils/logger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,7 +40,7 @@ export async function POST(request: NextRequest) {
     }, { status: 200 });
     
   } catch (error: any) {
-    logger.error('Error al enviar correo de confirmación', error);
+    console.error('Error al enviar correo de confirmación:', error);
     
     return NextResponse.json({ 
       message: "Error al enviar correo de confirmación",

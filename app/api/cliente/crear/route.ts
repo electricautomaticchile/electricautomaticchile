@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { hash } from 'bcrypt';
-import { generateRandomClientNumber } from '@/lib/utils';
-import { logger } from '@/lib/utils/logger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -76,7 +74,7 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
     
   } catch (error: any) {
-    logger.error('Error al crear cliente en la base de datos', error);
+    console.error('Error al crear cliente en la base de datos:', error);
     
     return NextResponse.json({ 
       message: "Error al crear el cliente",

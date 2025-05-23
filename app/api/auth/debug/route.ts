@@ -11,6 +11,8 @@ export async function GET(request: NextRequest) {
       MONGODB_URI: process.env.MONGODB_URI ? 'configurado' : 'no configurado',
       JWT_SECRET: process.env.JWT_SECRET ? 'configurado' : 'no configurado',
       NODE_ENV: process.env.NODE_ENV || 'no configurado',
+      AUTH_GOOGLE_ID: process.env.GOOGLE_ID ? 'configurado' : 'no configurado',
+      AUTH_GOOGLE_SECRET: process.env.GOOGLE_SECRET ? 'configurado' : 'no configurado',
     };
     
     // Verificar configuración de NextAuth

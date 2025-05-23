@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 import clientPromise from '@/lib/mongodb';
-import { logger } from '@/lib/utils/logger';
 
 // Ruta para actualizar la imagen de perfil del usuario
 export async function POST(request: NextRequest) {
@@ -40,13 +39,12 @@ export async function POST(request: NextRequest) {
       message: 'Imagen de perfil actualizada correctamente'
     });
     
-  } catch (error: any) {
-    logger.error('Error al actualizar imagen de perfil', error);
-    
-    return NextResponse.json({ 
-      message: "Error al actualizar imagen de perfil",
-      error: error.message 
-    }, { status: 500 });
+  } catch (error) {
+    console.error('Error al actualizar la imagen de perfil:', error);
+    return NextResponse.json(
+      { error: 'Error al procesar la solicitud' },
+      { status: 500 }
+    );
   }
 }
 
@@ -79,8 +77,8 @@ export async function DELETE(request: NextRequest) {
       message: 'Imagen de perfil eliminada correctamente'
     });
     
-  } catch (error: any) {
-    logger.error('Error al eliminar la imagen de perfil', error);
+  } catch (error) {
+    console.error('Error al eliminar la imagen de perfil:', error);
     return NextResponse.json(
       { error: 'Error al procesar la solicitud' },
       { status: 500 }

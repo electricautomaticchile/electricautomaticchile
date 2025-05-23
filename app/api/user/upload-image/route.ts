@@ -4,7 +4,6 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { logger } from '@/lib/utils/logger';
 
 // Función para asegurarse de que la carpeta existe
 async function ensureDirectoryExists(dir: string) {
@@ -13,8 +12,8 @@ async function ensureDirectoryExists(dir: string) {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-  } catch (error: any) {
-    logger.error('Error al crear directorio', error);
+  } catch (error) {
+    console.error('Error al crear directorio:', error);
   }
 }
 
@@ -67,12 +66,11 @@ export async function POST(request: NextRequest) {
       message: 'Imagen subida correctamente'
     });
     
-  } catch (error: any) {
-    logger.error('Error al subir imagen', error);
-    
-    return NextResponse.json({ 
-      message: "Error al subir imagen",
-      error: error.message 
-    }, { status: 500 });
+  } catch (error) {
+    console.error('Error al subir la imagen:', error);
+    return NextResponse.json(
+      { error: 'Error al procesar la solicitud' },
+      { status: 500 }
+    );
   }
 } 

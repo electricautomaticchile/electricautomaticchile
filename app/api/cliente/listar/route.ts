@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
-import { connectToDatabase } from '@/lib/db/mongodb';
-import { logger } from '@/lib/utils/logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,10 +17,10 @@ export async function GET(request: NextRequest) {
     }, { status: 200 });
     
   } catch (error: any) {
-    logger.error('Error al listar clientes de la base de datos', error);
+    console.error('Error al listar clientes de la base de datos:', error);
     
     return NextResponse.json({ 
-      message: "Error al listar clientes",
+      message: "Error al obtener los clientes",
       error: error.message 
     }, { status: 500 });
   }

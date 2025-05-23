@@ -5,22 +5,12 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "amplify:build": "npm run clear-cache && npm run build",
+    "amplify:build": "STANDALONE=true next build",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "check-env": "node scripts/check-env.js",
-    "dev:safe": "npm run check-env && npm run dev",
-    "build:safe": "npm run check-env && npm run build",
-    "security-check": "npm audit && npm run check-env",
-    "security-audit": "node scripts/security-audit.js",
-    "check-logs": "node scripts/check-console-logs.js",
-    "clear-cache": "node scripts/clear-amplify-cache.js",
-    "clear-cache-local": "node scripts/clear-cache-windows.js",
-    "amplify:deploy": "npm run clear-cache && npm run build",
-    "build:fresh": "node scripts/clear-cache-windows.js && npm run build"
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.7.4",
@@ -73,7 +63,7 @@
     "next-themes": "^0.3.0",
     "nodemailer": "^6.9.16",
     "react": "^18",
-    "react-day-picker": "^9.7.0",
+    "react-day-picker": "8.10.1",
     "react-dom": "^18",
     "recharts": "^2.15.3",
     "resend": "^4.0.1",

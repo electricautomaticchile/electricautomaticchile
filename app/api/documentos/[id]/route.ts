@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import documentoService from '@/lib/services/documento-service';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/options';
-import { logger } from '@/lib/utils/logger';
 
 // Manejador de solicitudes GET (obtener un documento por ID)
 export async function GET(
@@ -52,7 +51,7 @@ export async function GET(
     // Devolver el documento
     return NextResponse.json({ documento });
   } catch (error: any) {
-    logger.error(`Error al obtener documento: ${error.message}`, error);
+    console.error(`Error al obtener documento: ${error.message}`);
     return NextResponse.json(
       { error: 'Error al obtener documento', mensaje: error.message },
       { status: 500 }
@@ -107,7 +106,7 @@ export async function PUT(
       documento: documentoActualizado
     });
   } catch (error: any) {
-    logger.error(`Error al actualizar documento: ${error.message}`, error);
+    console.error(`Error al actualizar documento: ${error.message}`);
     return NextResponse.json(
       { error: 'Error al actualizar documento', mensaje: error.message },
       { status: 500 }
@@ -149,7 +148,7 @@ export async function DELETE(
       );
     }
     
-    logger.error(`Error al eliminar documento: ${error.message}`, error);
+    console.error(`Error al eliminar documento: ${error.message}`);
     return NextResponse.json(
       { error: 'Error al eliminar documento', mensaje: error.message },
       { status: 500 }

@@ -1,28 +1,29 @@
 import { NextAuthOptions } from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import clientPromise from "@/lib/mongodb";
 import { compare } from "bcrypt";
-import { logger } from '@/lib/utils/logger';
 
 // Función para registrar información de debug más detallada
 function logAuthInfo(context: string, data: any) {
-  logger.auth(`${context}`, {
+  console.log(`[AUTH DEBUG] ${context}:`, {
     ...data,
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
     nextAuthUrl: process.env.NEXTAUTH_URL || 'no configurado',
     hasMongoDB: !!process.env.MONGODB_URI,
-    hasSecret: !!process.env.NEXTAUTH_SECRET
+    hasSecret: !!process.env.NEXTAUTH_SECRET,
+    hasGoogleCreds: !!(process.env.GOOGLE_ID && process.env.GOOGLE_SECRET)
   });
-}
-
-function debugLog(context: string, data?: any) {
-  logger.auth(`${context}`, data);
 }
 
 export const authOptions: NextAuthOptions = {
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_ID!,
+      clientSecret: process.env.GOOGLE_SECRET!,
+    }),
     CredentialsProvider({
       name: "Credenciales",
       credentials: {
@@ -107,7 +108,7 @@ export const authOptions: NextAuthOptions = {
             name: error.name,
             stack: error.stack
           });
-          logger.error("Error en la autenticación", error);
+          console.error("Error en la autenticación:", error);
           return null;
         }
       }
@@ -172,7 +173,7 @@ export const authOptions: NextAuthOptions = {
             error: error.message,
             url
           });
-          logger.error("Error decodificando token en URL", error);
+          console.error("Error decodificando token en URL:", error);
         }
       }
       

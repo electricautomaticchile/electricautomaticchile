@@ -3,7 +3,6 @@ import documentoService from '@/lib/services/documento-service';
 import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 import { getServerSession } from 'next-auth';
 import { bucketConfig } from '@/lib/aws/s3-config';
-import { logger } from '@/lib/utils/logger';
 
 // Función para validar el tipo de archivo
 function esTipoArchivoPermitido(mimetype: string): boolean {
@@ -17,7 +16,7 @@ function esTamañoArchivoPermitido(size: number): boolean {
 
 // Función para registrar errores detallados
 function logError(error: any, context: string) {
-  logger.error(`${context}`, {
+  console.error(`[ERROR] ${context}:`, {
     message: error.message,
     name: error.name,
     code: error.code,
@@ -46,74 +45,69 @@ function logError(error: any, context: string) {
 // Manejador de solicitudes POST (subir documento)
 export async function POST(request: NextRequest) {
   try {
-    // Verificar si es un formulario de contacto
-    const esFormularioContacto = request.headers.get('X-Form-Type') === 'contacto';
+    console.log('[INFO] Iniciando proceso de subida de documento');
     
-    logger.file('info', 'Iniciando proceso de subida de documento');
-    
-    if (esFormularioContacto) {
-      logger.api('info', `Es formulario de contacto: ${esFormularioContacto}`);
-    }
+    // Verificar si es una solicitud del formulario de contacto público
+    const esFormularioContacto = request.headers.get('x-form-type') === 'contacto';
+    console.log(`[INFO] Es formulario de contacto: ${esFormularioContacto}`);
     
     // Si no es formulario de contacto, verificar autenticación
     if (!esFormularioContacto) {
-      logger.file('info', 'Verificando autenticación del usuario');
-      
+      console.log('[INFO] Verificando autenticación del usuario');
       const session = await getServerSession(authOptions);
-      if (!session || !session.user?.email) {
-        logger.api('warn', 'Usuario no autenticado, devolviendo error 401');
+      
+      if (!session || !session.user) {
+        console.log('[INFO] Usuario no autenticado, devolviendo error 401');
         return NextResponse.json(
-          { message: 'Usuario no autenticado' },
+          { error: 'No autorizado', mensaje: 'Debe iniciar sesión para subir documentos' },
           { status: 401 }
         );
       }
-      
-      logger.api('info', `Usuario autenticado: ${session.user.id || session.user.email}`);
+      console.log(`[INFO] Usuario autenticado: ${session.user.id || session.user.email}`);
     }
     
-    // Procesar formulario
-    logger.file('info', 'Extrayendo datos del formulario');
-    
+    // Parsear la solicitud como FormData
+    console.log('[INFO] Extrayendo datos del formulario');
     const formData = await request.formData();
-    const archivo = formData.get('archivo') as File;
     
-    if (!archivo) {
-      logger.file('warn', 'No se encontró archivo en la solicitud');
+    // Obtener el archivo
+    const archivo = formData.get('archivo');
+    
+    if (!archivo || !(archivo instanceof File)) {
+      console.log('[INFO] No se encontró archivo en la solicitud');
       return NextResponse.json(
-        { message: 'No se proporcionó ningún archivo' },
+        { error: 'No se ha subido ningún archivo', mensaje: 'Debe proporcionar un archivo para subir' },
         { status: 400 }
       );
     }
     
-    logger.file('info', `Archivo recibido: ${archivo.name}, tipo: ${archivo.type}, tamaño: ${archivo.size} bytes`);
+    console.log(`[INFO] Archivo recibido: ${archivo.name}, tipo: ${archivo.type}, tamaño: ${archivo.size} bytes`);
     
-    // Validaciones de archivo
+    // Validar tipo de archivo
     if (!esTipoArchivoPermitido(archivo.type)) {
-      logger.file('warn', `Tipo de archivo no permitido: ${archivo.type}`);
+      console.log(`[INFO] Tipo de archivo no permitido: ${archivo.type}`);
       return NextResponse.json(
         { 
-          message: 'Tipo de archivo no permitido',
-          tiposPermitidos: bucketConfig.allowedFileTypes
+          error: 'Tipo de archivo no permitido', 
+          mensaje: `Tipo de archivo no permitido: ${archivo.type}. Tipos permitidos: ${bucketConfig.allowedFileTypes.join(', ')}` 
         },
         { status: 400 }
       );
     }
     
-    // Validar tamaño (50MB máximo)
-    const tamañoMaximo = 50 * 1024 * 1024; // 50MB en bytes
-    if (archivo.size > tamañoMaximo) {
-      logger.file('warn', `Tamaño de archivo excedido: ${archivo.size} bytes`);
+    // Validar tamaño de archivo
+    if (!esTamañoArchivoPermitido(archivo.size)) {
+      console.log(`[INFO] Tamaño de archivo excedido: ${archivo.size} bytes`);
       return NextResponse.json(
         { 
-          message: 'El archivo es demasiado grande. Tamaño máximo: 50MB',
-          tamañoActual: `${(archivo.size / 1024 / 1024).toFixed(2)}MB`,
-          tamañoMaximo: '50MB'
+          error: 'Tamaño de archivo excedido', 
+          mensaje: `El archivo no debe superar ${bucketConfig.maxFileSize / (1024 * 1024)}MB` 
         },
         { status: 400 }
       );
     }
     
-    // Obtener metadatos del documento
+    // Obtener los metadatos del formulario
     const tipoDocumento = formData.get('tipoDocumento') as string;
     const entidadRelacionada = formData.get('entidadRelacionada') as string;
     const referenciaId = formData.get('referenciaId') as string;
@@ -123,66 +117,64 @@ export async function POST(request: NextRequest) {
     const esPublico = formData.get('esPublico') === 'true';
     const etiquetasRaw = formData.get('etiquetas') as string;
     
-    // Solo loggear metadatos en desarrollo para debugging
-    logger.file('debug', 'Metadatos del documento', {
+    console.log('[INFO] Metadatos del documento:', {
       tipoDocumento,
       entidadRelacionada,
       referenciaId,
       entidadModelo,
       nombre,
       esPublico,
-      etiquetas: etiquetasRaw ? 'presente' : 'no presente',
-      archivoNombre: archivo.name,
-      archivoTamaño: archivo.size
+      etiquetasExisten: !!etiquetasRaw
     });
     
     // Validar campos requeridos
     if (!tipoDocumento || !entidadRelacionada || !referenciaId || !entidadModelo) {
-      logger.file('warn', 'Faltan campos requeridos en la solicitud');
+      console.log('[INFO] Faltan campos requeridos en la solicitud');
       return NextResponse.json(
-        { message: 'Faltan campos requeridos: tipoDocumento, entidadRelacionada, referenciaId y entidadModelo' },
+        { 
+          error: 'Faltan campos requeridos', 
+          mensaje: 'Los campos tipoDocumento, entidadRelacionada, referenciaId y entidadModelo son obligatorios' 
+        },
         { status: 400 }
       );
     }
     
-    // Procesar etiquetas
-    let etiquetas: string[] = [];
+    // Procesar etiquetas si existen
+    let etiquetas: string[] | undefined;
     if (etiquetasRaw) {
       try {
-        // Intentar parsearlo como JSON primero
         etiquetas = JSON.parse(etiquetasRaw);
-        logger.file('debug', `Etiquetas procesadas como JSON: ${etiquetas?.length || 0} etiquetas`);
-      } catch {
-        // Si falla, tratarlo como string separado por comas
-        etiquetas = etiquetasRaw.split(',').map(tag => tag.trim()).filter(Boolean);
-        logger.file('debug', `Etiquetas procesadas como string separado por comas: ${etiquetas?.length || 0} etiquetas`);
+        console.log(`[INFO] Etiquetas procesadas como JSON: ${etiquetas?.length || 0} etiquetas`);
+      } catch (e) {
+        // Si no es JSON válido, intentamos separar por comas
+        etiquetas = etiquetasRaw.split(',').map(e => e.trim());
+        console.log(`[INFO] Etiquetas procesadas como string separado por comas: ${etiquetas?.length || 0} etiquetas`);
       }
     }
     
-    // Determinar usuario
-    let usuario = 'anonimo';
-    if (!esFormularioContacto) {
-      const session = await getServerSession(authOptions);
-      usuario = session?.user?.id || session?.user?.email || 'usuario_autenticado';
-      logger.api('debug', `Usuario asignado al documento: ${usuario}`);
+    // Obtener usuario de la sesión o usar valor por defecto para formulario público
+    let usuario = 'formulario-publico';
+    const session = await getServerSession(authOptions);
+    if (session?.user?.id) {
+      usuario = session.user.id;
     }
+    console.log(`[INFO] Usuario asignado al documento: ${usuario}`);
     
-    // Leer archivo como ArrayBuffer
-    logger.file('debug', 'Leyendo archivo como ArrayBuffer');
-    const arrayBuffer = await archivo.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    logger.file('debug', `Buffer de archivo creado: ${buffer.length} bytes`);
+    // Leer el archivo como ArrayBuffer
+    console.log('[INFO] Leyendo archivo como ArrayBuffer');
+    const buffer = Buffer.from(await archivo.arrayBuffer());
+    console.log(`[INFO] Buffer de archivo creado: ${buffer.length} bytes`);
     
-    // Verificar configuración S3
-    logger.file('debug', 'Verificando configuración de S3', {
-      bucket: process.env.S3_BUCKET_NAME ? 'configurado' : 'no configurado',
-      accessKey: process.env.ACCESS_KEY_ID ? 'configurado' : 'no configurado',
-      secretKey: process.env.SECRET_ACCESS_KEY ? 'configurado' : 'no configurado',
-      region: process.env.REGION ? 'configurado' : 'no configurado'
+    // Verificar configuración de S3
+    console.log('[INFO] Verificando configuración de S3:', {
+      bucketNameConfigured: !!bucketConfig.bucketName,
+      accessKeyConfigured: !!process.env.ACCESS_KEY_ID,
+      secretKeyConfigured: !!process.env.SECRET_ACCESS_KEY,
+      regionConfigured: !!process.env.REGION
     });
     
-    // Subir archivo y guardar en BD
-    logger.file('info', 'Iniciando subida de documento a S3 y MongoDB');
+    // Subir documento utilizando el servicio
+    console.log('[INFO] Iniciando subida de documento a S3 y MongoDB');
     const documento = await documentoService.subirDocumento(
       {
         buffer,
@@ -203,12 +195,12 @@ export async function POST(request: NextRequest) {
       }
     );
     
-    logger.file('info', `Documento subido exitosamente: ${documento._id}`);
+    console.log(`[INFO] Documento subido exitosamente: ${documento._id}`);
     
     // Responder con documento creado
     return NextResponse.json(
       {
-        message: 'Documento subido correctamente',
+        mensaje: 'Documento subido correctamente',
         documento: {
           id: documento._id,
           nombre: documento.nombre,
@@ -297,7 +289,7 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json(resultado);
   } catch (error: any) {
-    logger.error('Error al obtener documentos', error);
+    console.error('Error al obtener documentos:', error);
     return NextResponse.json(
       { error: 'Error al obtener documentos', mensaje: error.message || 'Ocurrió un error al obtener los documentos' },
       { status: 500 }
