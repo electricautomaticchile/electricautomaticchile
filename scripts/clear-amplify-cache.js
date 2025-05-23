@@ -161,12 +161,12 @@ applications:
         build:
           commands:
             - echo "🔨 Construyendo aplicación..."
-            - echo "Build ID: ${newBuildId}"
+            - echo "Build ID ${newBuildId}"
             - npm run build
         postBuild:
           commands:
             - echo "✅ Build completado exitosamente"
-            - echo "Timestamp: $(date)"
+            - echo "Timestamp $(date)"
       artifacts:
         baseDirectory: .next
         files:
