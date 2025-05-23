@@ -1,4 +1,3 @@
-
 ![Logo](https://electricautomaticchile-data.s3.amazonaws.com/favicon.png)
 
 
@@ -37,13 +36,22 @@ Clonar el repositorio
 
 ```bash
   git clone https://github.com/electricautomaticchile/electricautomaticchile
-  Logearse con el usuario y la clave de acceso proporcionada
 ```
 
 Ir al directorio
 
 ```bash
   cd electricautomaticchile
+```
+
+Configurar variables de entorno
+
+```bash
+  # Copiar el archivo de ejemplo
+  cp .env.example .env.local
+  
+  # Editar .env.local con tus credenciales reales
+  # ⚠️ IMPORTANTE: Nunca subas archivos .env con credenciales reales al repositorio
 ```
 
 instalar dependencias
@@ -58,25 +66,31 @@ Iniciar el servidor local
   bun run dev
 ```
 
+## Variables de entorno
+
+Para configurar las variables de entorno:
+
+1. **Copia el archivo de ejemplo**: `cp .env.example .env.local`
+2. **Edita `.env.local`** con tus credenciales reales
+3. **Consulta `.env.example`** para ver todas las variables necesarias y sus descripciones
+
+### Variables críticas que necesitas configurar:
+
+- `MONGODB_URI`: Cadena de conexión a tu base de datos MongoDB
+- `NEXTAUTH_SECRET`: Secreto para autenticación (generar con `openssl rand -base64 32`)
+- `GOOGLE_ID` y `GOOGLE_SECRET`: Credenciales de Google OAuth
+- Credenciales de AWS S3 para almacenamiento de archivos
+- API keys para servicios de correo electrónico
+
+**🔒 IMPORTANTE**: 
+- Nunca compartas tus credenciales reales
+- Usa secretos únicos y complejos para cada entorno
+- Mantén las credenciales de producción separadas de desarrollo
 
 ## Producción
 
 Para sacar a Producción (solo tendran permiso las personas designadas para sacar a Producción, una vez haya pasado las pruebas unitarias y se haya documentado el proceso).
 
-
-
-
-
-
-## Variables de entorno
-
-Estas son las Variables de entorno de que usaran por ahora
-
-`AUTH_GOOGLE_ID(auth):"485377156427-danjssj6gkhisjbl8l68g4ufsn287qs1.apps.googleusercontent.com"`
-
-`AUTH_GOOGLE_SECRET(auth)="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"`
-
-`AUTH_SECRET(auth)="rKH9fOB2JrD5Mf0FSmJufZfN8RgCY+KS1oDFe+ypX5k="`
 
 ## Documentación
 
