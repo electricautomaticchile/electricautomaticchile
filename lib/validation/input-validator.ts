@@ -291,7 +291,10 @@ export const UrlSchemas = {
   pagination: z.object({
     page: z.coerce.number().min(1).max(1000).default(1),
     limit: z.coerce.number().min(1).max(100).default(10),
-    search: BaseSchemas.safeString.max(100).optional(),
+    search: z.string().max(100).optional().refine(
+      (val) => !val || !containsDangerousPatterns(val),
+      'El término de búsqueda contiene caracteres no permitidos'
+    ),
     sortBy: z.enum(['fecha', 'nombre', 'estado', 'tipo']).optional(),
     sortOrder: z.enum(['asc', 'desc']).default('desc'),
   }),

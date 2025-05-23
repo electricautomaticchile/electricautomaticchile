@@ -1,5 +1,4 @@
 import NextAuth from "next-auth"
-import GoogleProvider from "next-auth/providers/google"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { MongoDBAdapter } from "@auth/mongodb-adapter"
 import clientPromise from "@/lib/mongodb"
@@ -45,14 +44,12 @@ let GET: any;
 let POST: any;
 
 try {
-  logger.auth("Inicializando NextAuth");
+  logger.auth("Inicializando NextAuth con autenticación por credenciales");
   logger.debug("Variables de entorno configuradas", {
     NEXTAUTH_URL: !!process.env.NEXTAUTH_URL,
     NEXTAUTH_SECRET: !!process.env.NEXTAUTH_SECRET,
     AUTH_SECRET: !!process.env.AUTH_SECRET,
-    MONGODB_URI: !!process.env.MONGODB_URI,
-    GOOGLE_ID: !!process.env.GOOGLE_ID,
-    GOOGLE_SECRET: !!process.env.GOOGLE_SECRET,
+    MONGODB_URI: !!process.env.MONGODB_URI
   });
   
   // Asegurarse que NEXTAUTH_SECRET tiene un valor
@@ -62,7 +59,7 @@ try {
   
   // Configuración de NextAuth
   const handler = NextAuth(authOptions);
-  logger.auth("NextAuth inicializado correctamente");
+  logger.auth("NextAuth inicializado correctamente con solo autenticación por credenciales");
   
   GET = handler;
   POST = handler;

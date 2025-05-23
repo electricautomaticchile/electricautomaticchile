@@ -1,5 +1,4 @@
 import { NextAuthOptions } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import clientPromise from "@/lib/mongodb";
@@ -14,8 +13,7 @@ function logAuthInfo(context: string, data: any) {
     environment: process.env.NODE_ENV,
     nextAuthUrl: process.env.NEXTAUTH_URL || 'no configurado',
     hasMongoDB: !!process.env.MONGODB_URI,
-    hasSecret: !!process.env.NEXTAUTH_SECRET,
-    hasGoogleCreds: !!(process.env.GOOGLE_ID && process.env.GOOGLE_SECRET)
+    hasSecret: !!process.env.NEXTAUTH_SECRET
   });
 }
 
@@ -25,10 +23,6 @@ function debugLog(context: string, data?: any) {
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_ID!,
-      clientSecret: process.env.GOOGLE_SECRET!,
-    }),
     CredentialsProvider({
       name: "Credenciales",
       credentials: {

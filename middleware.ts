@@ -203,7 +203,8 @@ export default async function middleware(request: NextRequest) {
   
   // Si la ruta requiere autenticación, aplicar middleware de auth
   if (requiresAuth(pathname)) {
-    return authMiddleware(request as any);
+    // withAuth maneja la autenticación internamente
+    return authMiddleware(request as any, {} as any);
   }
   
   return securityResponse;

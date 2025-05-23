@@ -183,7 +183,12 @@ export async function POST(request: NextRequest) {
                     'unknown';
 
     const newForm = new ContactoFormulario({
-      ...sanitizedData,
+      nombre: sanitizedData.nombre,
+      email: sanitizedData.email,
+      telefono: sanitizedData.telefono,
+      empresa: sanitizedData.empresa,
+      mensaje: sanitizedData.mensaje,
+      servicio: sanitizedData.tipoServicio,
       estado: 'pendiente',
       fecha: new Date(),
       metadatos: {
@@ -214,7 +219,7 @@ export async function POST(request: NextRequest) {
 
     // 10. Enviar notificaciones (no críticas)
     try {
-      await sendContactNotification(sanitizedData);
+      await sendContactNotification(result);
     } catch (emailError) {
       logger.warn('Error al enviar notificación de contacto', { emailError });
       // No interrumpir el flujo si falla el correo

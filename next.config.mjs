@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['lh3.googleusercontent.com']
+    domains: []
   },
   // Configuración para SSR
   output: 'standalone',
@@ -12,9 +12,7 @@ const nextConfig = {
   // Forzar el modo SSR para las API routes
   experimental: {
     serverComponentsExternalPackages: ['mongoose', 'mongodb'],
-    esmExternals: 'loose',
-    // Deshabilitar pre-renderizado estático para rutas de API
-    appDir: true
+    esmExternals: 'loose'
   },
   // Generar ID único para cada build
   generateBuildId: async () => {
