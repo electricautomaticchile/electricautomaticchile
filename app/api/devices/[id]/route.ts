@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { DeviceSchema } from "@/lib/validation";
+import { logger } from '@/lib/utils/logger';
 
 /**
  * @swagger
@@ -51,12 +52,13 @@ export async function GET(
     }
     
     return NextResponse.json(device);
-  } catch (error) {
-    console.error("Error al obtener dispositivo:", error);
-    return NextResponse.json(
-      { error: "Error al obtener dispositivo" },
-      { status: 500 }
-    );
+  } catch (error: any) {
+    logger.error("Error al obtener dispositivo", error);
+    
+    return NextResponse.json({ 
+      message: "Error al obtener dispositivo",
+      error: error.message 
+    }, { status: 500 });
   }
 }
 
@@ -145,12 +147,13 @@ export async function PUT(
       .findOne({ _id: new ObjectId(id) });
     
     return NextResponse.json(updatedDevice);
-  } catch (error) {
-    console.error("Error al actualizar dispositivo:", error);
-    return NextResponse.json(
-      { error: "Error al actualizar dispositivo" },
-      { status: 500 }
-    );
+  } catch (error: any) {
+    logger.error("Error al actualizar dispositivo", error);
+    
+    return NextResponse.json({ 
+      message: "Error al actualizar dispositivo",
+      error: error.message 
+    }, { status: 500 });
   }
 }
 
@@ -209,11 +212,12 @@ export async function DELETE(
       message: "Dispositivo eliminado correctamente",
       id
     });
-  } catch (error) {
-    console.error("Error al eliminar dispositivo:", error);
-    return NextResponse.json(
-      { error: "Error al eliminar dispositivo" },
-      { status: 500 }
-    );
+  } catch (error: any) {
+    logger.error("Error al eliminar dispositivo", error);
+    
+    return NextResponse.json({ 
+      message: "Error al eliminar dispositivo",
+      error: error.message 
+    }, { status: 500 });
   }
 } 

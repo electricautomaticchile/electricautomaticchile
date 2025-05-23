@@ -5,6 +5,7 @@ import Conversacion from '@/lib/models/conversacion';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 import mongoose from 'mongoose';
+import logger from '@/lib/utils/logger';
 
 // Definir la ruta como dinámica para evitar pre-renderizado estático
 export const dynamic = 'force-dynamic';
@@ -126,10 +127,10 @@ export async function GET(request: NextRequest) {
     }
     
   } catch (error: any) {
-    console.error('Error al listar mensajes:', error);
+    logger.error('Error al listar mensajes', error);
     
     return NextResponse.json({ 
-      message: "Error al obtener los mensajes",
+      message: "Error al listar mensajes",
       error: error.message 
     }, { status: 500 });
   }

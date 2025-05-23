@@ -6,6 +6,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 import { broadcastNotification, sendNotificationToUser } from '@/lib/socket/socket-service';
 import mongoose from 'mongoose';
+import { logger } from '@/lib/utils/logger';
 
 // Marcar explícitamente como ruta dinámica
 export const dynamic = 'force-dynamic';
@@ -22,21 +23,21 @@ async function findAdminUsers(): Promise<AdminUser[]> {
   try {
     // Verificar que la conexión esté lista
     if (mongoose.connection.readyState !== 1) {
-      console.log('La conexión a MongoDB no está lista');
+      logger.database('warn', 'La conexión a MongoDB no está lista');
       return [];
     }
     
     // Obtener todos los administradores
     const db = mongoose.connection.db;
     if (!db) {
-      console.log('No se pudo acceder a la base de datos');
+      logger.database('warn', 'No se pudo acceder a la base de datos');
       return [];
     }
     
     const users = await db.collection('users').find({ role: 'admin' }).toArray();
     return users as AdminUser[];
   } catch (error) {
-    console.error('Error al buscar administradores:', error);
+    logger.database('error', 'Error al buscar administradores', { error });
     return [];
   }
 }
@@ -63,7 +64,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ cotizaciones }, { status: 200 });
     
   } catch (error: any) {
-    console.error('Error al obtener cotizaciones:', error);
+    logger.error('Error al obtener cotizaciones', error);
     
     return NextResponse.json({ 
       message: "Error al obtener cotizaciones",
@@ -198,7 +199,7 @@ export async function PUT(request: NextRequest) {
             });
           }
         } catch (notifError) {
-          console.error('Error al crear notificación:', notifError);
+          logger.warn('Error al crear notificación', { notifError });
         }
       }
     }
@@ -209,7 +210,7 @@ export async function PUT(request: NextRequest) {
     }, { status: 200 });
     
   } catch (error: any) {
-    console.error('Error al actualizar cotización:', error);
+    logger.error('Error al actualizar cotización', error);
     
     return NextResponse.json({ 
       message: "Error al actualizar cotización",
@@ -293,7 +294,7 @@ export async function DELETE(request: NextRequest) {
           });
         }
       } catch (notifError) {
-        console.error('Error al crear notificación de eliminación:', notifError);
+        logger.warn('Error al crear notificación de eliminación', { notifError });
       }
     }
     
@@ -302,7 +303,7 @@ export async function DELETE(request: NextRequest) {
     }, { status: 200 });
     
   } catch (error: any) {
-    console.error('Error al eliminar cotización:', error);
+    logger.error('Error al eliminar cotización', error);
     
     return NextResponse.json({ 
       message: "Error al eliminar cotización",

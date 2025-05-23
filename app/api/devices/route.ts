@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { DeviceSchema } from "@/lib/validation";
 import { BaseDevice } from "@/lib/types/device-types";
+import { logger } from '@/lib/utils/logger';
 
 /**
  * @swagger
@@ -54,12 +55,13 @@ export async function GET(req: NextRequest) {
         pages: Math.ceil(total / limit)
       }
     });
-  } catch (error) {
-    console.error("Error al obtener dispositivos:", error);
-    return NextResponse.json(
-      { error: "Error al obtener dispositivos" },
-      { status: 500 }
-    );
+  } catch (error: any) {
+    logger.error("Error al obtener dispositivos", error);
+    
+    return NextResponse.json({ 
+      message: "Error al obtener dispositivos",
+      error: error.message 
+    }, { status: 500 });
   }
 }
 
@@ -112,11 +114,12 @@ export async function POST(req: NextRequest) {
       .findOne({ _id: result.insertedId });
     
     return NextResponse.json(newDevice, { status: 201 });
-  } catch (error) {
-    console.error("Error al crear dispositivo:", error);
-    return NextResponse.json(
-      { error: "Error al crear dispositivo" },
-      { status: 500 }
-    );
+  } catch (error: any) {
+    logger.error("Error al crear dispositivo", error);
+    
+    return NextResponse.json({ 
+      message: "Error al crear dispositivo",
+      error: error.message 
+    }, { status: 500 });
   }
 } 

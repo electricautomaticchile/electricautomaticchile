@@ -6,6 +6,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 import { sendMessageToUser, isUserConnected, sendMessageToConversation } from '@/lib/socket/socket-service';
 import mongoose from 'mongoose';
+import { logger } from '@/lib/utils/logger';
 
 // Definir la ruta como dinámica para evitar pre-renderizado estático
 export const dynamic = 'force-dynamic';
@@ -123,10 +124,10 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
     
   } catch (error: any) {
-    console.error('Error al enviar mensaje:', error);
+    logger.error('Error al crear mensaje', error);
     
     return NextResponse.json({ 
-      message: "Error al enviar el mensaje",
+      message: "Error al crear mensaje",
       error: error.message 
     }, { status: 500 });
   }

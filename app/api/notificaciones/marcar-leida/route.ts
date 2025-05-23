@@ -4,6 +4,7 @@ import Notificacion from '@/lib/models/notificacion';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 import mongoose from 'mongoose';
+import { logger } from '@/lib/utils/logger';
 
 // Definir la ruta como dinámica para evitar pre-renderizado estático
 export const dynamic = 'force-dynamic';
@@ -65,10 +66,10 @@ export async function PUT(request: NextRequest) {
     }, { status: 200 });
     
   } catch (error: any) {
-    console.error('Error al marcar notificación como leída:', error);
+    logger.error('Error al marcar notificación como leída', error);
     
     return NextResponse.json({ 
-      message: "Error al marcar la notificación como leída",
+      message: "Error al marcar notificación como leída",
       error: error.message 
     }, { status: 500 });
   }

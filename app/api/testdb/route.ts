@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
+import { logger } from '@/lib/utils/logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -26,22 +27,10 @@ export async function GET(request: NextRequest) {
       connectionInfo
     });
   } catch (error: any) {
-    console.error('Error conectando a MongoDB:', error);
-    
-    return NextResponse.json({
-      status: 'error',
-      message: 'Error conectando a MongoDB',
-      error: {
-        name: error.name,
-        message: error.message,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-      },
-      environment: {
-        nodeEnv: process.env.NODE_ENV,
-        mongodbUri: process.env.MONGODB_URI ? 'Configurado' : 'No configurado',
-        authSecret: process.env.NEXTAUTH_SECRET ? 'Configurado' : 'No configurado',
-        nextAuthUrl: process.env.NEXTAUTH_URL || 'No configurado'
-      }
+    logger.error('Error conectando a MongoDB', error);
+    return NextResponse.json({ 
+      message: "Error conectando a MongoDB",
+      error: error.message 
     }, { status: 500 });
   }
 } 

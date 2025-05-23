@@ -8,6 +8,7 @@ import { compare } from "bcrypt"
 import { JWT } from "next-auth/jwt"
 import { Session } from "next-auth"
 import { authOptions } from "./options"
+import { logger } from '@/lib/utils/logger'
 
 // Extender los tipos de NextAuth
 declare module "next-auth" {
@@ -44,8 +45,8 @@ let GET: any;
 let POST: any;
 
 try {
-  console.log("🔄 Inicializando NextAuth...");
-  console.log("Variables de entorno configuradas:", {
+  logger.auth("Inicializando NextAuth");
+  logger.debug("Variables de entorno configuradas", {
     NEXTAUTH_URL: !!process.env.NEXTAUTH_URL,
     NEXTAUTH_SECRET: !!process.env.NEXTAUTH_SECRET,
     AUTH_SECRET: !!process.env.AUTH_SECRET,
@@ -56,20 +57,17 @@ try {
   
   // Asegurarse que NEXTAUTH_SECRET tiene un valor
   if (!authOptions.secret && !process.env.NEXTAUTH_SECRET) {
-    console.error("⚠️ No se ha configurado NEXTAUTH_SECRET. La autenticación puede fallar.");
+    logger.warn("No se ha configurado NEXTAUTH_SECRET. La autenticación puede fallar.");
   }
   
   // Configuración de NextAuth
   const handler = NextAuth(authOptions);
-  console.log("✅ NextAuth inicializado correctamente");
+  logger.auth("NextAuth inicializado correctamente");
   
   GET = handler;
   POST = handler;
 } catch (error: any) {
-  console.error("❌ Error al inicializar NextAuth:", {
-    message: error.message,
-    stack: error.stack
-  });
+  logger.error("Error al inicializar NextAuth", error);
   
   // Proporcionar un handler alternativo para devolver el error
   const errorHandler = async () => {
