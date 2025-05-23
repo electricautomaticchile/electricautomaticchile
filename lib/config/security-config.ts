@@ -7,35 +7,35 @@ export const RATE_LIMIT_CONFIG = {
   // API general
   api: {
     windowMs: 15 * 60 * 1000, // 15 minutos
-    maxRequests: 100,
+    maxRequests: process.env.NODE_ENV === 'development' ? 1000 : 100,
     message: 'Demasiadas solicitudes desde esta IP, intenta nuevamente más tarde.'
   },
   
   // Autenticación
   auth: {
     windowMs: 15 * 60 * 1000, // 15 minutos
-    maxRequests: 5,
+    maxRequests: process.env.NODE_ENV === 'development' ? 1000 : 5,
     message: 'Demasiados intentos de login, intenta nuevamente en 15 minutos.'
   },
   
   // Formularios de contacto
   contact: {
     windowMs: 60 * 60 * 1000, // 1 hora
-    maxRequests: 3,
+    maxRequests: process.env.NODE_ENV === 'development' ? 1000 : 3,
     message: 'Límite de formularios excedido, intenta nuevamente en 1 hora.'
   },
   
   // Subida de archivos
   upload: {
     windowMs: 60 * 60 * 1000, // 1 hora
-    maxRequests: 10,
+    maxRequests: process.env.NODE_ENV === 'development' ? 1000 : 10,
     message: 'Límite de subidas excedido, intenta nuevamente en 1 hora.'
   },
   
   // Endpoints de administración
   admin: {
     windowMs: 60 * 60 * 1000, // 1 hora
-    maxRequests: 50,
+    maxRequests: process.env.NODE_ENV === 'development' ? 1000 : 50,
     message: 'Límite de operaciones administrativas excedido.'
   }
 };

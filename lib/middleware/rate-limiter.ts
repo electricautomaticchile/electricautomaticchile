@@ -6,27 +6,27 @@ const RATE_LIMITS = {
   // API general
   api: {
     windowMs: 15 * 60 * 1000, // 15 minutos
-    maxRequests: 100, // 100 requests por ventana
+    maxRequests: process.env.NODE_ENV === 'development' ? 1000 : 100, // 1000 en dev, 100 en prod
   },
   // Autenticación
   auth: {
     windowMs: 15 * 60 * 1000, // 15 minutos
-    maxRequests: 5, // 5 intentos de login por ventana
+    maxRequests: process.env.NODE_ENV === 'development' ? 1000 : 5, // 1000 en dev, 5 en prod
   },
   // Formularios de contacto
   contact: {
     windowMs: 60 * 60 * 1000, // 1 hora
-    maxRequests: 3, // 3 formularios por hora
+    maxRequests: process.env.NODE_ENV === 'development' ? 1000 : 3, // 1000 en dev, 3 en prod
   },
   // Subida de archivos
   upload: {
     windowMs: 60 * 60 * 1000, // 1 hora
-    maxRequests: 10, // 10 uploads por hora
+    maxRequests: process.env.NODE_ENV === 'development' ? 1000 : 10, // 1000 en dev, 10 en prod
   },
   // Endpoints críticos de admin
   admin: {
     windowMs: 60 * 60 * 1000, // 1 hora
-    maxRequests: 50, // 50 requests por hora
+    maxRequests: process.env.NODE_ENV === 'development' ? 1000 : 50, // 1000 en dev, 50 en prod
   }
 };
 
@@ -66,6 +66,22 @@ function getRealClientIP(request: NextRequest): string {
 }
 
 /**
+ * Verifica si la IP es localhost/desarrollo
+ */
+function isLocalhost(ip: string): boolean {
+  const localhostPatterns = [
+    '127.0.0.1',
+    '::1',
+    '::ffff:127.0.0.1',
+    'localhost',
+    '0.0.0.0',
+    'unknown'
+  ];
+  
+  return localhostPatterns.some(pattern => ip.includes(pattern));
+}
+
+/**
  * Determina el tipo de rate limit basado en la ruta
  */
 function getRateLimitType(pathname: string): keyof typeof RATE_LIMITS {
@@ -85,6 +101,16 @@ export function rateLimiter(type?: keyof typeof RATE_LIMITS) {
   return (request: NextRequest): NextResponse | null => {
     const clientIP = getRealClientIP(request);
     const pathname = request.nextUrl.pathname;
+    
+    // Saltar rate limiting en desarrollo para localhost
+    if (process.env.NODE_ENV === 'development' && isLocalhost(clientIP)) {
+      console.log(`[DEV] Rate limiting deshabilitado para ${clientIP} en ${pathname}`);
+      return addRateLimitHeaders(NextResponse.next(), {
+        limit: 999999,
+        remaining: 999999,
+        resetTime: Date.now() + 60000
+      });
+    }
     
     // Determinar tipo de rate limit
     const limitType = type || getRateLimitType(pathname);
@@ -113,14 +139,21 @@ export function rateLimiter(type?: keyof typeof RATE_LIMITS) {
     
     if (cached.count >= config.maxRequests) {
       // Límite excedido
-      console.warn(`Rate limit excedido para IP ${clientIP} en endpoint ${limitType}`);
+      console.warn(`Rate limit excedido para IP ${clientIP} en endpoint ${limitType} (${cached.count}/${config.maxRequests})`);
       
       return addRateLimitHeaders(
         NextResponse.json(
           {
             error: 'Demasiadas solicitudes',
             message: `Has excedido el límite de ${config.maxRequests} solicitudes por ${config.windowMs / 60000} minutos. Intenta nuevamente más tarde.`,
-            retryAfter: Math.ceil((cached.resetTime - now) / 1000)
+            retryAfter: Math.ceil((cached.resetTime - now) / 1000),
+            debug: process.env.NODE_ENV === 'development' ? {
+              ip: clientIP,
+              type: limitType,
+              count: cached.count,
+              limit: config.maxRequests,
+              resetTime: new Date(cached.resetTime).toISOString()
+            } : undefined
           },
           { status: 429 }
         ),
