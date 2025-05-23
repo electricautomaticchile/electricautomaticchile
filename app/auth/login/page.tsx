@@ -30,7 +30,7 @@ const LoginContent = () => {
     // Crear una URL absoluta basada en la ventana actual
     callbackUrl = window.location.origin + path
   }
-
+  
   // Manejar redirección después de autenticación exitosa
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
@@ -54,7 +54,7 @@ const LoginContent = () => {
       }, 1000)
     }
   }, [status, session, router, callbackUrl])
-
+  
   // Manejar errores en la URL
   useEffect(() => {
     const errorParam = searchParams.get("error")

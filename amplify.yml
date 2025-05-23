@@ -1,83 +1,27 @@
 version: 1
-frontend:
-  phases:
-    preBuild:
-      commands:
-        - npm install
-        - |
-          echo "# Variables de entorno para el proceso de build de Amplify" > .env.build
-          echo "" >> .env.build
-          echo "# Configuraciones de timeout para Next.js" >> .env.build
-          echo "NEXT_RUNTIME_TIMEOUT=30000" >> .env.build
-          echo "NEXT_SERVER_TIMEOUT=30000" >> .env.build
-          echo "NEXT_TELEMETRY_DISABLED=1" >> .env.build
-          echo "" >> .env.build
-          echo "# Forzar SSR para todas las rutas" >> .env.build
-          echo "NEXT_FORCE_NO_STATIC=true" >> .env.build
-          echo "NEXT_STANDALONE=true" >> .env.build
-          echo "NEXT_FORCE_DYNAMIC=true" >> .env.build
-          echo "" >> .env.build
-          echo "# Configuración de MongoDB" >> .env.build
-          echo "MONGODB_TIMEOUT=10000" >> .env.build
-          echo "MONGODB_CONNECT_TIMEOUT=10000" >> .env.build
-          echo "MONGODB_SOCKET_TIMEOUT=30000" >> .env.build
-        - |
-          echo "/**" > middleware.config.js
-          echo " * Configuración de middleware para AWS Amplify" >> middleware.config.js
-          echo " * Este archivo es reconocido por Amplify para configurar el comportamiento del middleware SSR" >> middleware.config.js
-          echo " */" >> middleware.config.js
-          echo "module.exports = {" >> middleware.config.js
-          echo "  // Configuración de timeouts" >> middleware.config.js
-          echo "  timeouts: {" >> middleware.config.js
-          echo "    // Timeout para todo el proceso en milisegundos (30 segundos)" >> middleware.config.js
-          echo "    global: 30000," >> middleware.config.js
-          echo "    // Timeout para solicitudes HTTP individuales en milisegundos (25 segundos)" >> middleware.config.js
-          echo "    request: 25000," >> middleware.config.js
-          echo "  }," >> middleware.config.js
-          echo "  // Configuración de caché" >> middleware.config.js
-          echo "  cache: {" >> middleware.config.js
-          echo "    // Estrategia de caché para páginas SSR" >> middleware.config.js
-          echo "    strategy: 'default'," >> middleware.config.js
-          echo "    // Tiempo de vida de la caché en segundos" >> middleware.config.js
-          echo "    ttl: 60," >> middleware.config.js
-          echo "  }," >> middleware.config.js
-          echo "  // Configuración de registros" >> middleware.config.js
-          echo "  logging: {" >> middleware.config.js
-          echo "    // Nivel de registro (debug, info, warn, error)" >> middleware.config.js
-          echo "    level: 'info'," >> middleware.config.js
-          echo "    // Formato de registro (json o text)" >> middleware.config.js
-          echo "    format: 'json'," >> middleware.config.js
-          echo "  }," >> middleware.config.js
-          echo "  // Configuraciones avanzadas" >> middleware.config.js
-          echo "  advanced: {" >> middleware.config.js
-          echo "    // Número máximo de solicitudes concurrentes" >> middleware.config.js
-          echo "    maxConcurrentRequests: 100," >> middleware.config.js
-          echo "    // Si se debe registrar información de rendimiento" >> middleware.config.js
-          echo "    enablePerformanceLogging: true," >> middleware.config.js
-          echo "  }" >> middleware.config.js
-          echo "};" >> middleware.config.js
-        - cat .env.build >> .env.production
-    build:
-      commands:
-        - env | grep -e NEXTAUTH_SECRET -e MONGODB_URI -e NEXTAUTH_URL -e RESEND_API_KEY -e EMAIL_FROM -e EMAIL_TO -e ACCESS_KEY_ID -e SECRET_ACCESS_KEY -e REGION -e S3_BUCKET_NAME -e JWT_SECRET >> .env.production
-        - npm run build
-  artifacts:
-    baseDirectory: .next
-    files:
-      - '**/*'
-  # Configuración específica para SSR de Next.js
-  customHeaders:
-    - pattern: '**/*'
-      headers:
-        - key: 'Cache-Control'
-          value: 'public, max-age=0, must-revalidate'
-  # Configuración de timeout para SSR
-  serverConfig:
-    timeoutsInSeconds:
-      default: 30
-  buildPath: /
-  appRoot: /
-  cache:
-    paths:
-      - .next/cache/**/*
-      - node_modules/**/* 
+applications:
+  - frontend:
+      phases:
+        preBuild:
+          commands:
+            - echo "🔄 Limpiando cache de build anterior..."
+            - rm -rf .next
+            - rm -rf out
+            - rm -rf node_modules/.cache
+            - echo "📦 Instalando dependencias..."
+            - npm ci
+        build:
+          commands:
+            - echo "🔨 Construyendo aplicación..."
+            - echo "Build ID: amplify-1748012832325-fwt9qwlat"
+            - npm run build
+        postBuild:
+          commands:
+            - echo "✅ Build completado exitosamente"
+            - echo "Timestamp: $(date)"
+      artifacts:
+        baseDirectory: .next
+        files:
+          - '**/*'
+      cache:
+        paths: []
