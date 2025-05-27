@@ -7,9 +7,11 @@ applications:
             - "echo 'Limpiando cache de build anterior...'"
             - rm -rf .next
             - rm -rf out
-            - rm -rf node_modules/.cache
+            - rm -rf node_modules
+            - rm -rf package-lock.json
+            - npm cache clean --force
             - "echo 'Instalando dependencias...'"
-            - npm ci --legacy-peer-deps
+            - npm install --legacy-peer-deps
         build:
           commands:
             - "echo 'Construyendo aplicacion...'"
