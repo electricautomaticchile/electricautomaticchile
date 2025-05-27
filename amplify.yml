@@ -9,7 +9,7 @@ applications:
             - rm -rf out
             - rm -rf node_modules/.cache
             - "echo 'Instalando dependencias...'"
-            - npm ci
+            - npm ci --legacy-peer-deps
         build:
           commands:
             - "echo 'Construyendo aplicacion...'"
