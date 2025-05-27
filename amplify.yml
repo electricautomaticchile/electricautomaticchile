@@ -1,29 +1,18 @@
 version: 1
-applications:
-  - frontend:
-      phases:
-        preBuild:
-          commands:
-            - "echo 'Limpiando cache de build anterior...'"
-            - rm -rf .next
-            - rm -rf out
-            - rm -rf node_modules
-            - rm -rf package-lock.json
-            - npm cache clean --force
-            - "echo 'Instalando dependencias...'"
-            - npm install --legacy-peer-deps
-        build:
-          commands:
-            - "echo 'Construyendo aplicacion...'"
-            - "echo 'Build ID: amplify-1748012832325-fwt9qwlat'"
-            - npm run build
-        postBuild:
-          commands:
-            - "echo 'Build completado exitosamente'"
-            - "echo 'Timestamp: $(date)'"
-      artifacts:
-        baseDirectory: .next
-        files:
-          - '**/*'
-      cache:
-        paths: []
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - npm install
+    build:
+      commands:
+        - env | grep -e AUTH_GOOGLE_ID -e AUTH_GOOGLE_SECRET -e AUTH_SECRET -e MONGODB_URI -e NEXTAUTH_URL -e RESEND_API_KEY -e EMAIL_FROM -e EMAIL_TO -e ACCESS_KEY_ID -e SECRET_ACCESS_KEY -e REGION -e S3_BUCKET_NAME -e PDF_PROMO_BUCKET -e JWT_SECRET >> .env.production
+        - npm run build
+  artifacts:
+    baseDirectory: .next
+    files:
+      - "**/*"
+  cache:
+    paths:
+      - .next/cache/**/*
+      - node_modules/**/*
