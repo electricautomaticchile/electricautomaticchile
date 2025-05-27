@@ -128,18 +128,22 @@ export default function Component() {
         </NavigationMenu>
 
         <div className="ml-auto flex gap-2">
-          <Link href="/auth/login">
-            <Button variant="outline" className="transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 hover:border-orange-500">
-              Portal Clientes
-            </Button>
-          </Link>
           {session ? (
-            <Button className="transition-all duration-200 hover:bg-orange-600" onClick={() => signOut()}>
-              Cerrar sesión
-            </Button>
+            <>
+              <Link href="/dashboard">
+                <Button variant="outline" className="transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 hover:border-orange-500">
+                  Portal Clientes
+                </Button>
+              </Link>
+              <Button className="transition-all duration-200 hover:bg-orange-600" onClick={() => signOut()}>
+                Cerrar sesión
+              </Button>
+            </>
           ) : (
             <Link href="/auth/login">
-              <Button className="transition-all duration-200 hover:bg-orange-600">Iniciar sesión</Button>
+              <Button variant="outline" className="transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 hover:border-orange-500">
+                Portal Clientes
+              </Button>
             </Link>
           )}
           <ThemeToggle/>

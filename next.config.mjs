@@ -1,7 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['lh3.googleusercontent.com']
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
   },
   // Configuración para SSR
   output: 'standalone',
@@ -9,12 +16,10 @@ const nextConfig = {
   trailingSlash: true,
   // Evitar exportación estática para todas las rutas
   staticPageGenerationTimeout: 1000,
-  // Forzar el modo SSR para las API routes
+  // Configuración experimental
   experimental: {
     serverComponentsExternalPackages: ['mongoose', 'mongodb'],
     esmExternals: 'loose',
-    // Deshabilitar pre-renderizado estático para rutas de API
-    appDir: true
   },
   // Generar ID único para cada build
   generateBuildId: async () => {
