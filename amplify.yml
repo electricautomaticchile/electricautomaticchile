@@ -4,21 +4,21 @@ applications:
       phases:
         preBuild:
           commands:
-            - echo "🔄 Limpiando cache de build anterior..."
+            - "echo 'Limpiando cache de build anterior...'"
             - rm -rf .next
             - rm -rf out
             - rm -rf node_modules/.cache
-            - echo "📦 Instalando dependencias..."
+            - "echo 'Instalando dependencias...'"
             - npm ci
         build:
           commands:
-            - echo "🔨 Construyendo aplicación..."
-            - echo "Build ID: amplify-1748012832325-fwt9qwlat"
+            - "echo 'Construyendo aplicacion...'"
+            - "echo 'Build ID: amplify-1748012832325-fwt9qwlat'"
             - npm run build
         postBuild:
           commands:
-            - echo "✅ Build completado exitosamente"
-            - echo "Timestamp: $(date)"
+            - "echo 'Build completado exitosamente'"
+            - "echo 'Timestamp: $(date)'"
       artifacts:
         baseDirectory: .next
         files:
