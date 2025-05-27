@@ -68,6 +68,9 @@ export default function Component() {
               <Link href="/formulario" className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-orange-500" prefetch={false}>
                 Contacto
               </Link>
+              <Link href="/auth/login" className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-orange-500" prefetch={false}>
+                Portal Clientes
+              </Link>
             </div>
           </SheetContent>
         </Sheet>
@@ -93,22 +96,23 @@ export default function Component() {
                 Inicio
               </Link>
             </NavigationMenuLink>
-            <NavigationMenuLink asChild>
-              <Link
-                href="/acercade"
-                className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
-                prefetch={false}
-              >
-                Nosotros
-              </Link>
-            </NavigationMenuLink>
+
             <NavigationMenuLink asChild>
               <Link
                 href="/navservices"
                 className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
                 prefetch={false}
               >
-                Servicios
+                Soluciones
+              </Link>
+            </NavigationMenuLink>
+            <NavigationMenuLink asChild>
+              <Link
+                href="/acercade"
+                className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+                prefetch={false}
+              >
+                ¿Por qué nosotros?
               </Link>
             </NavigationMenuLink>
             <NavigationMenuLink asChild>
@@ -124,6 +128,11 @@ export default function Component() {
         </NavigationMenu>
 
         <div className="ml-auto flex gap-2">
+          <Link href="/auth/login">
+            <Button variant="outline" className="transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 hover:border-orange-500">
+              Portal Clientes
+            </Button>
+          </Link>
           {session ? (
             <Button className="transition-all duration-200 hover:bg-orange-600" onClick={() => signOut()}>
               Cerrar sesión
