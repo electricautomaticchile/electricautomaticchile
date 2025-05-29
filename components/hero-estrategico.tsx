@@ -331,19 +331,19 @@ export default function HeroEstrategico() {
       </section>
 
       {/* Lead Magnet - Imán de Leads */}
-      <section className="py-16 w-full">
+      <section className="py-8 md:py-16 w-full">
         <div className="container mx-auto px-4">
           <Card className="max-w-4xl mx-auto border border-orange-500/20 bg-gradient-to-r from-orange-500/5 to-orange-600/5">
-            <CardContent className="p-12 text-center">
-              <div className="mb-6 flex justify-center">
-                <div className="w-20 h-20 bg-orange-500/10 rounded-lg flex items-center justify-center">
-                  <FileText className="w-10 h-10 text-orange-500" />
+            <CardContent className="p-6 md:p-12 text-center">
+              <div className="mb-4 md:mb-6 flex justify-center">
+                <div className="w-16 h-16 md:w-20 md:h-20 bg-orange-500/10 rounded-lg flex items-center justify-center">
+                  <FileText className="w-8 h-8 md:w-10 md:h-10 text-orange-500" />
                 </div>
               </div>
-              <h3 className="text-3xl md:text-4xl font-bold mb-4">
+              <h3 className="text-xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4 leading-tight">
                 Análisis Exclusivo: El Futuro de la Gestión Energética en Chile
               </h3>
-              <p className="text-muted-foreground text-lg mb-8 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-muted-foreground text-sm md:text-lg mb-6 md:mb-8 max-w-3xl mx-auto leading-relaxed px-2">
                 Acceda a nuestro informe completo sobre la infraestructura
                 energética inteligente, los desafíos regulatorios y las
                 tecnologías que están definiendo el futuro del sector en Chile.
@@ -353,38 +353,40 @@ export default function HeroEstrategico() {
 
               <form
                 onSubmit={handleLeadMagnetSubmit}
-                className="max-w-md mx-auto"
+                className="max-w-md mx-auto px-2"
               >
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-2">
                   <Input
                     type="email"
                     placeholder="Su email empresarial"
                     value={leadMagnetEmail}
                     onChange={(e) => setLeadMagnetEmail(e.target.value)}
                     required
-                    className="flex-1"
+                    className="flex-1 h-12"
                   />
                   <Button
                     type="submit"
                     disabled={isDownloading}
-                    className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed h-12 px-4 sm:px-6"
                   >
                     {isDownloading ? (
                       <>
                         <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                        Enviando...
+                        <span className="hidden sm:inline">Enviando...</span>
+                        <span className="sm:hidden">...</span>
                       </>
                     ) : (
                       <>
                         <Download className="w-4 h-4 mr-2" />
-                        Descargar GRATIS
+                        <span className="hidden sm:inline">Descargar GRATIS</span>
+                        <span className="sm:hidden">Descargar</span>
                       </>
                     )}
                   </Button>
                 </div>
               </form>
 
-              <p className="text-xs text-muted-foreground mt-4">
+              <p className="text-xs text-muted-foreground mt-3 md:mt-4 px-2">
                 Al descargar acepta recibir comunicaciones relevantes sobre la
                 industria energética.
               </p>
@@ -395,3 +397,4 @@ export default function HeroEstrategico() {
     </div>
   );
 }
+ 
