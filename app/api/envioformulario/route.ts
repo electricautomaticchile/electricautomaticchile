@@ -5,7 +5,6 @@ import { connectToDatabase } from '@/lib/db/mongodb';
 import { ContactoFormulario } from '@/lib/models/contacto-formulario';
 import { sendContactNotification, sendAutoResponse } from '@/lib/email/emailService';
 import Notificacion from '@/lib/models/notificacion';
-import { broadcastNotification } from '@/lib/socket/socket-service';
 import mongoose from 'mongoose';
 
 // Esquema de validación con Zod
@@ -152,14 +151,7 @@ export async function POST(request: NextRequest) {
         }
         
         // Enviar notificación en tiempo real a todos los administradores
-        broadcastNotification({
-          id: new mongoose.Types.ObjectId().toString(),
-          tipo: 'info',
-          titulo: 'Nueva solicitud de cotización',
-          descripcion: `${data.nombre} ha solicitado una cotización para ${formatServicio(data.servicio)}${data.plazo ? ` con plazo ${formatPlazo(data.plazo)}` : ''}`,
-          fecha: new Date(),
-          prioridad: data.plazo === 'urgente' ? 'alta' : 'media'
-        });
+        console.log('Nueva notificación creada para administradores');
       }
     } catch (notifError) {
       console.error('Error al crear notificación de nueva cotización:', notifError);
