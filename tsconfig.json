@@ -40,7 +40,7 @@
     "lib/db/db.js",
     "lib/db/db.js",
     "out/types/**/*.ts"
-  ],
+, "../electricautomaticchile-backend/src/controllers/mediciones.controller.ts", "../electricautomaticchile-backend/src/models/Medicion.model.ts", "../electricautomaticchile-backend/src/models/Mensaje.model.ts"  ],
   "exclude": [
     "node_modules"
   ]

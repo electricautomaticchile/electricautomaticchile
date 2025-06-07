@@ -3,14 +3,15 @@ import "../styles/globals.css";
 import Navbar from "@/components/navbar/navbar";
 import Footer from "@/components/footer/footer";
 import { Providers } from "./providers";
-import favicon from "@/app/favicon.ico"
 
 export const metadata: Metadata = {
   title: "Electricautomaticchile - Automatización Eléctrica Inteligente",
-  description: "Soluciones de automatización en electricidad para hogares y empresas. Control de consumo, reposición automática y monitoreo en tiempo real.",
+  description:
+    "Soluciones de automatización en electricidad para hogares y empresas. Control de consumo, reposición automática y monitoreo en tiempo real.",
   icons: {
-    icon: favicon.src,
-    apple: favicon.src,
+    icon: "/favicon.svg",
+    apple: "/favicon.svg",
+    shortcut: "/favicon.svg",
   },
 };
 
@@ -24,8 +25,8 @@ export default function RootLayout({
       <head>
         <link
           rel="apple-touch-icon"
-          href={favicon.src}
-          type="image/png"
+          href="/favicon.svg"
+          type="image/svg+xml"
           sizes="32x32"
         />
       </head>
