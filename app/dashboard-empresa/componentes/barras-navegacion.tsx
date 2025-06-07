@@ -1,247 +1,175 @@
 "use client";
 
-import { useState } from 'react';
+import React, { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { 
-  Users, 
-  Home, 
-  BarChart2, 
-  Battery, 
-  BellRing, 
-  Lightbulb, 
-  Search, 
-  MessageSquare, 
-  Settings, 
-  HelpCircle, 
-  LogOut, 
-  Menu, 
+import { Badge } from "@/components/ui/badge";
+import {
+  LayoutDashboard,
+  Users,
+  FileText,
+  CreditCard,
+  BarChart3,
+  Settings,
+  LogOut,
+  Menu,
   X,
-  CircleUserRound,
-  Building
-} from 'lucide-react';
-import { signOut } from "next-auth/react";
+  Building2,
+} from "lucide-react";
+import { useAuth } from "@/lib/hooks/useAuth";
+import { Logo } from "@/components/logo";
 
-interface BarrasNavegacionProps {
-  titulo?: string;
-  nombreEmpresa?: string;
-  rol?: string;
-}
+const menuItems = [
+  {
+    title: "Dashboard",
+    href: "/dashboard-empresa",
+    icon: LayoutDashboard,
+    badge: null,
+  },
+  {
+    title: "Empleados",
+    href: "/dashboard-empresa/empleados",
+    icon: Users,
+    badge: null,
+  },
+  {
+    title: "Cotizaciones",
+    href: "/dashboard-empresa/cotizaciones",
+    icon: FileText,
+    badge: "5",
+  },
+  {
+    title: "Facturación",
+    href: "/dashboard-empresa/facturacion",
+    icon: CreditCard,
+    badge: null,
+  },
+  {
+    title: "Reportes",
+    href: "/dashboard-empresa/reportes",
+    icon: BarChart3,
+    badge: null,
+  },
+  {
+    title: "Configuración",
+    href: "/dashboard-empresa/configuracion",
+    icon: Settings,
+    badge: null,
+  },
+];
 
-export function BarrasNavegacion({ 
-  titulo = "Dashboard Empresa", 
-  nombreEmpresa = "Constructora Santiago S.A.", 
-  rol = "Administrador" 
-}: BarrasNavegacionProps) {
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
-  
-  const cerrarSesion = () => {
-    signOut({ callbackUrl: '/auth/login' });
+export function BarraNavegacionLateral() {
+  const pathname = usePathname();
+  const { user, logout } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
   };
 
   return (
     <>
-      {/* Sidebar (navegación lateral) */}
-      <div className="fixed left-0 top-0 bottom-0 w-16 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-gray-800 flex flex-col items-center py-4 z-30">
-        <div className="flex-1 flex flex-col gap-4 pt-8">
-          <div className="flex justify-center items-center w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/20 text-orange-600">
-            <Building className="h-5 w-5" />
-          </div>
-          <div className="w-full border-t border-gray-200 dark:border-gray-800 pt-4 flex flex-col items-center gap-4">
-            <Button variant="ghost" size="icon" className="rounded-full" asChild>
-              <a href="#dashboard">
-                <Home className="h-5 w-5" />
-              </a>
-            </Button>
-            
-            <Button variant="ghost" size="icon" className="rounded-full" asChild>
-              <a href="#clientes">
-                <Users className="h-5 w-5" />
-              </a>
-            </Button>
-            
-            <Button variant="ghost" size="icon" className="rounded-full" asChild>
-              <a href="#estadisticas">
-                <BarChart2 className="h-5 w-5" />
-              </a>
-            </Button>
-            
-            <Button variant="ghost" size="icon" className="rounded-full" asChild>
-              <a href="#dispositivos">
-                <Battery className="h-5 w-5" />
-              </a>
-            </Button>
-            
-            <Button variant="ghost" size="icon" className="rounded-full" asChild>
-              <a href="#alertas">
-                <BellRing className="h-5 w-5" />
-              </a>
-            </Button>
-            
-            <Button variant="ghost" size="icon" className="rounded-full" asChild>
-              <a href="#consumo">
-                <Lightbulb className="h-5 w-5" />
-              </a>
-            </Button>
-          </div>
-        </div>
-        
-        <div className="flex flex-col gap-4 pt-4 border-t border-gray-200 dark:border-gray-800">
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <Settings className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="rounded-full text-red-600" onClick={cerrarSesion}>
-            <LogOut className="h-5 w-5" />
-          </Button>
-        </div>
+      {/* Botón de menú móvil */}
+      <div className="lg:hidden fixed top-4 left-4 z-50">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="bg-white shadow-md"
+        >
+          {isMobileMenuOpen ? (
+            <X className="h-4 w-4" />
+          ) : (
+            <Menu className="h-4 w-4" />
+          )}
+        </Button>
       </div>
-      
-      {/* Header (barra superior) */}
-      <div className="fixed top-0 left-16 right-0 h-16 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-6 z-20">
-        <div className="flex items-center">
-          <Button variant="ghost" size="icon" className="md:hidden mr-2" onClick={() => setShowMobileMenu(!showMobileMenu)}>
-            {showMobileMenu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
-          <h1 className="text-xl font-bold">{titulo}</h1>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex relative rounded-md">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-            <Input
-              type="search"
-              placeholder="Buscar..."
-              className="w-64 pl-9"
-            />
-          </div>
-          
-          <Button variant="ghost" size="icon" className="relative">
-            <BellRing className="h-5 w-5" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-600 rounded-full"></span>
-          </Button>
-          
-          <Button variant="ghost" size="icon">
-            <HelpCircle className="h-5 w-5" />
-          </Button>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder-avatar.jpg" alt={nombreEmpresa} />
-                  <AvatarFallback className="bg-orange-100 text-orange-600">
-                    <CircleUserRound className="h-4 w-4" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="hidden md:block text-left">
-                  <div className="text-sm font-medium truncate max-w-[140px]">{nombreEmpresa}</div>
-                  <div className="text-xs text-gray-500">{rol}</div>
-                </div>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Mi cuenta</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <CircleUserRound className="mr-2 h-4 w-4" />
-                <span>Perfil</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Configuración</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <MessageSquare className="mr-2 h-4 w-4" />
-                <span>Mensajes</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600" onClick={cerrarSesion}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Cerrar Sesión</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-      
-      {/* Menú móvil */}
-      {showMobileMenu && (
-        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setShowMobileMenu(false)}>
-          <div 
-            className="absolute top-16 left-0 w-64 bottom-0 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-gray-800 p-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-6">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-                <Input
-                  type="search"
-                  placeholder="Buscar..."
-                  className="w-full pl-9"
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-1">
-              <Button variant="ghost" className="w-full justify-start" asChild>
-                <a href="#dashboard">
-                  <Home className="h-5 w-5 mr-3" />
-                  Dashboard
-                </a>
-              </Button>
-              
-              <Button variant="ghost" className="w-full justify-start" asChild>
-                <a href="#clientes">
-                  <Users className="h-5 w-5 mr-3" />
-                  Clientes
-                </a>
-              </Button>
-              
-              <Button variant="ghost" className="w-full justify-start" asChild>
-                <a href="#estadisticas">
-                  <BarChart2 className="h-5 w-5 mr-3" />
-                  Estadísticas
-                </a>
-              </Button>
-              
-              <Button variant="ghost" className="w-full justify-start" asChild>
-                <a href="#dispositivos">
-                  <Battery className="h-5 w-5 mr-3" />
-                  Dispositivos
-                </a>
-              </Button>
-              
-              <Button variant="ghost" className="w-full justify-start" asChild>
-                <a href="#alertas">
-                  <BellRing className="h-5 w-5 mr-3" />
-                  Alertas
-                </a>
-              </Button>
-              
-              <Button variant="ghost" className="w-full justify-start" asChild>
-                <a href="#consumo">
-                  <Lightbulb className="h-5 w-5 mr-3" />
-                  Consumo
-                </a>
-              </Button>
-            </div>
-            
-            <div className="absolute bottom-4 left-4 right-4 pt-4 border-t border-gray-200 dark:border-gray-800">
-              <Button variant="ghost" className="w-full justify-start">
-                <Settings className="h-5 w-5 mr-3" />
-                Configuración
-              </Button>
-              
-              <Button variant="ghost" className="w-full justify-start text-red-600" onClick={cerrarSesion}>
-                <LogOut className="h-5 w-5 mr-3" />
-                Cerrar Sesión
-              </Button>
-            </div>
-          </div>
-        </div>
+
+      {/* Overlay para móvil */}
+      {isMobileMenuOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
       )}
+
+      {/* Barra lateral */}
+      <aside
+        className={cn(
+          "fixed top-0 left-0 z-40 h-screen w-64 transition-transform duration-300 ease-in-out lg:translate-x-0",
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full",
+          "bg-white border-r border-gray-200"
+        )}
+      >
+        <div className="flex flex-col h-full">
+          {/* Header */}
+          <div className="flex items-center gap-3 p-6 border-b border-gray-200">
+            <Logo width={32} height={32} />
+            <div className="flex-1">
+              <h1 className="text-lg font-semibold text-gray-900">
+                Electric Automatic
+              </h1>
+              <p className="text-xs text-gray-500">Panel Empresa</p>
+            </div>
+          </div>
+
+          {/* Navegación principal */}
+          <nav className="flex-1 p-4 space-y-2">
+            {menuItems.map((item) => {
+              const isActive = pathname === item.href;
+              const Icon = item.icon;
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                    isActive
+                      ? "bg-orange-50 text-orange-700 border border-orange-200"
+                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                  )}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="flex-1">{item.title}</span>
+                  {item.badge && (
+                    <Badge variant="secondary" className="ml-auto text-xs">
+                      {item.badge}
+                    </Badge>
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Footer */}
+          <div className="p-4 border-t border-gray-200">
+            <div className="mb-3 p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-sm font-medium text-gray-900">
+                  {user?.nombre || "Empresa"}
+                </span>
+              </div>
+              <p className="text-xs text-gray-500">
+                {user?.empresa || "Administrador"}
+              </p>
+            </div>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-gray-700 hover:text-red-600 hover:bg-red-50"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Cerrar Sesión
+            </Button>
+          </div>
+        </div>
+      </aside>
     </>
   );
-} 
+}
