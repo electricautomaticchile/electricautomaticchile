@@ -3,12 +3,11 @@ import { useState, useEffect, Suspense } from "react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
-import { signIn, useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertCircle, KeyRound, User, LockKeyhole } from 'lucide-react'
-import Image from 'next/image'
 import { useSearchParams, useRouter } from "next/navigation"
+import { apiService } from '@/lib/api/apiService'
 
 // Componente para el contenido de login
 const LoginContent = () => {
@@ -17,39 +16,11 @@ const LoginContent = () => {
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const { data: session, status } = useSession()
   const router = useRouter()
   
   // Obtener parámetros de la URL
   const searchParams = useSearchParams()
-  let callbackUrl = searchParams.get("callbackUrl") || ""
-  
-  // Si la callbackUrl contiene localhost y estamos en producción, corregirla
-  if (callbackUrl.includes('localhost') && process.env.NODE_ENV === 'production') {
-    // Obtener solo la parte de la ruta, eliminando el dominio
-    const path = new URL(callbackUrl).pathname
-    // Crear una URL absoluta basada en la ventana actual
-    callbackUrl = window.location.origin + path
-  }
-  
-  // Redireccionar automáticamente si el usuario ya está autenticado
-  useEffect(() => {
-    if (status === "authenticated" && session) {
-      const role = session.user?.role
-      // Priorizar siempre el dashboard de superadmin para roles admin/superadmin
-      const redirectPath = role === "admin" || role === "superadmin" 
-        ? "/dashboard-superadmin" 
-        : "/dashboard-empresa"
-      
-      // Si no hay callbackUrl específico O el usuario es admin/superadmin, usar redirectPath
-      const targetUrl = (role === "admin" || role === "superadmin") 
-        ? redirectPath 
-        : (callbackUrl || redirectPath)
-      
-      // Usar router.push para evitar recargas de página y redirecciones infinitas
-      router.push(targetUrl)
-    }
-  }, [session, status, callbackUrl, router])
+  const callbackUrl = searchParams.get("callbackUrl") || ""
   
   // Mostrar error si viene en la URL
   useEffect(() => {
@@ -94,16 +65,54 @@ const LoginContent = () => {
     setError("")
     
     try {
-      const result = await signIn('credentials', {
-        clientNumber,
-        password,
-        redirect: false,
+      // Usar nuestro apiService en lugar de NextAuth
+      const response = await apiService.login({
+        email: clientNumber, // El backend busca por número de cliente en el campo email
+        password: password
       })
       
-      if (result?.error) {
-        setError("Credenciales incorrectas. Por favor, verifique su información.")
-      } else if (result?.ok) {
-        // La redirección se manejará en el useEffect
+      if (response.success && response.data) {
+        console.log('✅ Login exitoso:', response.data)
+        
+        // Redirigir según el tipo de usuario
+        const tipoUsuario = response.data.user.tipoUsuario
+        const role = response.data.user.role
+        
+        console.log('🎯 Determinando redirección:', { tipoUsuario, role })
+        
+        let redirectPath = '/dashboard-empresa' // default
+        
+        if (tipoUsuario === 'admin' || role === 'admin' || role === 'superadmin') {
+          redirectPath = '/dashboard-superadmin'
+        } else if (tipoUsuario === 'cliente' || role === 'cliente') {
+          redirectPath = '/dashboard-cliente'
+        } else if (tipoUsuario === 'empresa') {
+          redirectPath = '/dashboard-empresa'
+        }
+        
+        console.log('📍 Redirigiendo a:', redirectPath)
+        
+        // Usar callbackUrl si existe, sino usar redirectPath
+        const targetUrl = callbackUrl || redirectPath
+        
+        console.log('🔗 URL final:', targetUrl)
+        
+        // Agregar un pequeño delay y usar window.location como fallback
+        setTimeout(() => {
+          console.log('🚀 Ejecutando redirección...')
+          router.push(targetUrl)
+        }, 100)
+        
+        // Fallback con window.location después de 1 segundo
+        setTimeout(() => {
+          if (window.location.pathname === '/auth/login') {
+            console.log('⚠️ Redirección con router falló, usando window.location')
+            window.location.href = targetUrl
+          }
+        }, 1000)
+      } else {
+        console.error('❌ Error en respuesta:', response)
+        setError(response.error || "Credenciales incorrectas. Por favor, verifique su información.")
       }
     } catch (error) {
       console.error('Error durante el login:', error)
@@ -111,33 +120,6 @@ const LoginContent = () => {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const handleGoogleSignIn = async () => {
-    try {
-      await signIn('google', {
-        callbackUrl: "/dashboard-superadmin" // Forzar redirección al dashboard-superadmin para login con Google
-      })
-    } catch (error) {
-      console.error('Error durante el login con Google:', error)
-    }
-  }
-
-  // Si el usuario ya está autenticado y estamos esperando a redirigir, mostrar un mensaje
-  if (status === "authenticated") {
-    const role = session?.user?.role
-    const dashboardType = (role === "admin" || role === "superadmin") ? "superadmin" : "empresa"
-    
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-lg">
-          <CardHeader className="text-center">
-            <CardTitle>Sesión iniciada</CardTitle>
-            <CardDescription>Redirigiendo al dashboard de {dashboardType}...</CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    )
   }
 
   return (
@@ -181,6 +163,7 @@ const LoginContent = () => {
                     placeholder="Formato: 111111-1"
                     value={clientNumber}
                     onChange={handleClientNumberChange}
+                    disabled={isLoading}
                     className={`pl-10 ${!isValidFormat && clientNumber ? "border-destructive focus-visible:ring-destructive/30" : "border-orange-200 dark:border-orange-900/50"} dark:bg-slate-800 dark:text-orange-100 focus-visible:ring-orange-500/50`}
                   />
                 </div>
@@ -210,6 +193,7 @@ const LoginContent = () => {
                     placeholder="Ingrese su contraseña"
                     value={password}
                     onChange={handlePasswordChange}
+                    disabled={isLoading}
                     className="pl-10 border-orange-200 dark:border-orange-900/50 dark:bg-slate-800 dark:text-orange-100 focus-visible:ring-orange-500/50"
                   />
                 </div>

@@ -8,7 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CheckCircle, AlertCircle, Send, Building2, Phone, AtSign, User, FileText, Briefcase, Clock, Upload } from 'lucide-react';
-import axios from 'axios';
+import { apiService } from '@/lib/api/apiService';
 
 export default function FormularioContacto() {
   // Referencia al input de archivo
@@ -37,6 +37,7 @@ export default function FormularioContacto() {
   const [estado, setEstado] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const [errores, setErrores] = useState<Record<string, string>>({});
+  const [numeroCotizacion, setNumeroCotizacion] = useState<string>('');
 
   // Manejar cambios en los campos
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -76,7 +77,7 @@ export default function FormularioContacto() {
     }
   };
 
-  // Función para subir archivo a S3
+  // Función para subir archivo a S3 (mantenemos la lógica existente)
   const subirArchivoS3 = async (file: File): Promise<string> => {
     try {
       setSubiendoArchivo(true);
@@ -98,19 +99,26 @@ export default function FormularioContacto() {
         'X-Form-Type': 'contacto'
       };
       
-      // Subir archivo a S3 mediante nuestra API
-      const response = await axios.post('/api/documentos', formData, {
-        headers,
-        onUploadProgress: (event) => {
-          if (event.total) {
-            const porcentaje = Math.round((event.loaded * 100) / event.total);
-            setProgresoSubida(porcentaje);
-          }
+      // Subir archivo a S3 mediante nuestra API interna (temporal)
+      const response = await fetch('/api/documentos', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Form-Type': 'contacto'
         }
       });
       
+      if (!response.ok) {
+        throw new Error('Error al subir el archivo');
+      }
+      
+      const result = await response.json();
+      
+      // Actualizar progreso
+      setProgresoSubida(100);
+      
       // Retornar la URL del archivo subido
-      return response.data.documento.url;
+      return result.documento?.url || '';
     } catch (error: any) {
       console.error("Error al subir archivo:", error);
       const mensajeError = error.response?.data?.mensaje || 'Error al subir el archivo';
@@ -131,24 +139,13 @@ export default function FormularioContacto() {
     try {
       // Variables para el manejo de archivos
       let archivoUrl = '';
-      let archivoBase64 = '';
       let archivoTipo = '';
       let archivoNombreCompleto = '';
 
       // Si hay un archivo seleccionado
       if (archivoSeleccionado) {
-        // Subir a S3
         try {
           archivoUrl = await subirArchivoS3(archivoSeleccionado);
-          
-          // Convertir el archivo a base64 para el correo
-          const reader = new FileReader();
-          archivoBase64 = await new Promise((resolve, reject) => {
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(archivoSeleccionado);
-          });
-          
           archivoTipo = archivoSeleccionado.type;
           archivoNombreCompleto = archivoSeleccionado.name;
         } catch (error: any) {
@@ -156,31 +153,28 @@ export default function FormularioContacto() {
         }
       }
 
-      // Preparar datos del formulario incluyendo la URL y los datos del archivo para el correo
+      // Preparar datos para enviar al backend externo
       const dataToSend = {
-        ...formData,
-        archivoUrl,
-        archivoBase64,
-        archivoTipo,
-        archivo: archivoNombreCompleto
+        nombre: formData.nombre,
+        email: formData.email,
+        empresa: formData.empresa || undefined,
+        telefono: formData.telefono || undefined,
+        servicio: formData.servicio,
+        plazo: formData.plazo || undefined,
+        mensaje: formData.mensaje,
+        archivoUrl: archivoUrl || undefined,
+        archivo: archivoNombreCompleto || undefined,
+        archivoTipo: archivoTipo || undefined
       };
 
-      // Enviar los datos del formulario a la API
-      const response = await fetch('/api/envioformulario', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dataToSend),
-      });
+      // Enviar al backend externo usando el servicio API
+      const response = await apiService.enviarFormularioContacto(dataToSend);
 
-      const responseData = await response.json();
-
-      if (!response.ok) {
-        if (responseData.errors && Array.isArray(responseData.errors)) {
-          // Manejar errores de validación de Zod
+      if (!response.success) {
+        if (response.errors && Array.isArray(response.errors)) {
+          // Manejar errores de validación
           const erroresObj: Record<string, string> = {};
-          responseData.errors.forEach((err: any) => {
+          response.errors.forEach((err: any) => {
             if (err.path && err.path.length > 0) {
               erroresObj[err.path[0]] = err.message;
             }
@@ -188,12 +182,14 @@ export default function FormularioContacto() {
           setErrores(erroresObj);
           throw new Error('Por favor, corrige los errores en el formulario');
         } else {
-          throw new Error(responseData.message || 'Error al enviar el formulario');
+          throw new Error(response.error || 'Error al enviar el formulario');
         }
       }
 
       // Éxito
       setEstado('success');
+      setNumeroCotizacion(response.data?.numero || '');
+      
       // Limpiar formulario
       setFormData({
         nombre: '',
@@ -246,8 +242,10 @@ export default function FormularioContacto() {
             <CheckCircle className="h-5 w-5" />
             <AlertTitle>¡Solicitud enviada con éxito!</AlertTitle>
             <AlertDescription>
-              Gracias por solicitar una cotización. Hemos recibido tu solicitud y un especialista 
-              preparará tu cotización personalizada. Te contactaremos dentro de las próximas 24-48 horas hábiles.
+              Gracias por solicitar una cotización. Tu solicitud ha sido registrada 
+              {numeroCotizacion && (
+                <span className="font-semibold"> con el número: {numeroCotizacion}</span>
+              )}. Un especialista preparará tu cotización personalizada y te contactaremos dentro de las próximas 24-48 horas hábiles.
             </AlertDescription>
           </Alert>
         )}
