@@ -1,13 +1,13 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { BarrasNavegacion } from './componentes/barras-navegacion';
-import { Encabezado } from './componentes/encabezado';
-import { ConsumoElectrico } from './componentes/consumo-electrico';
-import { EstadoServicio } from './componentes/estado-servicio';
-import { PagosFacturas } from './componentes/pagos-facturas';
-import { HistorialConsumo } from './componentes/historial-consumo';
-import { SoporteUsuario } from './componentes/soporte-usuario';
-import { PerfilUsuario } from './componentes/perfil-usuario';
+import React, { useState, useEffect } from "react";
+import { BarraNavegacionLateral } from "./componentes/barras-navegacion";
+import Encabezado from "./componentes/encabezado";
+import { ConsumoElectrico } from "./componentes/consumo-electrico";
+import { EstadoServicio } from "./componentes/estado-servicio";
+import { PagosFacturas } from "./componentes/pagos-facturas";
+import { HistorialConsumo } from "./componentes/historial-consumo";
+import { SoporteUsuario } from "./componentes/soporte-usuario";
+import { PerfilUsuario } from "./componentes/perfil-usuario";
 
 /**
  * Dashboard para Clientes Finales (Usuarios de las Empresas)
@@ -16,13 +16,15 @@ import { PerfilUsuario } from './componentes/perfil-usuario';
 export default function DashboardCliente() {
   const [componenteActivo, setComponenteActivo] = useState<string | null>(null);
   const [sesionActiva, setSesionActiva] = useState(true);
-  const [estadoServicio, setEstadoServicio] = useState<'activo' | 'desactivado' | 'suspendido'>('activo');
+  const [estadoServicio, setEstadoServicio] = useState<
+    "activo" | "desactivado" | "suspendido"
+  >("activo");
   const [datosCliente, setDatosCliente] = useState({
     nombre: "Juan Pérez",
     numeroCliente: "123456-7",
     direccion: "Av. Principal 123, Santiago",
     ultimoPago: "15/04/2023",
-    consumoActual: 245.8 // kWh
+    consumoActual: 245.8, // kWh
   });
 
   // Control de tiempo de inactividad (30 minutos)
@@ -33,30 +35,30 @@ export default function DashboardCliente() {
       clearTimeout(temporizador);
       temporizador = setTimeout(() => {
         setSesionActiva(false);
-        window.location.href = '/auth/login';
+        window.location.href = "/auth/login";
       }, 1800000); // 30 minutos
     };
 
     // Este código solo se ejecutará en el cliente
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       // Iniciar el temporizador
       manejarActividad();
 
       // Escuchar eventos de actividad
-      window.addEventListener('mousemove', manejarActividad);
-      window.addEventListener('keydown', manejarActividad);
-      window.addEventListener('click', manejarActividad);
-      window.addEventListener('scroll', manejarActividad);
+      window.addEventListener("mousemove", manejarActividad);
+      window.addEventListener("keydown", manejarActividad);
+      window.addEventListener("click", manejarActividad);
+      window.addEventListener("scroll", manejarActividad);
     }
 
     // Limpiar eventos al desmontar
     return () => {
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         clearTimeout(temporizador);
-        window.removeEventListener('mousemove', manejarActividad);
-        window.removeEventListener('keydown', manejarActividad);
-        window.removeEventListener('click', manejarActividad);
-        window.removeEventListener('scroll', manejarActividad);
+        window.removeEventListener("mousemove", manejarActividad);
+        window.removeEventListener("keydown", manejarActividad);
+        window.removeEventListener("click", manejarActividad);
+        window.removeEventListener("scroll", manejarActividad);
       }
     };
   }, []);
@@ -81,7 +83,7 @@ export default function DashboardCliente() {
   }, []);
 
   // Manejar cambio de estado del servicio
-  const manejarCambioEstado = async (nuevoEstado: 'activo' | 'desactivado') => {
+  const manejarCambioEstado = async (nuevoEstado: "activo" | "desactivado") => {
     try {
       // Aquí se enviaría la solicitud a la API
       // await fetch('/api/cliente/estado-servicio', {
@@ -89,7 +91,7 @@ export default function DashboardCliente() {
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify({ estado: nuevoEstado })
       // });
-      
+
       // Por ahora, simulamos la respuesta
       setEstadoServicio(nuevoEstado);
     } catch (error) {
@@ -103,10 +105,12 @@ export default function DashboardCliente() {
       case "consumo-electrico":
         return <ConsumoElectrico />;
       case "estado-servicio":
-        return <EstadoServicio 
-          estadoActual={estadoServicio} 
-          onCambioEstado={manejarCambioEstado} 
-        />;
+        return (
+          <EstadoServicio
+            estadoActual={estadoServicio}
+            onCambioEstado={manejarCambioEstado}
+          />
+        );
       case "pagos-facturas":
         return <PagosFacturas />;
       case "historial-consumo":
@@ -121,40 +125,58 @@ export default function DashboardCliente() {
           <>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-6">
               <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Estado del servicio</h3>
+                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Estado del servicio
+                </h3>
                 <div className="flex items-center mt-1">
-                  <div className={`w-3 h-3 rounded-full mr-2 ${
-                    estadoServicio === 'activo' ? 'bg-green-500' : 
-                    estadoServicio === 'desactivado' ? 'bg-gray-500' : 'bg-red-500'
-                  }`}></div>
+                  <div
+                    className={`w-3 h-3 rounded-full mr-2 ${
+                      estadoServicio === "activo"
+                        ? "bg-green-500"
+                        : estadoServicio === "desactivado"
+                        ? "bg-gray-500"
+                        : "bg-red-500"
+                    }`}
+                  ></div>
                   <p className="text-lg font-semibold">
-                    {estadoServicio === 'activo' ? 'Activo' : 
-                     estadoServicio === 'desactivado' ? 'Desactivado' : 'Suspendido'}
+                    {estadoServicio === "activo"
+                      ? "Activo"
+                      : estadoServicio === "desactivado"
+                      ? "Desactivado"
+                      : "Suspendido"}
                   </p>
                 </div>
               </div>
-              
+
               <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Consumo actual</h3>
-                <p className="text-2xl font-bold text-orange-600">{datosCliente.consumoActual} kWh</p>
+                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Consumo actual
+                </h3>
+                <p className="text-2xl font-bold text-orange-600">
+                  {datosCliente.consumoActual} kWh
+                </p>
               </div>
-              
+
               <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Último pago</h3>
-                <p className="text-lg font-semibold">{datosCliente.ultimoPago}</p>
+                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Último pago
+                </h3>
+                <p className="text-lg font-semibold">
+                  {datosCliente.ultimoPago}
+                </p>
               </div>
             </div>
-            
+
             <div className="grid gap-6 md:grid-cols-2 mb-6">
               <ConsumoElectrico reducida={true} />
               <HistorialConsumo reducida={true} />
             </div>
-            
+
             <div className="grid gap-6 md:grid-cols-2">
-              <EstadoServicio 
+              <EstadoServicio
                 reducida={true}
-                estadoActual={estadoServicio} 
-                onCambioEstado={manejarCambioEstado} 
+                estadoActual={estadoServicio}
+                onCambioEstado={manejarCambioEstado}
               />
               <PagosFacturas reducida={true} />
             </div>
@@ -165,13 +187,9 @@ export default function DashboardCliente() {
 
   return (
     <div className="grid min-h-screen w-full overflow-hidden lg:grid-cols-[280px_1fr]">
-      <BarrasNavegacion onCambioComponente={setComponenteActivo} />
+      <BarraNavegacionLateral />
       <div className="flex flex-col">
-        <Encabezado 
-          tipoUsuario="cliente" 
-          nombreCliente={datosCliente.nombre} 
-          numeroCliente={datosCliente.numeroCliente}
-        />
+        <Encabezado />
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
           <div className="mb-4">
             <h1 className="text-3xl font-bold text-orange-600">
@@ -181,10 +199,10 @@ export default function DashboardCliente() {
               Bienvenido a su portal de administración eléctrica
             </p>
           </div>
-          
+
           {renderizarComponenteActivo()}
         </main>
       </div>
     </div>
   );
-} 
+}
