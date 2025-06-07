@@ -1,9 +1,21 @@
-import React from 'react';
+import React from "react";
+import Image from "next/image";
 
-export function Logo() {
+interface LogoProps {
+  width?: number;
+  height?: number;
+  className?: string;
+}
+
+export function Logo({ width = 100, height = 100, className = "" }: LogoProps) {
   return (
-    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-600 text-white font-bold">
-      EA
-    </div>
+    <Image
+      src="/logo.svg"
+      width={width}
+      height={height}
+      alt="Electricautomaticchile Logo"
+      className={`transition-transform duration-300 hover:scale-105 ${className}`}
+      priority
+    />
   );
-} 
+}
