@@ -13,11 +13,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
-import { useSocket } from '@/lib/socket/socket-provider';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from "@/components/ui/badge"
+import { useRouter } from 'next/navigation'
+import { useSocket } from '@/lib/hooks/useSocket';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { signOut, useSession } from "next-auth/react";
+import { useAuth } from '@/lib/hooks/useAuth';
 
 interface EncabezadoProps {
   tipoUsuario: 'superadmin' | 'admin' | 'cliente';
@@ -34,7 +35,8 @@ export function Encabezado({ tipoUsuario }: EncabezadoProps) {
     connected
   } = useSocket();
   
-  const { data: session } = useSession();
+  const { user, logout } = useAuth();
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -54,7 +56,8 @@ export function Encabezado({ tipoUsuario }: EncabezadoProps) {
   };
 
   const cerrarSesion = () => {
-    signOut({ callbackUrl: '/auth/login' });
+    logout();
+    router.push('/auth/login');
   };
 
   const verTodasNotificaciones = () => {
@@ -70,16 +73,16 @@ export function Encabezado({ tipoUsuario }: EncabezadoProps) {
   };
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-white px-4 dark:bg-slate-950 dark:border-slate-800">
+    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b  px-4 ">
       <div className="w-full flex justify-between items-center">
         <div className="flex items-center gap-4">
           {tipoUsuario === 'superadmin' && (
             <div className="inline-flex items-center rounded-md bg-orange-50 px-2 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20 dark:bg-orange-900/20 dark:text-orange-300">
               <span className="mr-1">Superadministrador</span>
-              {connected && session && (
+              {connected && user && (
                 <span className="inline-flex items-center text-green-600 dark:text-green-400 text-xs">
                   <span className="h-1.5 w-1.5 rounded-full bg-green-500 mr-1"></span>
-                  Usuario conectado con Superadministrador {session.user?.clientNumber}
+                  Usuario conectado con Superadministrador {user.numeroCliente}
                 </span>
               )}
             </div>
@@ -88,7 +91,7 @@ export function Encabezado({ tipoUsuario }: EncabezadoProps) {
           {/* Información del administrador */}
           <div className="hidden md:flex flex-col ml-4">
             <div className="font-medium text-sm">
-              {session?.user?.clientNumber || "-------"} - {session?.user?.email || "admin@electricauto.cl"}
+              {user?.numeroCliente || "-------"} - {user?.email || "admin@electricauto.cl"}
             </div>
           </div>
         </div>
@@ -123,11 +126,11 @@ export function Encabezado({ tipoUsuario }: EncabezadoProps) {
               <DropdownMenuSeparator />
               <div className="max-h-80 overflow-y-auto">
                 {messages && messages.length > 0 ? (
-                  messages.slice(0, 5).map((msg) => (
+                  messages.slice(0, 5).map((msg: any) => (
                     <div 
                       key={msg.id} 
                       className={`p-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-md cursor-pointer ${!msg.leido ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
-                      onClick={() => markMessageAsRead(msg.id)}
+                      onClick={() => markMessageAsRead()}
                     >
                       <div className="font-medium">{msg.emisorNombre || 'Usuario'}</div>
                       <div className="text-gray-500 dark:text-gray-400 truncate">{msg.contenido}</div>
@@ -171,11 +174,11 @@ export function Encabezado({ tipoUsuario }: EncabezadoProps) {
               <DropdownMenuSeparator />
               <div className="max-h-80 overflow-y-auto">
                 {notifications && notifications.length > 0 ? (
-                  notifications.slice(0, 5).map((notif) => (
+                  notifications.slice(0, 5).map((notif: any) => (
                     <div 
                       key={notif.id}
                       className={`p-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-md cursor-pointer ${!notif.leida ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
-                      onClick={() => markNotificationAsRead(notif.id)}
+                      onClick={() => markNotificationAsRead()}
                     >
                       <div className={`font-medium ${
                         notif.tipo === 'alerta' ? 'text-red-600' : 
@@ -221,9 +224,9 @@ export function Encabezado({ tipoUsuario }: EncabezadoProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={session?.user?.image || "/avatars/admin.jpg"} alt="Admin" />
+                  <AvatarImage src="/avatars/admin.jpg" alt="Admin" />
                   <AvatarFallback>
-                    {session?.user?.name?.charAt(0) || 'SA'}
+                    {user?.nombre?.charAt(0) || 'SA'}
                   </AvatarFallback>
                 </Avatar>
               </Button>
@@ -232,8 +235,8 @@ export function Encabezado({ tipoUsuario }: EncabezadoProps) {
               <DropdownMenuLabel>
                 <div className="flex flex-col">
                   <span>Mi cuenta</span>
-                  <span className="text-xs text-gray-500">{session?.user?.email || "admin@electricauto.cl"}</span>
-                  <span className="text-xs text-gray-500">Cliente: {session?.user?.clientNumber}</span>
+                  <span className="text-xs text-gray-500">{user?.email || "admin@electricauto.cl"}</span>
+                  <span className="text-xs text-gray-500">Cliente: {user?.numeroCliente}</span>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />

@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { useSocket } from '@/lib/socket/socket-provider';
+import { useSocket } from '@/lib/hooks/useSocket';
 
 interface Notificacion {
   id: string;

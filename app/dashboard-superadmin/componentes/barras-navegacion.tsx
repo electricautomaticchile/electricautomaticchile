@@ -1,46 +1,48 @@
 "use client";
-import { useState } from 'react';
-import Link from 'next/link';
-import { 
-  Building2, 
-  BarChart3, 
-  Bell, 
-  FileText, 
-  Home, 
-  Settings, 
-  Package, 
-  Menu, 
-  History, 
+import { useState } from "react";
+import Link from "next/link";
+import {
+  Building2,
+  BarChart3,
+  Bell,
+  FileText,
+  Home,
+  Settings,
+  Menu,
+  History,
   DollarSign,
   FileSpreadsheet,
-  MessageSquare
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useSocket } from '@/lib/socket/socket-provider';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useSession } from 'next-auth/react';
+  MessageSquare,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useSocket } from "@/lib/hooks/useSocket";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/lib/hooks/useAuth";
+import { Logo } from "@/components/logo";
 
 interface BarrasNavegacionProps {
   onCambioComponente: (nombreComponente: string | null) => void;
 }
 
-export function BarrasNavegacion({ onCambioComponente }: BarrasNavegacionProps) {
+export function BarrasNavegacion({
+  onCambioComponente,
+}: BarrasNavegacionProps) {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const { unreadNotificationsCount, unreadMessagesCount } = useSocket();
-  const { data: session } = useSession();
+  const { user } = useAuth();
 
   const alternarMenu = () => {
     setMenuAbierto(!menuAbierto);
   };
 
-  const BotonNavegacion = ({ 
-    icono, 
-    texto, 
+  const BotonNavegacion = ({
+    icono,
+    texto,
     onClick,
-    badge
-  }: { 
-    icono: React.ReactNode; 
-    texto: string; 
+    badge,
+  }: {
+    icono: React.ReactNode;
+    texto: string;
     onClick: () => void;
     badge?: number;
   }) => (
@@ -55,7 +57,7 @@ export function BarrasNavegacion({ onCambioComponente }: BarrasNavegacionProps) 
         {icono}
         {badge !== undefined && badge > 0 && (
           <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] font-medium text-white flex items-center justify-center">
-            {badge > 9 ? '9+' : badge}
+            {badge > 9 ? "9+" : badge}
           </span>
         )}
       </div>
@@ -68,24 +70,44 @@ export function BarrasNavegacion({ onCambioComponente }: BarrasNavegacionProps) 
       <div className="border-r border-gray-200 dark:border-gray-800">
         <div className="flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-[60px] items-center border-b border-gray-200 dark:border-gray-800 px-6">
-            <Link href="#" className="flex items-center gap-2 font-semibold" prefetch={false}>
-              <Package className="h-6 w-6 text-orange-600 lg:hidden" onClick={alternarMenu} />
-              <Package className="h-6 w-6 text-orange-600 hidden lg:block" />
-              <span className="text-lg text-gray-900 dark:text-white">Electric<span className="text-orange-600">Admin</span></span>
+            <Link
+              href="#"
+              className="flex items-center gap-2 font-semibold"
+              prefetch={false}
+            >
+              <div className="lg:hidden" onClick={alternarMenu}>
+                <Logo width={24} height={24} />
+              </div>
+              <div className="hidden lg:block">
+                <Logo width={24} height={24} />
+              </div>
+              <span className="text-lg text-gray-900 dark:text-white">
+                Electric<span className="text-orange-600">Admin</span>
+              </span>
             </Link>
             <div className="ml-auto flex gap-1">
-              <Button variant="ghost" size="icon" className="h-8 w-8 relative" onClick={() => {
-                onCambioComponente("mensajeria");
-              }}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 relative"
+                onClick={() => {
+                  onCambioComponente("mensajeria");
+                }}
+              >
                 <MessageSquare className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                 {unreadMessagesCount > 0 && (
                   <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
                 )}
                 <span className="sr-only">Mensajes</span>
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 relative" onClick={() => {
-                onCambioComponente("notificaciones");
-              }}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 relative"
+                onClick={() => {
+                  onCambioComponente("notificaciones");
+                }}
+              >
                 <Bell className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                 {unreadNotificationsCount > 0 && (
                   <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
@@ -94,71 +116,77 @@ export function BarrasNavegacion({ onCambioComponente }: BarrasNavegacionProps) 
               </Button>
             </div>
           </div>
-          <div className={`flex-1 overflow-auto py-2 ${menuAbierto ? 'block' : 'hidden'} lg:block`}>
+          <div
+            className={`flex-1 overflow-auto py-2 ${
+              menuAbierto ? "block" : "hidden"
+            } lg:block`}
+          >
             <nav className="grid items-start px-4 text-base font-medium">
-              <BotonNavegacion 
-                icono={<Home className="h-4 w-4" />} 
-                texto="Panel Principal" 
-                onClick={() => onCambioComponente(null)} 
+              <BotonNavegacion
+                icono={<Home className="h-4 w-4" />}
+                texto="Panel Principal"
+                onClick={() => onCambioComponente(null)}
               />
-              <BotonNavegacion 
-                icono={<Building2 className="h-4 w-4" />} 
-                texto="Gestión de Empresas" 
-                onClick={() => onCambioComponente("gestion-empresas")} 
+              <BotonNavegacion
+                icono={<Building2 className="h-4 w-4" />}
+                texto="Gestión de Empresas"
+                onClick={() => onCambioComponente("gestion-empresas")}
               />
-              <BotonNavegacion 
-                icono={<FileSpreadsheet className="h-4 w-4" />} 
-                texto="Cotizaciones" 
-                onClick={() => onCambioComponente("cotizaciones")} 
+              <BotonNavegacion
+                icono={<FileSpreadsheet className="h-4 w-4" />}
+                texto="Cotizaciones"
+                onClick={() => onCambioComponente("cotizaciones")}
               />
-              <BotonNavegacion 
-                icono={<BarChart3 className="h-4 w-4" />} 
-                texto="Estadísticas Globales" 
-                onClick={() => onCambioComponente("estadisticas-globales")} 
+              <BotonNavegacion
+                icono={<BarChart3 className="h-4 w-4" />}
+                texto="Estadísticas Globales"
+                onClick={() => onCambioComponente("estadisticas-globales")}
               />
-              <BotonNavegacion 
-                icono={<DollarSign className="h-4 w-4" />} 
-                texto="Facturación Global" 
-                onClick={() => onCambioComponente("facturacion-global")} 
+              <BotonNavegacion
+                icono={<DollarSign className="h-4 w-4" />}
+                texto="Facturación Global"
+                onClick={() => onCambioComponente("facturacion-global")}
               />
-              <BotonNavegacion 
-                icono={<History className="h-4 w-4" />} 
-                texto="Registros de Actividad" 
-                onClick={() => onCambioComponente("registros-actividad")} 
+              <BotonNavegacion
+                icono={<History className="h-4 w-4" />}
+                texto="Registros de Actividad"
+                onClick={() => onCambioComponente("registros-actividad")}
               />
-              <BotonNavegacion 
-                icono={<MessageSquare className="h-4 w-4" />} 
-                texto="Mensajería" 
+              <BotonNavegacion
+                icono={<MessageSquare className="h-4 w-4" />}
+                texto="Mensajería"
                 onClick={() => onCambioComponente("mensajeria")}
                 badge={unreadMessagesCount}
               />
-              <BotonNavegacion 
-                icono={<Bell className="h-4 w-4" />} 
-                texto="Notificaciones" 
+              <BotonNavegacion
+                icono={<Bell className="h-4 w-4" />}
+                texto="Notificaciones"
                 onClick={() => onCambioComponente("notificaciones")}
                 badge={unreadNotificationsCount}
               />
-              <BotonNavegacion 
-                icono={<Settings className="h-4 w-4" />} 
-                texto="Configuración" 
-                onClick={() => onCambioComponente("configuracion")} 
+              <BotonNavegacion
+                icono={<Settings className="h-4 w-4" />}
+                texto="Configuración"
+                onClick={() => onCambioComponente("configuracion")}
               />
             </nav>
           </div>
           <div className="mt-auto p-4 border-t border-gray-200 dark:border-gray-800">
             <div className="flex items-center gap-3 rounded-lg px-3 py-2">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={session?.user?.image || "/avatars/admin.jpg"} alt="Admin" />
+                <AvatarImage src="/avatars/admin.jpg" alt="Admin" />
                 <AvatarFallback className="bg-orange-500 text-white">
-                  {session?.user?.name?.charAt(0) || 'A'}
+                  {user?.nombre?.charAt(0) || "A"}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  {session?.user?.clientNumber || "-------"}
+                  {user?.numeroCliente || "-------"}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  <span className="block text-[10px]">electricautomaticchile@gmail.com</span>
+                  <span className="block text-[10px]">
+                    electricautomaticchile@gmail.com
+                  </span>
                 </p>
               </div>
             </div>
@@ -167,4 +195,4 @@ export function BarrasNavegacion({ onCambioComponente }: BarrasNavegacionProps) 
       </div>
     </nav>
   );
-} 
+}

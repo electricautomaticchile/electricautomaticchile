@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Settings, Shield, Bell, Database, Key, Server, Users, RefreshCw, Clock, UserPlus, Upload, User, X } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/lib/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface ConfiguracionProps {
@@ -18,7 +18,7 @@ interface ConfiguracionProps {
 }
 
 export function Configuracion({ reducida = false }: ConfiguracionProps) {
-  const { data: session, update } = useSession();
+  const { user } = useAuth();
   const [notificacionesEmail, setNotificacionesEmail] = useState(true);
   const [notificacionesSistema, setNotificacionesSistema] = useState(true);
   const [backupAutomatico, setBackupAutomatico] = useState(true);
@@ -32,7 +32,7 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
     password: string;
   } | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [profileImage, setProfileImage] = useState<string | null>(session?.user?.image || null);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Función para crear un superusuario
@@ -134,28 +134,8 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
       
       const uploadResult = await uploadResponse.json();
       
-      // Actualizar la imagen de perfil en la base de datos
-      const updateResponse = await fetch('/api/user/update-profile-image', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          imageUrl: uploadResult.imageUrl,
-        }),
-      });
-      
-      if (!updateResponse.ok) {
-        throw new Error('Error al actualizar la imagen de perfil');
-      }
-      
-      // Actualizar la sesión con la nueva URL de imagen
-      update({ 
-        user: { 
-          ...session?.user, 
-          image: uploadResult.imageUrl 
-        } 
-      });
+      // Actualizar el estado local
+      setProfileImage(uploadResult.imageUrl);
       
       toast({
         title: "Imagen actualizada",
@@ -190,14 +170,7 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
         throw new Error('Error al eliminar la imagen de perfil');
       }
       
-      // Actualizar la sesión sin imagen
-      update({ 
-        user: { 
-          ...session?.user, 
-          image: null 
-        } 
-      });
-      
+      // Actualizar el estado local
       setProfileImage(null);
       
       toast({
@@ -430,19 +403,19 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="user-name">Nombre</Label>
-                  <Input id="user-name" defaultValue={session?.user?.name || "Administrador"} />
+                  <Input id="user-name" defaultValue={user?.nombre || "Administrador"} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="user-email">Correo Electrónico</Label>
-                  <Input id="user-email" type="email" defaultValue={session?.user?.email || "admin@electricauto.cl"} />
+                  <Input id="user-email" type="email" defaultValue={user?.email || "admin@electricauto.cl"} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="user-client-number">Número de Cliente</Label>
-                  <Input id="user-client-number" readOnly defaultValue={session?.user?.clientNumber || "-------"} />
+                  <Input id="user-client-number" readOnly defaultValue={user?.numeroCliente || "-------"} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="user-role">Rol</Label>
-                  <Input id="user-role" readOnly defaultValue={session?.user?.role === "admin" ? "Superadministrador" : "Administrador"} />
+                  <Input id="user-role" readOnly defaultValue={user?.role === "admin" ? "Superadministrador" : "Administrador"} />
                 </div>
               </div>
               
@@ -456,7 +429,7 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
                     <Avatar className="h-24 w-24 border-2 border-gray-200 dark:border-gray-700">
                       <AvatarImage src={profileImage || "/avatars/admin.jpg"} />
                       <AvatarFallback className="text-xl">
-                        {session?.user?.name?.charAt(0) || "A"}
+                        {user?.nombre?.charAt(0) || "A"}
                       </AvatarFallback>
                     </Avatar>
                     

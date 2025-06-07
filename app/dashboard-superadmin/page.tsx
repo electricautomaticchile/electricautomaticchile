@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { signOut } from 'next-auth/react';
+import { apiService, ICliente, ICotizacion } from '@/lib/api/apiService';
 
 /**
  * Dashboard para Superadmin (Electric Automatic Chile)
@@ -54,6 +55,34 @@ export default function DashboardSuperadmin() {
       window.removeEventListener('scroll', manejarActividad);
     };
   }, []);
+
+  useEffect(() => {
+    cargarEstadisticasBasicas();
+  }, []);
+
+  const cargarEstadisticasBasicas = async () => {
+    try {
+      // Cargar datos básicos del backend
+      const [clientesResponse, cotizacionesResponse] = await Promise.all([
+        apiService.obtenerClientes(),
+        apiService.obtenerCotizaciones()
+      ]);
+
+      if (clientesResponse.success && cotizacionesResponse.success) {
+        const clientes: ICliente[] = clientesResponse.data || [];
+        const cotizaciones: ICotizacion[] = cotizacionesResponse.data || [];
+        
+        console.log('Datos cargados del backend:', {
+          totalClientes: clientes.length,
+          totalCotizaciones: cotizaciones.length,
+          clientesActivos: clientes.filter((c: ICliente) => c.activo || c.esActivo).length,
+          cotizacionesPendientes: cotizaciones.filter((c: ICotizacion) => c.estado === 'pendiente').length
+        });
+      }
+    } catch (error) {
+      console.error('Error cargando estadísticas básicas:', error);
+    }
+  };
 
   // Renderizar el componente activo seleccionado
   const renderizarComponenteActivo = () => {

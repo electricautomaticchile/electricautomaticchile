@@ -40,25 +40,13 @@ import Link from 'next/link';
 import { RegistroClientes } from './registro-clientes';
 import { useToast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
+import { apiService, ICotizacion } from '@/lib/api/apiService';
 
-// Tipos para las cotizaciones
-type EstadoCotizacion = 'pendiente' | 'revisado' | 'cotizado' | 'aprobado' | 'rechazado';
+// Constantes
+const ITEMS_POR_PAGINA = 10;
 
-interface Cotizacion {
-  _id: string;
-  nombre: string;
-  email: string;
-  empresa?: string;
-  telefono?: string;
-  servicio: string;
-  plazo?: string;
-  mensaje: string;
-  archivo?: string;
-  estado: EstadoCotizacion;
-  fecha: string; // ISO date string
-  monto?: number;
-  comentarios?: string;
-}
+// Tipos para las cotizaciones - usar el tipo de la API
+type Cotizacion = ICotizacion;
 
 // Función para formatear el tipo de servicio
 const formatServicio = (servicio: string): string => {
@@ -72,44 +60,49 @@ const formatServicio = (servicio: string): string => {
 };
 
 // Componente para mostrar el estado de la cotización
-const EstadoBadge = ({ estado }: { estado: EstadoCotizacion }) => {
+const EstadoBadge = ({ estado }: { estado: ICotizacion['estado'] }) => {
   const getVariant = (): string => {
     switch (estado) {
-      case 'pendiente': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      case 'revisado': return 'bg-blue-100 text-blue-800 border-blue-300';
-      case 'cotizado': return 'bg-purple-100 text-purple-800 border-purple-300';
-      case 'aprobado': return 'bg-green-100 text-green-800 border-green-300';
-      case 'rechazado': return 'bg-red-100 text-red-800 border-red-300';
-      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'pendiente': return 'outline';
+      case 'en_revision': return 'secondary';
+      case 'cotizando': return 'default';
+      case 'cotizada': return 'default';
+      case 'aprobada': return 'success';
+      case 'rechazada': return 'destructive';
+      case 'convertida_cliente': return 'success';
+      default: return 'outline';
     }
   };
 
-  const getIcon = () => {
+  const getColor = (): string => {
     switch (estado) {
-      case 'pendiente': return <Clock className="h-3.5 w-3.5 mr-1" />;
-      case 'revisado': return <Eye className="h-3.5 w-3.5 mr-1" />;
-      case 'cotizado': return <FileText className="h-3.5 w-3.5 mr-1" />;
-      case 'aprobado': return <CheckCircle className="h-3.5 w-3.5 mr-1" />;
-      case 'rechazado': return <XCircle className="h-3.5 w-3.5 mr-1" />;
-      default: return null;
+      case 'pendiente': return 'text-yellow-600 bg-yellow-100';
+      case 'en_revision': return 'text-blue-600 bg-blue-100';
+      case 'cotizando': return 'text-purple-600 bg-purple-100';
+      case 'cotizada': return 'text-blue-600 bg-blue-100';
+      case 'aprobada': return 'text-green-600 bg-green-100';
+      case 'rechazada': return 'text-red-600 bg-red-100';
+      case 'convertida_cliente': return 'text-green-600 bg-green-100';
+      default: return 'text-gray-600 bg-gray-100';
     }
   };
 
-  const getLabel = (): string => {
+  const getTexto = (): string => {
     switch (estado) {
       case 'pendiente': return 'Pendiente';
-      case 'revisado': return 'Revisado';
-      case 'cotizado': return 'Cotizado';
-      case 'aprobado': return 'Aprobado';
-      case 'rechazado': return 'Rechazado';
+      case 'en_revision': return 'En Revisión';
+      case 'cotizando': return 'Cotizando';
+      case 'cotizada': return 'Cotizada';
+      case 'aprobada': return 'Aprobada';
+      case 'rechazada': return 'Rechazada';
+      case 'convertida_cliente': return 'Cliente';
       default: return estado;
     }
   };
 
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getVariant()}`}>
-      {getIcon()}
-      {getLabel()}
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getColor()}`}>
+      {getTexto()}
     </span>
   );
 };
@@ -128,30 +121,69 @@ export function CotizacionesDashboard({ reducida = false }: CotizacionesDashboar
   const [activeTab, setActiveTab] = useState("cotizaciones");
   const [isUpdating, setIsUpdating] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [nuevoEstado, setNuevoEstado] = useState<EstadoCotizacion>("pendiente");
+  const [nuevoEstado, setNuevoEstado] = useState<ICotizacion['estado']>("pendiente");
   const [nuevoMonto, setNuevoMonto] = useState<string>('');
   const [nuevosComentarios, setNuevosComentarios] = useState<string>('');
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const [cotizacionAEliminar, setCotizacionAEliminar] = useState<string | null>(null);
   const { toast } = useToast();
-  
+  const [filtros, setFiltros] = useState({
+    estado: 'todos',
+    prioridad: 'todas',
+    servicio: 'todos'
+  });
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [totalPaginas, setTotalPaginas] = useState(1);
+  const [cargando, setCargando] = useState(false);
+
   // Cargar las cotizaciones desde la API
   const cargarCotizaciones = async () => {
     try {
+      console.log('Iniciando carga de cotizaciones...');
       setIsLoading(true);
-      setErrorMsg(null);
       
-      const response = await fetch('/api/cotizaciones');
-      
-      if (!response.ok) {
-        throw new Error('Error al cargar las cotizaciones');
+      // Preparar parámetros para la API
+      const params: any = {
+        page: paginaActual,
+        limit: ITEMS_POR_PAGINA
+      };
+
+      if (filtros.estado && filtros.estado !== 'todos') {
+        params.estado = filtros.estado;
       }
+      if (filtros.prioridad && filtros.prioridad !== 'todas') {
+        params.prioridad = filtros.prioridad;
+      }
+      if (filtros.servicio && filtros.servicio !== 'todos') {
+        params.servicio = filtros.servicio;
+      }
+
+      console.log('Parámetros de consulta:', params);
+
+      // Llamar a la API
+      const response = await apiService.obtenerCotizaciones(params);
       
-      const data = await response.json();
-      setCotizaciones(data.cotizaciones);
+      console.log('Respuesta de la API:', response);
+      
+      if (response.success && response.data) {
+        console.log('Cotizaciones obtenidas:', response.data.length);
+        setCotizaciones(response.data);
+        
+        // Si hay información de paginación, usarla
+        if (response.pagination) {
+          setTotalPaginas(response.pagination.totalPages);
+        } else {
+          // Calcular páginas basado en el número de resultados
+          const totalItems = response.data.length;
+          setTotalPaginas(Math.ceil(totalItems / ITEMS_POR_PAGINA));
+        }
+      } else {
+        console.error('Error cargando cotizaciones:', response.error);
+        setCotizaciones([]);
+      }
     } catch (error) {
-      console.error('Error al cargar cotizaciones:', error);
-      setErrorMsg('Ocurrió un error al cargar las cotizaciones. Por favor, intente nuevamente.');
+      console.error('Error cargando cotizaciones:', error);
+      setCotizaciones([]);
     } finally {
       setIsLoading(false);
     }
@@ -160,10 +192,10 @@ export function CotizacionesDashboard({ reducida = false }: CotizacionesDashboar
   // Cargar las cotizaciones al montar el componente
   useEffect(() => {
     cargarCotizaciones();
-  }, []);
+  }, [filtros, paginaActual]);
   
   // Actualizar el estado de una cotización
-  const actualizarCotizacion = async (id: string, estado: EstadoCotizacion, monto?: number, comentarios?: string) => {
+  const actualizarCotizacion = async (id: string, estado: ICotizacion['estado'], monto?: number, comentarios?: string) => {
     try {
       setIsUpdating(true);
       setErrorMsg(null);
@@ -300,7 +332,7 @@ export function CotizacionesDashboard({ reducida = false }: CotizacionesDashboar
     
     actualizarCotizacion(
       cotizacionSeleccionada._id, 
-      nuevoEstado as EstadoCotizacion,
+      nuevoEstado as ICotizacion['estado'],
       montoNumerico,
       comentarios
     );
@@ -311,8 +343,8 @@ export function CotizacionesDashboard({ reducida = false }: CotizacionesDashboar
     return {
       total: cotizaciones.length,
       pendientes: cotizaciones.filter(c => c.estado === 'pendiente').length,
-      aprobadas: cotizaciones.filter(c => c.estado === 'aprobado').length,
-      cotizadas: cotizaciones.filter(c => c.estado === 'cotizado').length,
+      aprobadas: cotizaciones.filter(c => c.estado === 'aprobada').length,
+      cotizadas: cotizaciones.filter(c => c.estado === 'cotizada').length,
       urgentes: cotizaciones.filter(c => c.plazo === 'urgente').length
     };
   };
@@ -326,8 +358,8 @@ export function CotizacionesDashboard({ reducida = false }: CotizacionesDashboar
     
     // Inicializar los campos de formulario con los valores actuales
     setNuevoEstado(cotizacion.estado);
-    setNuevoMonto(cotizacion.monto?.toString() || '');
-    setNuevosComentarios(cotizacion.comentarios || '');
+    setNuevoMonto(cotizacion.total?.toString() || '');
+    setNuevosComentarios(cotizacion.notas || '');
   };
   
   // Función para registrar un cliente desde una cotización
@@ -408,7 +440,7 @@ export function CotizacionesDashboard({ reducida = false }: CotizacionesDashboar
                           <EstadoBadge estado={cotizacion.estado} />
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="text-sm">{format(new Date(cotizacion.fecha), 'dd MMM', { locale: es })}</div>
+                          <div className="text-sm">{format(new Date(cotizacion.fechaCreacion), 'dd MMM', { locale: es })}</div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -464,7 +496,7 @@ export function CotizacionesDashboard({ reducida = false }: CotizacionesDashboar
                 )}
                 <p>
                   <span className="font-semibold">Fecha:</span> {
-                    format(new Date(cotizacionSeleccionada.fecha), "dd 'de' MMMM 'de' yyyy, HH:mm", { locale: es })
+                    format(new Date(cotizacionSeleccionada.fechaCreacion), "dd 'de' MMMM 'de' yyyy, HH:mm", { locale: es })
                   }
                 </p>
                 <p>
@@ -491,15 +523,17 @@ export function CotizacionesDashboard({ reducida = false }: CotizacionesDashboar
                 <select
                   id="estado"
                   value={nuevoEstado}
-                  onChange={(e) => setNuevoEstado(e.target.value as EstadoCotizacion)}
+                  onChange={(e) => setNuevoEstado(e.target.value as ICotizacion['estado'])}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
                 >
                   <option value="" disabled>Seleccionar estado</option>
                   <option value="pendiente">Pendiente</option>
-                  <option value="revisado">Revisado</option>
-                  <option value="cotizado">Cotizado</option>
-                  <option value="aprobado">Aprobado</option>
-                  <option value="rechazado">Rechazado</option>
+                  <option value="en_revision">En Revisión</option>
+                  <option value="cotizando">Cotizando</option>
+                  <option value="cotizada">Cotizada</option>
+                  <option value="aprobada">Aprobada</option>
+                  <option value="rechazada">Rechazada</option>
+                  <option value="convertida_cliente">Cliente</option>
                 </select>
               </div>
               
@@ -607,7 +641,7 @@ export function CotizacionesDashboard({ reducida = false }: CotizacionesDashboar
                 </div>
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800/30">
                   <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                    {cotizaciones.filter(c => c.estado === 'revisado').length}
+                    {cotizaciones.filter(c => c.estado === 'en_revision').length}
                   </div>
                   <div className="text-sm text-blue-800 dark:text-blue-300">Revisadas</div>
                 </div>
@@ -644,7 +678,7 @@ export function CotizacionesDashboard({ reducida = false }: CotizacionesDashboar
                           </TableCell>
                           <TableCell>{formatServicio(cotizacion.servicio)}</TableCell>
                           <TableCell>
-                            {format(new Date(cotizacion.fecha), 'dd MMM yyyy', { locale: es })}
+                            {format(new Date(cotizacion.fechaCreacion), 'dd MMM yyyy', { locale: es })}
                           </TableCell>
                           <TableCell>
                             <EstadoBadge estado={cotizacion.estado} />
@@ -656,7 +690,7 @@ export function CotizacionesDashboard({ reducida = false }: CotizacionesDashboar
                                 <span className="sr-only">Ver</span>
                               </Button>
                               
-                              {(cotizacion.estado === 'aprobado' || cotizacion.estado === 'cotizado') && (
+                              {(cotizacion.estado === 'aprobada' || cotizacion.estado === 'cotizada') && (
                                 <Button 
                                   variant="ghost" 
                                   size="sm" 
@@ -733,7 +767,11 @@ export function CotizacionesDashboard({ reducida = false }: CotizacionesDashboar
                           </div>
                           <div>
                             <dt className="text-gray-500">Monto:</dt>
-                            <dd className="font-medium">${cotizacionSeleccionada.monto?.toLocaleString('es-CL') || 'No definido'}</dd>
+                            <dd className="font-medium">${cotizacionSeleccionada.total?.toLocaleString() || 'No especificado'}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-gray-500">Comentarios:</dt>
+                            <dd>{cotizacionSeleccionada.notas || 'Sin comentarios'}</dd>
                           </div>
                         </dl>
                       </div>
@@ -748,7 +786,7 @@ export function CotizacionesDashboard({ reducida = false }: CotizacionesDashboar
                   correo: cotizacionSeleccionada.email,
                   telefono: cotizacionSeleccionada.telefono || '',
                   empresa: cotizacionSeleccionada.empresa || '',
-                  montoMensual: cotizacionSeleccionada.monto || 0,
+                  montoMensual: cotizacionSeleccionada.total || 0,
                   planSugerido: 
                     cotizacionSeleccionada.servicio === 'cotizacion_reposicion' ? 'estandar' : 
                     cotizacionSeleccionada.servicio === 'cotizacion_monitoreo' ? 'basico' : 
@@ -813,13 +851,13 @@ export function CotizacionesDashboard({ reducida = false }: CotizacionesDashboar
                 correo: cotizacionSeleccionada.email,
                 telefono: cotizacionSeleccionada.telefono || '',
                 empresa: cotizacionSeleccionada.empresa,
-                montoMensual: cotizacionSeleccionada.monto || 0,
+                montoMensual: cotizacionSeleccionada.total || 0,
                 planSugerido: cotizacionSeleccionada.servicio === 'cotizacion_completa' ? 'premium' : 'basico'
               }}
               onComplete={() => {
                 setMostrarRegistroCliente(false);
-                // Actualizar cotización a estado "aprobado" después de registrar cliente
-                actualizarCotizacion(cotizacionSeleccionada._id, 'aprobado');
+                // Actualizar cotización a estado "aprobada" después de registrar cliente
+                actualizarCotizacion(cotizacionSeleccionada._id, 'aprobada');
               }}
             />
           )}

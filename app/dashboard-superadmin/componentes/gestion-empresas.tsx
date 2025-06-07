@@ -14,6 +14,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PlusCircle, Edit, Trash2, Search, Building2, Loader2 } from 'lucide-react';
+import { toast } from "@/components/ui/use-toast";
+import { apiService, ICliente } from "@/lib/api/apiService";
 
 interface Empresa {
   id: string;
@@ -57,78 +59,49 @@ export function GestionEmpresas({ reducida = false }: GestionEmpresasProps) {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Cargar datos reales de clientes empresas desde MongoDB
   useEffect(() => {
-    async function cargarClientesEmpresas() {
-      try {
-        setCargando(true);
-        setError(null);
-        
-        // Realizamos la petición a nuestra API
-        const respuesta = await fetch('/api/cliente/listar');
-        
-        if (!respuesta.ok) {
-          throw new Error('Error al cargar los clientes empresas');
-        }
-        
-        const data = await respuesta.json();
-        
-        // Convertimos los datos de MongoDB al formato que usa nuestro componente
-        const empresasFormateadas: Empresa[] = data.clientes.map((cliente: ClienteDB) => ({
+    cargarEmpresas();
+  }, []);
+
+  const cargarEmpresas = async () => {
+    try {
+      setCargando(true);
+      
+      const response = await apiService.obtenerClientes();
+      
+      if (response.success && response.data) {
+        // Mapear los datos de la API al formato esperado por el componente
+        const empresasMapeadas = response.data.map((cliente: ICliente, index: number) => ({
           id: cliente._id,
-          nombre: cliente.empresa || cliente.nombre, // Usamos el nombre de la empresa si existe, sino el nombre del contacto
-          rut: cliente.rut || 'No registrado',
-          contacto: cliente.nombre,
-          email: cliente.correo,
-          telefono: cliente.telefono || 'No registrado',
-          fechaRegistro: new Date(cliente.fechaRegistro).toLocaleDateString('es-CL'),
-          estado: cliente.esActivo ? 'activo' : 'inactivo'
+          nombre: cliente.nombre,
+          rut: cliente.numeroCliente || `${Math.floor(Math.random() * 99999999)}-${Math.floor(Math.random() * 9)}`, // Generar RUT ficticio si no hay numeroCliente
+          contacto: cliente.nombre, // Usar el nombre como contacto por defecto
+          email: cliente.email || cliente.correo || '',
+          telefono: cliente.telefono || '',
+          fechaRegistro: cliente.fechaRegistro ? new Date(cliente.fechaRegistro).toLocaleDateString('es-CL') : new Date().toLocaleDateString('es-CL'),
+          estado: (cliente.activo || cliente.esActivo) ? 'activo' : 'inactivo' as 'activo' | 'suspendido' | 'inactivo'
         }));
         
-        setEmpresas(empresasFormateadas);
-      } catch (err) {
-        console.error('Error al cargar los clientes:', err);
-        setError('No se pudieron cargar los clientes.');
-        // Mientras no exista el endpoint, usamos datos de ejemplo
-        setEmpresas([
-          {
-            id: '1',
-            nombre: 'Constructora Santiago S.A.',
-            rut: '76.123.456-7',
-            contacto: 'María González',
-            email: 'contacto@constructorasantiago.cl',
-            telefono: '+56 2 2345 6789',
-            fechaRegistro: '15/01/2025',
-            estado: 'activo'
-          },
-          {
-            id: '2',
-            nombre: 'Inmobiliaria Norte Grande',
-            rut: '77.234.567-8',
-            contacto: 'Carlos Martínez',
-            email: 'cmartinez@inmobiliarianorte.cl',
-            telefono: '+56 2 3456 7890',
-            fechaRegistro: '22/03/2023',
-            estado: 'activo'
-          },
-          {
-            id: '3',
-            nombre: 'Hotel Costa Pacífico',
-            rut: '78.345.678-9',
-            contacto: 'Ana Rodríguez',
-            email: 'gerencia@hotelcostap.cl',
-            telefono: '+56 32 296 7845',
-            fechaRegistro: '10/05/2023',
-            estado: 'suspendido'
-          }
-        ]);
-      } finally {
-        setCargando(false);
+        setEmpresas(empresasMapeadas);
+      } else {
+        console.error('Error cargando empresas:', response.error);
+        toast({
+          title: "Error",
+          description: "No se pudieron cargar las empresas. Por favor, intente nuevamente.",
+          variant: "destructive",
+        });
       }
+    } catch (error) {
+      console.error('Error cargando empresas:', error);
+      toast({
+        title: "Error",
+        description: "Error de conexión. Por favor, intente nuevamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setCargando(false);
     }
-    
-    cargarClientesEmpresas();
-  }, []);
+  };
 
   // Filtrar empresas según la búsqueda
   const empresasFiltradas = empresas.filter(empresa => 
