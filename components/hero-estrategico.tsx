@@ -25,6 +25,7 @@ import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import SistemaElectricoMetrics from "@/components/sistema-electrico-metrics";
 
 export default function HeroEstrategico() {
   const [visible, setVisible] = useState(false);
@@ -58,16 +59,16 @@ export default function HeroEstrategico() {
 
   const handleLeadMagnetSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!leadMagnetEmail || isDownloading) return;
 
     setIsDownloading(true);
 
     try {
-      const response = await fetch('/api/lead-magnet', {
-        method: 'POST',
+      const response = await fetch("/api/lead-magnet", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email: leadMagnetEmail }),
       });
@@ -75,13 +76,18 @@ export default function HeroEstrategico() {
       const data = await response.json();
 
       if (response.ok) {
-        alert("¡Excelente! El informe ha sido enviado a su email. Revise su bandeja de entrada (y carpeta de spam).");
+        alert(
+          "¡Excelente! El informe ha sido enviado a su email. Revise su bandeja de entrada (y carpeta de spam)."
+        );
         setLeadMagnetEmail("");
       } else {
-        alert(data.error || "Hubo un error al enviar el informe. Por favor intente nuevamente.");
+        alert(
+          data.error ||
+            "Hubo un error al enviar el informe. Por favor intente nuevamente."
+        );
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
       alert("Error de conexión. Por favor intente nuevamente.");
     } finally {
       setIsDownloading(false);
@@ -126,9 +132,7 @@ export default function HeroEstrategico() {
 
             <div className="flex flex-wrap gap-4">
               <Link href="/formulario">
-                <Button
-                  className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 transition-all duration-300 transform hover:scale-105 hover:shadow shadow-orange-500/20 px-8 py-6 text-lg"
-                >
+                <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 transition-all duration-300 transform hover:scale-105 hover:shadow shadow-orange-500/20 px-8 py-6 text-lg">
                   Contactar a Ventas
                 </Button>
               </Link>
@@ -160,9 +164,6 @@ export default function HeroEstrategico() {
           </div>
         </div>
       </section>
-
-   
-    
 
       {/* Sección de Confianza y Credibilidad */}
       <section className="w-full py-16 bg-gradient-to-b from-background via-orange-500/[0.02] to-background relative overflow-hidden">
@@ -235,6 +236,8 @@ export default function HeroEstrategico() {
             </h2>
             <p className="text-muted-foreground text-lg">
               Vea cómo transformamos el proceso completo:
+              {/* Métricas del Sistema Eléctrico Nacional */}
+              <SistemaElectricoMetrics />
             </p>
           </div>
         </div>
@@ -301,10 +304,10 @@ export default function HeroEstrategico() {
                 <p className="text-muted-foreground mb-6 leading-relaxed">
                   Obtenga visibilidad en tiempo real de su infraestructura.
                   Nuestros dispositivos IoT con GPS integrado previenen el
-                  fraude y el robo de nuestros dispositivos. La plataforma se integra de
-                  forma segura con sus sistemas existentes y le entrega reportes
-                  automáticos, liberando a su equipo técnico para tareas de
-                  mayor valor.
+                  fraude y el robo de nuestros dispositivos. La plataforma se
+                  integra de forma segura con sus sistemas existentes y le
+                  entrega reportes automáticos, liberando a su equipo técnico
+                  para tareas de mayor valor.
                 </p>
                 <div className="space-y-3 mb-6">
                   <div className="flex items-center gap-3">
@@ -378,7 +381,9 @@ export default function HeroEstrategico() {
                     ) : (
                       <>
                         <Download className="w-4 h-4 mr-2" />
-                        <span className="hidden sm:inline">Descargar GRATIS</span>
+                        <span className="hidden sm:inline">
+                          Descargar GRATIS
+                        </span>
                         <span className="sm:hidden">Descargar</span>
                       </>
                     )}
@@ -397,4 +402,3 @@ export default function HeroEstrategico() {
     </div>
   );
 }
- 
