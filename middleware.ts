@@ -1,18 +1,30 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { jwtVerify } from 'jose';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { jwtVerify } from "jose";
 
 // Función para verificar el token JWT
 async function verifyJWT(token: string) {
   try {
-    const secret = new TextEncoder().encode(
-      process.env.JWT_SECRET || 'fallback_secret'
-    );
-    
+    // Validar que JWT_SECRET esté configurado
+    if (!process.env.JWT_SECRET) {
+      console.error(
+        "🚨 CRÍTICO: JWT_SECRET no está configurado en las variables de entorno"
+      );
+      throw new Error("Configuración de seguridad faltante");
+    }
+
+    // Validar que el secreto tenga longitud mínima segura
+    if (process.env.JWT_SECRET.length < 32) {
+      console.error("🚨 CRÍTICO: JWT_SECRET debe tener al menos 32 caracteres");
+      throw new Error("Configuración de seguridad insuficiente");
+    }
+
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+
     const { payload } = await jwtVerify(token, secret);
     return payload;
   } catch (error) {
-    console.error('Error verificando JWT:', error);
+    console.error("Error verificando JWT:", error);
     return null;
   }
 }
@@ -20,21 +32,24 @@ async function verifyJWT(token: string) {
 // Este middleware se ejecuta antes de manejar las solicitudes
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
+
   // Ignorar rutas de autenticación y estáticas para evitar redirecciones en bucle
-  if (pathname.startsWith('/auth') || 
-      pathname === '/' || 
-      pathname.startsWith('/formulario') ||
-      pathname.startsWith('/_next') ||
-      pathname.startsWith('/api') ||
-      pathname.includes('.')) {
+  if (
+    pathname.startsWith("/auth") ||
+    pathname === "/" ||
+    pathname.startsWith("/formulario") ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api") ||
+    pathname.includes(".")
+  ) {
     return NextResponse.next();
   }
-  
-  // Verificar si la ruta es un dashboard
-  const isDashboardRoute = pathname.startsWith('/dashboard-');
-  
-  // Si es una ruta de dashboard, verificar autenticación
+
+  // 🔓 ACCESO TEMPORAL DESBLOQUEADO - Verificar si la ruta es un dashboard
+  const isDashboardRoute = pathname.startsWith("/dashboard-");
+
+  // 🔓 COMENTADO: Si es una ruta de dashboard, verificar autenticación
+  /* AUTENTICACIÓN TEMPORALMENTE DESHABILITADA
   if (isDashboardRoute) {
     // Obtener el token del localStorage (esto no es posible en middleware)
     // En su lugar, buscar el token en las cookies
@@ -78,7 +93,8 @@ export async function middleware(request: NextRequest) {
       }
     }
   }
-  
+  */
+
   // Procesar normalmente todas las demás rutas
   return NextResponse.next();
 }
@@ -86,7 +102,5 @@ export async function middleware(request: NextRequest) {
 // Configurar en qué rutas se aplicará el middleware
 export const config = {
   // Aplicar a rutas específicas, excluyendo archivos estáticos
-  matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)',
-  ],
-}; 
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
+};

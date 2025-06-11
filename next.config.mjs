@@ -3,28 +3,41 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'lh3.googleusercontent.com',
-        port: '',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        port: "",
+        pathname: "/**",
       },
     ],
   },
   // Configuración para SSR
-  output: 'standalone',
+  output: "standalone",
   // Asegurar que todas las rutas terminen con slash
   trailingSlash: true,
   // Evitar exportación estática para todas las rutas
   staticPageGenerationTimeout: 1000,
   // Configuración experimental
   experimental: {
-    serverComponentsExternalPackages: ['mongoose', 'mongodb'],
-    esmExternals: 'loose',
+    serverComponentsExternalPackages: [
+      "mongoose",
+      "mongodb",
+      "serialport",
+      "@serialport/bindings-cpp",
+    ],
+    esmExternals: "loose",
+  },
+
+  // Configuración webpack para módulos nativos
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals.push("serialport", "@serialport/bindings-cpp");
+    }
+    return config;
   },
   // Generar ID único para cada build
   generateBuildId: async () => {
-    return 'build-id-' + Date.now()
-  }
-}
+    return "build-id-" + Date.now();
+  },
+};
 
-export default nextConfig 
+export default nextConfig;

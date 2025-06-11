@@ -6,7 +6,7 @@ frontend:
         - npm install
     build:
       commands:
-        - env | grep -e AUTH_GOOGLE_ID -e AUTH_GOOGLE_SECRET -e AUTH_SECRET -e MONGODB_URI -e NEXTAUTH_URL -e RESEND_API_KEY -e EMAIL_FROM -e EMAIL_TO -e ACCESS_KEY_ID -e SECRET_ACCESS_KEY -e REGION -e S3_BUCKET_NAME -e PDF_PROMO_BUCKET -e JWT_SECRET >> .env.production
+        - env | grep -e AUTH_GOOGLE_ID -e AUTH_GOOGLE_SECRET -e AUTH_SECRET -e MONGODB_URI -e NEXTAUTH_URL -e RESEND_API_KEY -e EMAIL_FROM -e EMAIL_TO -e ACCESS_KEY_ID -e SECRET_ACCESS_KEY -e REGION -e S3_BUCKET_NAME -e PDF_PROMO_BUCKET -e JWT_SECRET -e NEXT_PUBLIC_API_URL >> .env.production
         - npm run build
   artifacts:
     baseDirectory: .next
