@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useSocket } from "@/lib/hooks/useSocket";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useAuth } from "@/lib/hooks/useApi";
 import { Logo } from "@/components/logo";
 
 interface BarrasNavegacionProps {

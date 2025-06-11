@@ -27,7 +27,7 @@ import { useRouter } from "next/navigation";
 import { useSocket } from "@/lib/hooks/useSocket";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useAuth } from "@/lib/hooks/useApi";
 
 interface EncabezadoProps {
   tipoUsuario: "superadmin" | "admin" | "cliente";

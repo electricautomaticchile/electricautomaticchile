@@ -18,7 +18,7 @@ import {
   X,
   Building2,
 } from "lucide-react";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useAuth } from "@/lib/hooks/useApi";
 import { Logo } from "@/components/logo";
 
 const menuItems = [
