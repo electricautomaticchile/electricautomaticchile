@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { EmpresaRoute } from "@/components/auth/protected-route";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -129,173 +130,187 @@ export default function DashboardEmpresa() {
   const [activeTab, setActiveTab] = useState("dashboard");
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
-      <Sidebar />
-      <Header />
+    <EmpresaRoute>
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
+        <Sidebar />
+        <Header />
 
-      <div className="pl-16 pt-16 pb-8">
-        <Tabs
-          defaultValue="dashboard"
-          className="p-4"
-          onValueChange={setActiveTab}
-        >
-          <div className="mb-6 px-2">
-            <TabsList className="w-full justify-start">
-              <TabsTrigger
-                value="dashboard"
-                className="flex items-center gap-2"
-              >
-                <Home className="h-4 w-4" />
-                Dashboard
-              </TabsTrigger>
-              <TabsTrigger value="clientes" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Clientes
-              </TabsTrigger>
-              <TabsTrigger
-                value="estadisticas"
-                className="flex items-center gap-2"
-              >
-                <BarChart2 className="h-4 w-4" />
-                Estadísticas
-              </TabsTrigger>
-              <TabsTrigger
-                value="dispositivos"
-                className="flex items-center gap-2"
-              >
-                <Battery className="h-4 w-4" />
-                Dispositivos
-              </TabsTrigger>
-              <TabsTrigger value="alertas" className="flex items-center gap-2">
-                <BellRing className="h-4 w-4" />
-                Alertas
-              </TabsTrigger>
-              <TabsTrigger value="consumo" className="flex items-center gap-2">
-                <Lightbulb className="h-4 w-4" />
-                Consumo
-              </TabsTrigger>
-              <TabsTrigger value="arduino" className="flex items-center gap-2">
-                <Zap className="h-4 w-4" />
-                Arduino
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          <TabsContent value="dashboard" id="dashboard">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg font-bold flex items-center gap-2">
-                    <Users className="h-5 w-5 text-orange-600" />
-                    Resumen de Clientes
-                  </CardTitle>
-                  <CardDescription>
-                    Estado de sus clientes finales
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <GestionClientes reducida={true} />
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg font-bold flex items-center gap-2">
-                    <BarChart2 className="h-5 w-5 text-orange-600" />
-                    Consumo Energético
-                  </CardTitle>
-                  <CardDescription>Estadísticas de consumo</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <EstadisticasConsumo reducida={true} />
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg font-bold flex items-center gap-2">
-                    <Battery className="h-5 w-5 text-orange-600" />
-                    Dispositivos
-                  </CardTitle>
-                  <CardDescription>Estado de los medidores</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <DispositivosActivos reducida={true} />
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg font-bold flex items-center gap-2">
-                    <Zap className="h-5 w-5 text-orange-600" />
-                    Control Arduino
-                  </CardTitle>
-                  <CardDescription>Sistema IoT LED</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ControlArduino reducida={true} />
-                </CardContent>
-              </Card>
+        <div className="pl-16 pt-16 pb-8">
+          <Tabs
+            defaultValue="dashboard"
+            className="p-4"
+            onValueChange={setActiveTab}
+          >
+            <div className="mb-6 px-2">
+              <TabsList className="w-full justify-start">
+                <TabsTrigger
+                  value="dashboard"
+                  className="flex items-center gap-2"
+                >
+                  <Home className="h-4 w-4" />
+                  Dashboard
+                </TabsTrigger>
+                <TabsTrigger
+                  value="clientes"
+                  className="flex items-center gap-2"
+                >
+                  <Users className="h-4 w-4" />
+                  Clientes
+                </TabsTrigger>
+                <TabsTrigger
+                  value="estadisticas"
+                  className="flex items-center gap-2"
+                >
+                  <BarChart2 className="h-4 w-4" />
+                  Estadísticas
+                </TabsTrigger>
+                <TabsTrigger
+                  value="dispositivos"
+                  className="flex items-center gap-2"
+                >
+                  <Battery className="h-4 w-4" />
+                  Dispositivos
+                </TabsTrigger>
+                <TabsTrigger
+                  value="alertas"
+                  className="flex items-center gap-2"
+                >
+                  <BellRing className="h-4 w-4" />
+                  Alertas
+                </TabsTrigger>
+                <TabsTrigger
+                  value="consumo"
+                  className="flex items-center gap-2"
+                >
+                  <Lightbulb className="h-4 w-4" />
+                  Consumo
+                </TabsTrigger>
+                <TabsTrigger
+                  value="arduino"
+                  className="flex items-center gap-2"
+                >
+                  <Zap className="h-4 w-4" />
+                  Arduino
+                </TabsTrigger>
+              </TabsList>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg font-bold flex items-center gap-2">
-                    <BellRing className="h-5 w-5 text-orange-600" />
-                    Alertas del Sistema
-                  </CardTitle>
-                  <CardDescription>
-                    Alertas activas que requieren atención
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <AlertasSistema reducida={true} />
-                </CardContent>
-              </Card>
+            <TabsContent value="dashboard" id="dashboard">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg font-bold flex items-center gap-2">
+                      <Users className="h-5 w-5 text-orange-600" />
+                      Resumen de Clientes
+                    </CardTitle>
+                    <CardDescription>
+                      Estado de sus clientes finales
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <GestionClientes reducida={true} />
+                  </CardContent>
+                </Card>
 
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg font-bold flex items-center gap-2">
-                    <Lightbulb className="h-5 w-5 text-orange-600" />
-                    Consumo por Sector
-                  </CardTitle>
-                  <CardDescription>
-                    Distribución del consumo energético
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ConsumoSectorial reducida={true} />
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg font-bold flex items-center gap-2">
+                      <BarChart2 className="h-5 w-5 text-orange-600" />
+                      Consumo Energético
+                    </CardTitle>
+                    <CardDescription>Estadísticas de consumo</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <EstadisticasConsumo reducida={true} />
+                  </CardContent>
+                </Card>
 
-          <TabsContent value="clientes" id="clientes">
-            <GestionClientes />
-          </TabsContent>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg font-bold flex items-center gap-2">
+                      <Battery className="h-5 w-5 text-orange-600" />
+                      Dispositivos
+                    </CardTitle>
+                    <CardDescription>Estado de los medidores</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <DispositivosActivos reducida={true} />
+                  </CardContent>
+                </Card>
 
-          <TabsContent value="estadisticas" id="estadisticas">
-            <EstadisticasConsumo />
-          </TabsContent>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg font-bold flex items-center gap-2">
+                      <Zap className="h-5 w-5 text-orange-600" />
+                      Control Arduino
+                    </CardTitle>
+                    <CardDescription>Sistema IoT LED</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ControlArduino reducida={true} />
+                  </CardContent>
+                </Card>
+              </div>
 
-          <TabsContent value="dispositivos" id="dispositivos">
-            <DispositivosActivos />
-          </TabsContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg font-bold flex items-center gap-2">
+                      <BellRing className="h-5 w-5 text-orange-600" />
+                      Alertas del Sistema
+                    </CardTitle>
+                    <CardDescription>
+                      Alertas activas que requieren atención
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <AlertasSistema reducida={true} />
+                  </CardContent>
+                </Card>
 
-          <TabsContent value="alertas" id="alertas">
-            <AlertasSistema />
-          </TabsContent>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg font-bold flex items-center gap-2">
+                      <Lightbulb className="h-5 w-5 text-orange-600" />
+                      Consumo por Sector
+                    </CardTitle>
+                    <CardDescription>
+                      Distribución del consumo energético
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ConsumoSectorial reducida={true} />
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
 
-          <TabsContent value="consumo" id="consumo">
-            <ConsumoSectorial />
-          </TabsContent>
+            <TabsContent value="clientes" id="clientes">
+              <GestionClientes />
+            </TabsContent>
 
-          <TabsContent value="arduino" id="arduino">
-            <ControlArduino />
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="estadisticas" id="estadisticas">
+              <EstadisticasConsumo />
+            </TabsContent>
+
+            <TabsContent value="dispositivos" id="dispositivos">
+              <DispositivosActivos />
+            </TabsContent>
+
+            <TabsContent value="alertas" id="alertas">
+              <AlertasSistema />
+            </TabsContent>
+
+            <TabsContent value="consumo" id="consumo">
+              <ConsumoSectorial />
+            </TabsContent>
+
+            <TabsContent value="arduino" id="arduino">
+              <ControlArduino />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
-    </div>
+    </EmpresaRoute>
   );
 }

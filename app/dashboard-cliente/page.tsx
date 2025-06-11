@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { ClienteRoute } from "@/components/auth/protected-route";
 import { BarraNavegacionLateral } from "./componentes/barras-navegacion";
 import Encabezado from "./componentes/encabezado";
 import { ConsumoElectrico } from "./componentes/consumo-electrico";
@@ -186,23 +187,25 @@ export default function DashboardCliente() {
   };
 
   return (
-    <div className="grid min-h-screen w-full overflow-hidden lg:grid-cols-[280px_1fr]">
-      <BarraNavegacionLateral />
-      <div className="flex flex-col">
-        <Encabezado />
-        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
-          <div className="mb-4">
-            <h1 className="text-3xl font-bold text-orange-600">
-              Mi Panel de Control
-            </h1>
-            <p className="text-gray-500 dark:text-gray-400">
-              Bienvenido a su portal de administración eléctrica
-            </p>
-          </div>
+    <ClienteRoute>
+      <div className="grid min-h-screen w-full overflow-hidden lg:grid-cols-[280px_1fr]">
+        <BarraNavegacionLateral />
+        <div className="flex flex-col">
+          <Encabezado />
+          <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
+            <div className="mb-4">
+              <h1 className="text-3xl font-bold text-orange-600">
+                Mi Panel de Control
+              </h1>
+              <p className="text-gray-500 dark:text-gray-400">
+                Bienvenido a su portal de administración eléctrica
+              </p>
+            </div>
 
-          {renderizarComponenteActivo()}
-        </main>
+            {renderizarComponenteActivo()}
+          </main>
+        </div>
       </div>
-    </div>
+    </ClienteRoute>
   );
 }
