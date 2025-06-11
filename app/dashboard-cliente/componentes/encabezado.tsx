@@ -15,7 +15,7 @@ import {
 import { useAuth } from "@/lib/hooks/useAuth";
 
 export default function Encabezado() {
-  const { user, logout } = useAuth();
+  const { user, logout, isAuthenticated } = useAuth();
   const [notificacionesCount] = useState(2);
 
   const handleLogout = async () => {
@@ -55,7 +55,7 @@ export default function Encabezado() {
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                   <User className="h-4 w-4 text-blue-600" />
                 </div>
-                <span className="font-medium">{user?.nombre || 'Cliente'}</span>
+                <span className="font-medium">{user?.nombre || "Cliente"}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -64,13 +64,18 @@ export default function Encabezado() {
               <DropdownMenuItem>Perfil</DropdownMenuItem>
               <DropdownMenuItem>Configuración</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
-                Cerrar Sesión
-              </DropdownMenuItem>
+              {isAuthenticated && user && (
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="text-red-600 focus:text-red-600"
+                >
+                  Cerrar Sesión
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
     </div>
   );
-} 
+}

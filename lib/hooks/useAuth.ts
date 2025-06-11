@@ -30,7 +30,7 @@ interface AuthHook {
 }
 
 export function useAuth(): AuthHook {
-  // 🔓 MODO TEMPORAL: Usuario simulado para acceso sin autenticación
+  // 🔓 MODO TEMPORAL: Usuario simulado para acceso sin autenticación - SOLO para desarrollo
   const tempUser: AuthUser = {
     _id: "temp-user-id",
     id: "temp-user-id",
@@ -41,19 +41,24 @@ export function useAuth(): AuthHook {
     empresa: "Empresa Temporal",
   } as AuthUser;
 
-  const [user, setUser] = useState<AuthUser | null>(tempUser);
+  const [user, setUser] = useState<AuthUser | null>(null); // Iniciamos sin usuario
   const [loading, setLoading] = useState(false);
+  const [isRealAuthenticated, setIsRealAuthenticated] = useState(false); // Track de autenticación real
 
   useEffect(() => {
     // 🔓 COMENTADO: checkAuth automático
     // checkAuth();
+    checkAuth(); // Activamos checkAuth para verificar si hay token real
   }, []);
 
   const checkAuth = async () => {
     try {
+      setLoading(true);
       // Verificar si hay token en localStorage
       const token = localStorage.getItem("auth_token");
       if (!token) {
+        setUser(tempUser); // Solo para desarrollo, permite navegar sin login
+        setIsRealAuthenticated(false);
         setLoading(false);
         return;
       }
@@ -61,15 +66,20 @@ export function useAuth(): AuthHook {
       const response = await apiService.getProfile();
       if (response.success && response.data) {
         setUser(response.data as AuthUser);
+        setIsRealAuthenticated(true);
       } else {
-        // Token inválido, limpiar
+        // Token inválido, limpiar y usar usuario temporal
         localStorage.removeItem("auth_token");
         localStorage.removeItem("refresh_token");
+        setUser(tempUser);
+        setIsRealAuthenticated(false);
       }
     } catch (error) {
       console.error("Error checking auth:", error);
       localStorage.removeItem("auth_token");
       localStorage.removeItem("refresh_token");
+      setUser(tempUser); // Usuario temporal para desarrollo
+      setIsRealAuthenticated(false);
     } finally {
       setLoading(false);
     }
@@ -82,6 +92,7 @@ export function useAuth(): AuthHook {
 
       if (response.success && response.data) {
         setUser(response.data.user as AuthUser);
+        setIsRealAuthenticated(true);
         return { success: true };
       } else {
         return {
@@ -105,7 +116,10 @@ export function useAuth(): AuthHook {
     } catch (error) {
       console.error("Error during logout:", error);
     } finally {
-      setUser(null);
+      setUser(tempUser); // Volver al usuario temporal después del logout
+      setIsRealAuthenticated(false);
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("refresh_token");
       if (typeof window !== "undefined") {
         window.location.href = "/";
       }
@@ -117,7 +131,7 @@ export function useAuth(): AuthHook {
     : null;
   const status = loading
     ? "loading"
-    : user
+    : isRealAuthenticated
     ? "authenticated"
     : "unauthenticated";
 
@@ -128,8 +142,11 @@ export function useAuth(): AuthHook {
     loading,
     login,
     logout,
-    isAuthenticated: !!user,
-    isAdmin: user?.tipoUsuario === "admin" || user?.role === "admin" || false,
+    isAuthenticated: isRealAuthenticated, // Solo true cuando hay autenticación real
+    isAdmin:
+      (isRealAuthenticated &&
+        (user?.tipoUsuario === "admin" || user?.role === "admin")) ||
+      false,
   };
 }
 

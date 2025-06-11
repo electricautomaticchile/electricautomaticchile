@@ -62,7 +62,7 @@ const menuItems = [
 
 export function BarraNavegacionLateral() {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, logout, isAuthenticated } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -147,26 +147,30 @@ export function BarraNavegacionLateral() {
 
           {/* Footer */}
           <div className="p-4 border-t border-gray-200">
-            <div className="mb-3 p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm font-medium text-gray-900">
-                  {user?.nombre || "Empresa"}
-                </span>
-              </div>
-              <p className="text-xs text-gray-500">
-                {user?.empresa || "Administrador"}
-              </p>
-            </div>
+            {isAuthenticated && user && (
+              <>
+                <div className="mb-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="text-sm font-medium text-gray-900">
+                      {user?.nombre || "Empresa"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {user?.empresa || "Administrador"}
+                  </p>
+                </div>
 
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-gray-700 hover:text-red-600 hover:bg-red-50"
-              onClick={handleLogout}
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Cerrar Sesión
-            </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-gray-700 hover:text-red-600 hover:bg-red-50"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Cerrar Sesión
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </aside>

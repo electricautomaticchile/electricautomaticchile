@@ -23,7 +23,7 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import { useEffect, useState } from "react";
 
 export default function Component() {
-  const { data: session, logout } = useAuth();
+  const { data: session, logout, isAuthenticated, user } = useAuth();
   const [scrolled, setScrolled] = useState(false);
 
   // Efecto para detectar scroll
@@ -48,9 +48,9 @@ export default function Component() {
   };
 
   const getDashboardUrl = () => {
-    if (!session?.user) return "/auth/login";
+    if (!user) return "/auth/login";
 
-    const userRole = session.user.role || session.user.tipoUsuario;
+    const userRole = user.role || user.tipoUsuario;
 
     switch (userRole) {
       case "admin":
@@ -185,7 +185,7 @@ export default function Component() {
         </NavigationMenu>
 
         <div className="ml-auto flex gap-2">
-          {session ? (
+          {isAuthenticated && user ? (
             <>
               <Link href={getDashboardUrl()}>
                 <Button
