@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { apiService, ApiResponse } from "../api/apiService";
 
 // Hook para realizar llamadas API con estado de carga
@@ -53,21 +53,20 @@ export function useAuth() {
   const [isRealAuthenticated, setIsRealAuthenticated] = useState(false);
 
   // Usuario temporal para desarrollo
-  const tempUser = {
-    _id: "temp-user-id",
-    id: "temp-user-id",
-    nombre: "Usuario Temporal",
-    email: "usuario@temporal.com",
-    tipoUsuario: "empresa",
-    role: "empresa",
-    empresa: "Empresa Temporal",
-  };
+  const tempUser = useMemo(
+    () => ({
+      _id: "temp-user-id",
+      id: "temp-user-id",
+      nombre: "Usuario Temporal",
+      email: "usuario@temporal.com",
+      tipoUsuario: "empresa",
+      role: "empresa",
+      empresa: "Empresa Temporal",
+    }),
+    []
+  );
 
-  useEffect(() => {
-    checkAuthStatus();
-  }, []);
-
-  const checkAuthStatus = async () => {
+  const checkAuthStatus = useCallback(async () => {
     try {
       setLoading(true);
       // Verificar si hay token en localStorage
@@ -102,7 +101,11 @@ export function useAuth() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [tempUser]);
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, [checkAuthStatus]);
 
   const login = async (credentials: { email: string; password: string }) => {
     try {
