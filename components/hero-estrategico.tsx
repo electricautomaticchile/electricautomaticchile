@@ -25,7 +25,6 @@ import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import SistemaElectricoMetrics from "@/components/sistema-electrico-metrics";
 
 export default function HeroEstrategico() {
   const [visible, setVisible] = useState(false);
@@ -236,8 +235,6 @@ export default function HeroEstrategico() {
             </h2>
             <p className="text-muted-foreground text-lg">
               Vea cómo transformamos el proceso completo:
-              {/* Métricas del Sistema Eléctrico Nacional */}
-              <SistemaElectricoMetrics />
             </p>
           </div>
         </div>

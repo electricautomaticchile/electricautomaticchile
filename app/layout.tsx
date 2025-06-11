@@ -3,6 +3,7 @@ import "../styles/globals.css";
 import Navbar from "@/components/navbar/navbar";
 import Footer from "@/components/footer/footer";
 import { Providers } from "./providers";
+import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: "Electricautomaticchile - Automatización Eléctrica Inteligente",
@@ -37,6 +38,7 @@ export default function RootLayout({
             {children}
           </main>
           <Footer />
+          <Toaster />
         </Providers>
       </body>
     </html>
