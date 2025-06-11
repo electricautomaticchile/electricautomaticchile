@@ -11,6 +11,7 @@ Aplicación frontend moderna para la gestión de dispositivos IoT, clientes y an
 ## 🚀 Características Principales
 
 ### 🎨 Interfaz de Usuario Moderna
+
 - **Next.js 14** con App Router y React 18
 - **Diseño responsive** con Tailwind CSS
 - **Componentes UI** con Radix UI + ShadCN/UI
@@ -18,6 +19,7 @@ Aplicación frontend moderna para la gestión de dispositivos IoT, clientes y an
 - **Animaciones fluidas** con Tailwind CSS Animate
 
 ### 📊 Dashboards Interactivos
+
 - **Visualizaciones avanzadas** con Nivo y Recharts
 - **Métricas en tiempo real** para monitoreo energético
 - **Dashboards diferenciados** por roles de usuario
@@ -25,6 +27,7 @@ Aplicación frontend moderna para la gestión de dispositivos IoT, clientes y an
 - **Filtros avanzados** y análisis temporal
 
 ### 🔐 Autenticación y Seguridad
+
 - **NextAuth.js** para autenticación segura
 - **Roles y permisos** granulares
 - **Sesiones persistentes** y renovación automática
@@ -32,12 +35,14 @@ Aplicación frontend moderna para la gestión de dispositivos IoT, clientes y an
 - **Formularios seguros** con validación Zod
 
 ### 💬 Comunicación y Formularios
+
 - **Formularios de contacto** optimizados
 - **Lead magnets** con descarga de PDFs
 - **Integración con email** (Resend + Nodemailer)
 - **Notificaciones toast** para feedback del usuario
 
 ### 📱 Responsividad y UX
+
 - **Diseño mobile-first** completamente responsive
 - **PWA ready** para instalación en dispositivos
 - **Performance optimizada** con Next.js
@@ -109,18 +114,21 @@ Aplicación frontend moderna para la gestión de dispositivos IoT, clientes y an
 ## 📦 Instalación
 
 ### Prerrequisitos
+
 - Node.js 18.x o superior
 - npm, yarn o bun
 
 ### Pasos de Instalación
 
 1. **Clonar el repositorio**
+
 ```bash
 git clone https://github.com/electric-automatic-chile/frontend.git
 cd frontend
 ```
 
 2. **Instalar dependencias**
+
 ```bash
 npm install
 # o usando bun (recomendado)
@@ -128,12 +136,14 @@ bun install
 ```
 
 3. **Configurar variables de entorno**
+
 ```bash
 cp .env.example .env.local
 # Editar .env.local con tus configuraciones
 ```
 
 4. **Ejecutar en desarrollo**
+
 ```bash
 npm run dev
 # o
@@ -141,19 +151,37 @@ bun dev
 ```
 
 5. **Construir para producción**
+
 ```bash
 npm run build
 npm start
 ```
 
-## ⚙️ Variables de Entorno
+## 🔐 Configuración de Seguridad
+
+### Generación de Secretos Seguros
+
+```bash
+# Generar secretos JWT criptográficamente seguros
+npm run generate-secret
+
+# Validar configuración de seguridad
+npm run validate-security
+```
+
+### Variables de Entorno Críticas
+
+⚠️ **IMPORTANTE**: Nunca use valores por defecto en producción
 
 ```env
+# JWT Secret (CRÍTICO - Mínimo 32 caracteres)
+JWT_SECRET=your_super_secure_jwt_secret_here_min_32_chars
+
 # NextAuth
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your-nextauth-secret
 
-# MongoDB (para sesiones)
+# MongoDB (CRÍTICO)
 MONGODB_URI=mongodb://localhost:27017/electric-automatic-chile
 
 # Email (Resend)
@@ -173,9 +201,31 @@ TRANSBANK_ENVIRONMENT=production
 NEXT_PUBLIC_API_URL=https://api.electricautomaticchile.com
 ```
 
+### Checklist de Seguridad
+
+- ✅ **JWT_SECRET**: Mínimo 32 caracteres, criptográficamente seguro
+- ✅ **Validación**: Sin fallbacks inseguros hardcodeados
+- ✅ **Entorno**: Variables diferentes para desarrollo/producción
+- ✅ **Rotación**: Secretos rotados regularmente en producción
+- ✅ **Almacenamiento**: Secretos nunca en control de versiones
+
+### Comandos de Seguridad
+
+```bash
+# Generar nuevo JWT_SECRET seguro
+npm run generate-secret
+
+# Validar toda la configuración de seguridad
+npm run validate-security
+
+# Verificar que no hay secretos hardcodeados
+git secrets --scan
+```
+
 ## 📚 Rutas y Páginas
 
 ### 🏠 Páginas Públicas
+
 ```
 /                     # Landing page
 /acercade            # Sobre nosotros
@@ -187,6 +237,7 @@ NEXT_PUBLIC_API_URL=https://api.electricautomaticchile.com
 ```
 
 ### 🔐 Páginas Protegidas
+
 ```
 /dashboard-cliente        # Dashboard del cliente
 /dashboard-empresa       # Dashboard de empresa
@@ -194,6 +245,7 @@ NEXT_PUBLIC_API_URL=https://api.electricautomaticchile.com
 ```
 
 ### 📡 API Routes (Internas)
+
 ```
 /api/lead-magnet         # Descarga de PDF promocional
 /api/envioformulario     # Procesamiento de formularios
@@ -215,6 +267,7 @@ npm run test:watch
 ## 🎨 Desarrollo de UI
 
 ### Estructura de Componentes
+
 ```
 components/
 ├── ui/              # Componentes base (ShadCN/UI)
@@ -231,6 +284,7 @@ app/
 ```
 
 ### Scripts Disponibles
+
 ```bash
 npm run dev          # Desarrollo con hot reload
 npm run build        # Construcción para producción
@@ -243,6 +297,7 @@ npm run type-check   # Verificación de tipos TypeScript
 ## 🚀 Despliegue
 
 ### AWS Amplify
+
 ```bash
 # Configurar Amplify
 amplify init
@@ -251,12 +306,14 @@ amplify publish
 ```
 
 ### Vercel
+
 ```bash
 # Desplegar a Vercel
 vercel --prod
 ```
 
 ### Docker
+
 ```bash
 # Construir imagen
 docker build -t electric-automatic-frontend .
@@ -275,18 +332,21 @@ docker run -p 3000:3000 electric-automatic-frontend
 ## 🎯 Funcionalidades por Rol
 
 ### 👤 Cliente
+
 - Dashboard personal con métricas energéticas
 - Histórico de consumo y facturas
 - Solicitudes de servicio técnico
 - Descarga de reportes personalizados
 
 ### 🏢 Empresa
+
 - Panel de gestión de múltiples clientes
 - Analytics consolidados
 - Gestión de dispositivos IoT
 - Reportes empresariales
 
 ### ⚡ Super Admin
+
 - Control total del sistema
 - Gestión de usuarios y permisos
 - Métricas del sistema completo
@@ -304,6 +364,7 @@ docker run -p 3000:3000 electric-automatic-frontend
 ## 🔧 Configuración Avanzada
 
 ### Middleware
+
 ```typescript
 // middleware.ts - Protección de rutas
 export function middleware(request: NextRequest) {
@@ -312,6 +373,7 @@ export function middleware(request: NextRequest) {
 ```
 
 ### Configuración de Next.js
+
 ```javascript
 // next.config.mjs
 const nextConfig = {
@@ -319,7 +381,7 @@ const nextConfig = {
     appDir: true,
   },
   images: {
-    domains: ['your-domain.com'],
+    domains: ["your-domain.com"],
   },
   // Más configuraciones...
 };
@@ -358,10 +420,9 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo [LICENSE](LICENSE) para
 - ✅ **Performance**: Optimizado para producción
 
 ### Estadísticas Finales
+
 - **Framework**: Next.js 14 con App Router
 - **Componentes**: 50+ componentes reutilizables
 - **Páginas**: 10+ rutas implementadas
 - **Testing**: Jest + React Testing Library
 - **Deployment**: AWS Amplify ready
-
-
