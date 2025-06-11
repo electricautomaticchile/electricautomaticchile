@@ -1,6 +1,15 @@
 import mongoose from 'mongoose';
+import securityValidator from '../config/security';
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/electricautomaticchile";
+// Obtener la configuración de seguridad validada
+let mongodbUri: string;
+try {
+  const securityConfig = securityValidator.validateEnvironment();
+  mongodbUri = securityConfig.mongodbUri;
+} catch (error) {
+  console.error('Error de configuración de seguridad:', error);
+  throw error;
+}
 
 // Singleton para la conexión de Mongoose
 class DatabaseConnection {
@@ -68,7 +77,7 @@ class DatabaseConnection {
       });
 
       // Realizar la conexión
-      this.connectionPromise = mongoose.connect(MONGODB_URI, options);
+      this.connectionPromise = mongoose.connect(mongodbUri, options);
       await this.connectionPromise;
       this.isConnected = true;
       this.connectionPromise = null;

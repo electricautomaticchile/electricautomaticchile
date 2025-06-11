@@ -1,9 +1,14 @@
 import mongoose from 'mongoose';
+import securityValidator from '../config/security';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/electricautomaticchile';
-
-if (!process.env.MONGODB_URI) {
-  console.warn("La variable de entorno MONGODB_URI no está configurada. Usando URI local por defecto.");
+// Obtener la configuración de seguridad validada
+let mongodbUri: string;
+try {
+  const securityConfig = securityValidator.validateEnvironment();
+  mongodbUri = securityConfig.mongodbUri;
+} catch (error) {
+  console.error('Error de configuración de seguridad:', error);
+  throw error;
 }
 
 // Configurar mongoose globalmente
@@ -113,7 +118,7 @@ export async function connectToDatabase() {
       });
 
       // Crear la promesa de conexión
-      cached.promise = mongoose.connect(MONGODB_URI, opts).then(() => {
+      cached.promise = mongoose.connect(mongodbUri, opts).then(() => {
         return mongoose;
       });
     }

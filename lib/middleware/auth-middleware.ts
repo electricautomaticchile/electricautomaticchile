@@ -38,9 +38,26 @@ const authMiddleware = async (
       });
     }
 
-    // Verificar token
-    const secretKey = process.env.JWT_SECRET || 'electricAutomaticSecretKey';
-    const decoded = jwt.verify(token, secretKey) as {
+    // Validar que JWT_SECRET esté configurado
+    if (!process.env.JWT_SECRET) {
+      console.error('🚨 CRÍTICO: JWT_SECRET no está configurado en las variables de entorno');
+      return res.status(500).json({
+        error: 'Error de configuración',
+        mensaje: 'El servidor no está configurado correctamente'
+      });
+    }
+
+    // Validar que el secreto tenga longitud mínima segura
+    if (process.env.JWT_SECRET.length < 32) {
+      console.error('🚨 CRÍTICO: JWT_SECRET debe tener al menos 32 caracteres');
+      return res.status(500).json({
+        error: 'Error de configuración',
+        mensaje: 'Configuración de seguridad insuficiente'
+      });
+    }
+
+    // Verificar token con el secreto validado
+    const decoded = jwt.verify(token, process.env.JWT_SECRET) as {
       id: string;
       email: string;
       rol: string;
