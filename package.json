@@ -17,7 +17,10 @@
     "test:ui": "jest --testPathPattern=\"components/ui\" --verbose",
     "test:runner": "node scripts/test-runner.js",
     "generate-secret": "node scripts/generate-secret.js",
-    "validate-security": "node scripts/validate-security.js"
+    "validate-security": "node scripts/validate-security.js",
+    "docker:start": "docker-compose -f docker-compose.dev.yml up -d --build",
+    "docker:stop": "docker-compose -f docker-compose.dev.yml down",
+    "docker:logs": "docker-compose -f docker-compose.dev.yml logs -f app"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.7.4",

@@ -312,14 +312,86 @@ amplify publish
 vercel --prod
 ```
 
-### Docker
+### 🐳 Docker para Desarrollo Local
 
-```bash
-# Construir imagen
-docker build -t electric-automatic-frontend .
+Ambiente de desarrollo completamente dockerizado para una experiencia de desarrollo súper fluida.
 
-# Ejecutar contenedor
-docker run -p 3000:3000 electric-automatic-frontend
+#### 🚀 Inicio Súper Rápido
+
+```powershell
+# Windows PowerShell (Recomendado)
+.\scripts\docker-setup.ps1 start
+
+# O usando npm
+npm run docker:start
+```
+
+#### 📋 Comandos Esenciales
+
+```powershell
+# PowerShell (Windows)
+.\scripts\docker-setup.ps1 start    # Iniciar desarrollo
+.\scripts\docker-setup.ps1 open     # Abrir en navegador
+.\scripts\docker-setup.ps1 logs     # Ver logs
+.\scripts\docker-setup.ps1 stop     # Detener servicios
+.\scripts\docker-setup.ps1 help     # Ver todos los comandos
+
+# NPM (Cross-platform)
+npm run docker:start    # Iniciar desarrollo
+npm run docker:stop     # Detener servicios
+npm run docker:logs     # Ver logs
+```
+
+#### 🛠️ Lo que obtienes
+
+- **🔥 Next.js con Hot Reload** - Cambios instantáneos (puerto 3000)
+- **🗄️ MongoDB** - Base de datos real (puerto 27017)
+- **⚡ Redis** - Cache para mejor rendimiento (puerto 6379)
+- **🖥️ MongoDB UI** - Interfaz web para la BD (puerto 8081)
+
+#### ✨ Ventajas vs Desarrollo Traditional
+
+| Aspecto          | Sin Docker               | Con Docker               |
+| ---------------- | ------------------------ | ------------------------ |
+| **Setup**        | 30+ min configurando BD  | 2 min listo              |
+| **Dependencias** | Instalar MongoDB, Redis  | Todo incluido            |
+| **Consistencia** | "En mi máquina funciona" | Igual para todos         |
+| **Limpieza**     | Archivos por toda la PC  | Todo containerizado      |
+| **Reset**        | Reinstalar todo          | `docker-setup.ps1 clean` |
+
+#### 🎯 Flujo de Trabajo Diario
+
+```powershell
+# 1. Iniciar (primera vez del día)
+.\scripts\docker-setup.ps1 start
+
+# 2. Desarrollar normalmente
+# Tu código cambia → Hot reload automático
+
+# 3. Ver logs si necesitas debug
+.\scripts\docker-setup.ps1 logs
+
+# 4. Al terminar
+.\scripts\docker-setup.ps1 stop
+```
+
+#### 🔍 URLs Importantes
+
+- **📱 Tu App**: http://localhost:3000
+- **🗄️ MongoDB UI**: http://localhost:8081 (admin/admin)
+
+#### 🆘 Solución de Problemas
+
+```powershell
+# Si algo no funciona:
+.\scripts\docker-setup.ps1 restart
+
+# Si necesitas empezar desde cero:
+.\scripts\docker-setup.ps1 clean
+.\scripts\docker-setup.ps1 start
+
+# Para instalar nuevas dependencias:
+.\scripts\docker-setup.ps1 install
 ```
 
 ## 📱 Características Responsive
