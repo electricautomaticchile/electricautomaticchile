@@ -102,20 +102,7 @@ Estrategias y configuración de pruebas:
 - **GDPR/LOPD**: Protección de datos personales
 - **ISO 27001**: Estándares de seguridad de la información
 
-## 🚨 Contactos de Emergencia
 
-### Equipo Técnico
-
-- **CTO**: cto@electricautomaticchile.cl
-- **DevOps**: devops@electricautomaticchile.cl
-- **Seguridad**: security@electricautomaticchile.cl
-- **IoT**: iot-support@electricautomaticchile.cl
-
-### Soporte 24/7
-
-- **Teléfono**: +56 9 XXXX-XXXX
-- **Email**: emergency@electricautomaticchile.cl
-- **Sistema de tickets**: support.electricautomaticchile.cl
 
 ## 📈 Métricas y Monitoreo
 
