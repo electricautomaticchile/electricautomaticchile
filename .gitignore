@@ -40,3 +40,7 @@ next-env.d.ts
 .amplify
 amplify_outputs*
 amplifyconfiguration*
+
+#ia
+.bmad-core
+web-bundles
