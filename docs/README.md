@@ -155,13 +155,6 @@ Desarrollo → Testing → Staging → Producción
 
 ## 📚 Recursos Adicionales
 
-### Enlaces Útiles
-
-- [Repositorio GitHub](https://github.com/electricautomaticchile/main)
-- [Documentación API Interactiva](https://api.electricautomaticchile.cl/docs)
-- [Status Page](https://status.electricautomaticchile.cl)
-- [Changelog](https://github.com/electricautomaticchile/main/releases)
-
 ### Documentación Externa
 
 - [Next.js Documentation](https://nextjs.org/docs)
