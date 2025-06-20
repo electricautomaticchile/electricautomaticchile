@@ -10,9 +10,26 @@ export const metadata: Metadata = {
   description:
     "Soluciones de automatización en electricidad para hogares y empresas. Control de consumo, reposición automática y monitoreo en tiempo real.",
   icons: {
-    icon: "/favicon.svg",
-    apple: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: [
+      {
+        url: "/favicon.ico",
+        sizes: "32x32",
+        type: "image/x-icon",
+      },
+      {
+        url: "/icon.png",
+        sizes: "32x32",
+        type: "image/png",
+      },
+    ],
+    apple: [
+      {
+        url: "/icon.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
+    shortcut: "/favicon.ico",
   },
 };
 
@@ -23,14 +40,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className="scroll-smooth">
-      <head>
-        <link
-          rel="apple-touch-icon"
-          href="/favicon.svg"
-          type="image/svg+xml"
-          sizes="32x32"
-        />
-      </head>
+      <head>{/* La configuración del favicon ahora está en metadata */}</head>
       <body className="min-h-screen flex flex-col antialiased">
         <Providers>
           <Navbar />
