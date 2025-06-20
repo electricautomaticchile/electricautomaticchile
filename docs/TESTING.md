@@ -1,397 +1,441 @@
-# 🧪 Guía de Testing - Electric Automatic Chile
+# Guía de Testing - Electricautomaticchile
 
-## 📋 Índice
+## 🧪 Estrategia de Testing
 
-- [Configuración](#configuración)
-- [Estructura de Tests](#estructura-de-tests)
-- [Tipos de Tests](#tipos-de-tests)
-- [Comandos Disponibles](#comandos-disponibles)
-- [Utilidades de Testing](#utilidades-de-testing)
-- [Mejores Prácticas](#mejores-prácticas)
-- [Cobertura](#cobertura)
+El proyecto implementa una estrategia de testing completa con múltiples niveles de pruebas para garantizar la calidad y confiabilidad de la plataforma IoT.
 
-## ⚙️ Configuración
-
-### Dependencias de Testing
-
-```json
-{
-  "@testing-library/jest-dom": "^6.6.3",
-  "@testing-library/react": "^16.3.0",
-  "@types/jest": "^29.5.14",
-  "jest": "^29.7.0",
-  "jest-environment-jsdom": "^29.7.0"
-}
-```
-
-### Configuración Jest
-
-- **Archivo**: `jest.config.js`
-- **Setup**: `jest.setup.js`
-- **Entorno**: jsdom (para componentes React)
-- **Mapeo de rutas**: Soporte para aliases `@/`
-
-## 📁 Estructura de Tests
+## 📋 Estructura de Testing
 
 ```
 __tests__/
-├── components/
-│   ├── ui/
-│   │   ├── button.test.tsx
-│   │   └── input.test.tsx
-│   └── ...
-├── hooks/
-│   └── useAuth.test.tsx
-├── middleware/
-│   └── auth.test.ts
-├── pages/
-│   └── login.test.tsx
-├── setup/
-│   └── test-utils.tsx
-└── utils/
-    └── validation.test.ts
+├── components/           # Pruebas de componentes React
+│   └── ui/              # Componentes de interfaz
+├── hooks/               # Pruebas de custom hooks
+├── middleware/          # Pruebas de middleware
+├── pages/               # Pruebas de páginas
+├── security/            # Pruebas de seguridad
+├── setup/               # Configuración de testing
+└── utils/               # Pruebas de utilidades
 ```
 
-## 🧪 Tipos de Tests
+## 🛠️ Configuración de Testing
 
-### 1. Tests Unitarios
+### Jest Configuration
 
-**Ubicación**: `__tests__/components/`, `__tests__/utils/`, `__tests__/hooks/`
+```javascript
+// jest.config.js
+module.exports = {
+  testEnvironment: "jsdom",
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
+  testPathIgnorePatterns: ["<rootDir>/.next/", "<rootDir>/node_modules/"],
+  transform: {
+    "^.+\\.(js|jsx|ts|tsx)$": ["babel-jest", { presets: ["next/babel"] }],
+  },
+  moduleNameMapping: {
+    "^@/(.*)$": "<rootDir>/$1",
+  },
+  collectCoverageFrom: [
+    "components/**/*.{js,jsx,ts,tsx}",
+    "lib/**/*.{js,jsx,ts,tsx}",
+    "hooks/**/*.{js,jsx,ts,tsx}",
+    "!**/*.d.ts",
+    "!**/node_modules/**",
+  ],
+  coverageThreshold: {
+    global: {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
+    },
+  },
+};
+```
 
-**Propósito**: Probar funciones, hooks y componentes de forma aislada.
+## 🔧 Scripts de Testing
+
+```bash
+# Ejecutar todas las pruebas
+npm test
+
+# Pruebas con cobertura
+npm run test:coverage
+
+# Pruebas por categoría
+npm run test:unit         # Componentes, hooks, utils
+npm run test:integration  # Páginas, middleware
+npm run test:auth        # Funcionalidades de autenticación
+npm run test:ui          # Componentes de interfaz
+
+# Pruebas en modo watch
+npm run test:watch
+```
+
+## 🧩 Testing de Componentes
+
+### Ejemplo: Testing de Button Component
 
 ```typescript
-// Ejemplo: Button Component Test
+// __tests__/components/ui/button.test.tsx
 import { render, screen, fireEvent } from "@testing-library/react";
 import { Button } from "@/components/ui/button";
 
 describe("Button Component", () => {
-  it("renders button with text", () => {
+  it("renders with correct text", () => {
     render(<Button>Click me</Button>);
-    expect(
-      screen.getByRole("button", { name: /click me/i })
-    ).toBeInTheDocument();
+    expect(screen.getByText("Click me")).toBeInTheDocument();
+  });
+
+  it("handles click events", () => {
+    const handleClick = jest.fn();
+    render(<Button onClick={handleClick}>Click me</Button>);
+
+    fireEvent.click(screen.getByText("Click me"));
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("applies correct variant classes", () => {
+    render(<Button variant="destructive">Delete</Button>);
+    const button = screen.getByText("Delete");
+    expect(button).toHaveClass("bg-destructive", "text-destructive-foreground");
+  });
+
+  it("is disabled when loading", () => {
+    render(<Button disabled>Loading...</Button>);
+    const button = screen.getByText("Loading...");
+    expect(button).toBeDisabled();
   });
 });
 ```
 
-### 2. Tests de Integración
-
-**Ubicación**: `__tests__/pages/`, `__tests__/middleware/`
-
-**Propósito**: Probar interacciones entre componentes y flujos completos.
+### Testing de Dashboard Components
 
 ```typescript
-// Ejemplo: Login Page Test
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import LoginPage from "@/app/auth/login/page";
+// __tests__/components/dashboard-cliente.test.tsx
+import { render, screen, waitFor } from "@testing-library/react";
+import DashboardCliente from "@/app/dashboard-cliente/page";
+import { AuthProvider } from "@/lib/context/AuthContext";
 
-describe("Login Page", () => {
-  it("handles successful login", async () => {
-    // Test de flujo completo de login
+// Mock de datos
+const mockUserData = {
+  id: "1",
+  name: "Juan Pérez",
+  email: "juan@test.cl",
+  role: "cliente",
+};
+
+describe("Dashboard Cliente", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("renders dashboard with user data", async () => {
+    render(
+      <AuthProvider>
+        <DashboardCliente />
+      </AuthProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Mi Panel de Control")).toBeInTheDocument();
+    });
+  });
+
+  it("displays consumption data", async () => {
+    render(
+      <AuthProvider>
+        <DashboardCliente />
+      </AuthProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Consumo actual/i)).toBeInTheDocument();
+      expect(screen.getByText(/kWh/i)).toBeInTheDocument();
+    });
   });
 });
 ```
 
-### 3. Tests de Hooks
+## 🔐 Testing de Autenticación
 
-**Ubicación**: `__tests__/hooks/`
-
-**Propósito**: Probar hooks personalizados.
+### Auth Hook Testing
 
 ```typescript
-// Ejemplo: useAuth Hook Test
-import { renderHook, waitFor } from "@testing-library/react";
-import { useAuth } from "@/lib/hooks/useAuth";
+// __tests__/hooks/useAuth.test.tsx
+import { renderHook, act } from "@testing-library/react";
+import { useAuth } from "@/hooks/useAuth";
 
 describe("useAuth Hook", () => {
   it("initializes with null user", () => {
     const { result } = renderHook(() => useAuth());
     expect(result.current.user).toBeNull();
+    expect(result.current.isLoading).toBe(true);
+  });
+
+  it("handles successful login", async () => {
+    const { result } = renderHook(() => useAuth());
+
+    await act(async () => {
+      await result.current.login("test@example.com", "password");
+    });
+
+    expect(result.current.user).not.toBeNull();
+    expect(result.current.isAuthenticated).toBe(true);
+  });
+
+  it("handles login failure", async () => {
+    const { result } = renderHook(() => useAuth());
+
+    await act(async () => {
+      try {
+        await result.current.login("invalid@example.com", "wrongpassword");
+      } catch (error) {
+        expect(error).toBeDefined();
+      }
+    });
+
+    expect(result.current.user).toBeNull();
+    expect(result.current.isAuthenticated).toBe(false);
   });
 });
 ```
 
-## 🚀 Comandos Disponibles
+## 🔒 Testing de Seguridad
 
-### Scripts NPM
-
-```bash
-# Tests básicos
-npm test                    # Todos los tests
-npm run test:watch         # Modo watch (desarrollo)
-npm run test:coverage      # Con reporte de cobertura
-
-# Tests específicos
-npm run test:unit          # Solo tests unitarios
-npm run test:integration   # Solo tests de integración
-npm run test:auth          # Solo tests de autenticación
-npm run test:ui            # Solo tests de componentes UI
-```
-
-### Test Runner Personalizado
-
-```bash
-# Usando nuestro script personalizado
-npm run test:runner        # Todos los tests
-npm run test:runner unit   # Tests unitarios
-npm run test:runner auth   # Tests de autenticación
-npm run test:runner --help # Ayuda
-
-# O directamente
-node scripts/test-runner.js coverage
-```
-
-## 🛠️ Utilidades de Testing
-
-### Test Utils (`__tests__/setup/test-utils.tsx`)
-
-#### Render Personalizado
+### Security Configuration Testing
 
 ```typescript
-import { render } from "__tests__/setup/test-utils";
-// Incluye automáticamente ThemeProvider y otros providers necesarios
-```
+// __tests__/security/security-config.test.ts
+import { validateSecurityConfig } from "@/lib/config/security";
 
-#### Mocks Predefinidos
+describe("Security Configuration", () => {
+  beforeEach(() => {
+    // Reset environment variables
+    delete process.env.JWT_SECRET;
+    delete process.env.MONGODB_URI;
+  });
 
-```typescript
-import {
-  createMockUser,
-  createMockApiResponse,
-  mockLocalStorage,
-  mockFetch,
-} from "__tests__/setup/test-utils";
+  it("throws error when JWT_SECRET is missing", () => {
+    expect(() => {
+      validateSecurityConfig();
+    }).toThrow("JWT_SECRET no está configurado");
+  });
 
-// Usuario mock
-const user = createMockUser({ rol: "admin" });
+  it("throws error when JWT_SECRET is too short", () => {
+    process.env.JWT_SECRET = "short";
 
-// Respuesta API mock
-const response = createMockApiResponse({ token: "abc123" });
+    expect(() => {
+      validateSecurityConfig();
+    }).toThrow("JWT_SECRET debe tener al menos 32 caracteres");
+  });
 
-// localStorage mock
-const localStorage = mockLocalStorage();
-```
+  it("validates successfully with proper configuration", () => {
+    process.env.JWT_SECRET = "a".repeat(64);
+    process.env.MONGODB_URI = "mongodb://localhost:27017/test";
 
-#### Context Helpers
-
-```typescript
-import { withAuthContext } from "__tests__/setup/test-utils";
-
-// Renderizar con contexto de autenticación
-const AuthWrapper = withAuthContext(mockUser);
-render(<Component />, { wrapper: AuthWrapper });
-```
-
-## 📝 Mejores Prácticas
-
-### 1. Naming Convention
-
-```typescript
-// ✅ Descriptivo
-it("redirects to dashboard after successful login");
-
-// ❌ Poco claro
-it("works correctly");
-```
-
-### 2. Arrange-Act-Assert Pattern
-
-```typescript
-it("validates email format", () => {
-  // Arrange
-  const invalidEmail = "invalid-email";
-
-  // Act
-  const result = validateEmail(invalidEmail);
-
-  // Assert
-  expect(result).toBe(false);
+    expect(() => {
+      validateSecurityConfig();
+    }).not.toThrow();
+  });
 });
 ```
 
-### 3. Mocking Apropiado
+## 🌐 Testing de API
+
+### API Route Testing
 
 ```typescript
-// ✅ Mock externo, test interno
-jest.mock("@/lib/api/apiService");
+// __tests__/api/devices.test.ts
+import { POST } from "@/app/api/devices/route";
+import { NextRequest } from "next/server";
 
-// ✅ Mock específico
-const mockLogin = jest.fn();
-(apiService.login as jest.Mock) = mockLogin;
-```
-
-### 4. Async Testing
-
-```typescript
-// ✅ Con waitFor
-await waitFor(() => {
-  expect(screen.getByText("Success")).toBeInTheDocument();
-});
-
-// ✅ Con findBy (implícito waitFor)
-const element = await screen.findByText("Success");
-```
-
-### 5. Cleanup
-
-```typescript
-beforeEach(() => {
-  jest.clearAllMocks();
-  localStorage.clear();
-});
-```
-
-## 📊 Cobertura
-
-### Configuración de Cobertura
-
-```javascript
-// jest.config.js
-collectCoverageFrom: [
-  "**/*.{js,jsx,ts,tsx}",
-  "!**/*.d.ts",
-  "!**/node_modules/**",
-  "!<rootDir>/out/**",
-  "!<rootDir>/.next/**",
-];
-```
-
-### Objetivos de Cobertura
-
-- **Componentes críticos**: >90%
-- **Hooks personalizados**: >95%
-- **Utilities**: >95%
-- **Middleware**: >85%
-- **Páginas**: >75%
-
-### Reporte de Cobertura
-
-```bash
-npm run test:coverage
-```
-
-Genera reportes en:
-
-- Terminal (resumen)
-- `coverage/lcov-report/index.html` (detallado)
-
-## 🎯 Tests Implementados
-
-### ✅ Completados
-
-- [x] **Button Component** - Tests de rendering, eventos, variants
-- [x] **Input Component** - Tests de valores, validaciones, estados
-- [x] **useAuth Hook** - Tests de login, logout, estados
-- [x] **Login Page** - Tests de formulario, validaciones, redirecciones
-- [x] **Auth Middleware** - Tests de protección de rutas, roles
-- [x] **Validation Utils** - Tests de validaciones de formularios
-
-### 🔄 Por Implementar
-
-- [ ] **Dashboard Components** - Tests de gráficos, tablas
-- [ ] **Form Components** - Tests de formularios complejos
-- [ ] **API Routes** - Tests de endpoints
-- [ ] **Theme Components** - Tests de modo oscuro/claro
-- [ ] **Error Boundaries** - Tests de manejo de errores
-
-## 🐛 Debugging Tests
-
-### Logs en Tests
-
-```typescript
-// Para debugging
-import { screen } from "@testing-library/react";
-screen.debug(); // Muestra el DOM actual
-```
-
-### Variables de Entorno para Tests
-
-```bash
-# En .env.test
-NODE_ENV=test
-NEXTAUTH_SECRET=test-secret
-```
-
-### Timeout para Tests Lentos
-
-```typescript
-// Para tests específicos
-it("slow test", async () => {
-  // test code
-}, 10000); // 10 segundos
-
-// Globalmente en jest.setup.js
-jest.setTimeout(30000);
-```
-
-## 🎭 Mocking Strategies
-
-### Next.js Components
-
-```typescript
-// Mock Next.js router
-jest.mock("next/navigation", () => ({
-  useRouter: () => mockRouter,
-  useSearchParams: () => mockSearchParams,
+// Mock de autenticación
+jest.mock("@/lib/auth", () => ({
+  validateToken: jest
+    .fn()
+    .mockResolvedValue({ userId: "1", role: "empresa_admin" }),
 }));
-```
 
-### External APIs
+describe("/api/devices", () => {
+  it("creates device successfully", async () => {
+    const request = new NextRequest("http://localhost/api/devices", {
+      method: "POST",
+      body: JSON.stringify({
+        device_id: "ESP32_TEST_001",
+        name: "Test Device",
+        location: {
+          latitude: -33.4489,
+          longitude: -70.6693,
+        },
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer valid_token",
+      },
+    });
 
-```typescript
-// Mock fetch
-global.fetch = jest.fn().mockResolvedValue({
-  ok: true,
-  json: jest.fn().mockResolvedValue({ data: "test" }),
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(201);
+    expect(data.device_id).toBe("ESP32_TEST_001");
+  });
+
+  it("returns 401 for invalid token", async () => {
+    const request = new NextRequest("http://localhost/api/devices", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer invalid_token",
+      },
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(401);
+  });
 });
 ```
 
-### Environment Variables
+## 📱 Testing de IoT Integration
+
+### Device Communication Testing
 
 ```typescript
-// Backup y restore
-const originalEnv = process.env.NODE_ENV;
-process.env.NODE_ENV = "test";
-// ... test
-process.env.NODE_ENV = originalEnv;
+// __tests__/iot/device-communication.test.ts
+import { IoTDeviceController } from "@/lib/iot/device-controller";
+
+describe("IoT Device Communication", () => {
+  let deviceController: IoTDeviceController;
+
+  beforeEach(() => {
+    deviceController = new IoTDeviceController();
+  });
+
+  it("sends command to device successfully", async () => {
+    const mockPublish = jest.fn().mockResolvedValue(true);
+    deviceController.mqttClient = { publish: mockPublish } as any;
+
+    await deviceController.sendSecureCommand("ESP32_001", {
+      type: "CUT_SERVICE",
+      parameters: { reason: "Test" },
+    });
+
+    expect(mockPublish).toHaveBeenCalledWith(
+      "devices/ESP32_001/commands",
+      expect.stringContaining("CUT_SERVICE")
+    );
+  });
+
+  it("validates device permissions", async () => {
+    await expect(
+      deviceController.sendSecureCommand("UNAUTHORIZED_DEVICE", {
+        type: "CUT_SERVICE",
+      })
+    ).rejects.toThrow("Device not authorized");
+  });
+});
 ```
 
-## 📈 Métricas y CI/CD
+## 📊 Testing de Performance
 
-### GitHub Actions (Futuro)
+### Load Testing Example
+
+```typescript
+// __tests__/performance/load.test.ts
+import { performance } from "perf_hooks";
+
+describe("Performance Tests", () => {
+  it("API response time should be under 200ms", async () => {
+    const start = performance.now();
+
+    const response = await fetch("/api/devices");
+    await response.json();
+
+    const end = performance.now();
+    const responseTime = end - start;
+
+    expect(responseTime).toBeLessThan(200);
+  });
+
+  it("handles 100 concurrent requests", async () => {
+    const requests = Array(100)
+      .fill(null)
+      .map(() => fetch("/api/health"));
+
+    const responses = await Promise.all(requests);
+    const successfulResponses = responses.filter((r) => r.status === 200);
+
+    expect(successfulResponses.length).toBe(100);
+  });
+});
+```
+
+## 📈 Coverage Reports
+
+### Coverage Configuration
+
+```json
+{
+  "collectCoverageFrom": [
+    "components/**/*.{js,jsx,ts,tsx}",
+    "lib/**/*.{js,jsx,ts,tsx}",
+    "hooks/**/*.{js,jsx,ts,tsx}",
+    "app/**/route.{js,ts}",
+    "!**/*.d.ts",
+    "!**/node_modules/**",
+    "!**/.next/**"
+  ],
+  "coverageReporters": ["html", "lcov", "text", "text-summary"]
+}
+```
+
+## 🚀 CI/CD Testing
+
+### GitHub Actions Workflow
 
 ```yaml
 # .github/workflows/test.yml
-- name: Run Tests
-  run: npm run test:coverage
+name: Tests
+on: [push, pull_request]
 
-- name: Upload Coverage
-  uses: codecov/codecov-action@v1
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test:coverage
+      - run: npm run build
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
 ```
 
-### Quality Gates
+## 📋 Testing Checklist
 
-- Tests deben pasar antes de merge
-- Cobertura mínima del 80%
-- No tests con `.skip()` o `.only()`
+### Pre-commit Testing
+
+- [ ] Unit tests passing
+- [ ] Integration tests passing
+- [ ] Security tests passing
+- [ ] Lint checks passing
+- [ ] Type checking passing
+- [ ] Coverage threshold met (80%)
+
+### Pre-production Testing
+
+- [ ] E2E tests in staging
+- [ ] Performance tests
+- [ ] Security penetration tests
+- [ ] Load testing
+- [ ] IoT device integration tests
+- [ ] Payment system tests
 
 ---
 
-## 🚀 Quick Start
-
-1. **Instalar dependencias** (ya están instaladas)
-2. **Ejecutar tests**:
-   ```bash
-   npm test
-   ```
-3. **Ver cobertura**:
-   ```bash
-   npm run test:coverage
-   ```
-4. **Desarrollo con watch**:
-   ```bash
-   npm run test:watch
-   ```
-
-¡Los tests están listos para usar! 🎉
+**Cobertura Target**: 80% mínimo  
+**Última ejecución**: Tests automáticos en cada commit

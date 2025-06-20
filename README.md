@@ -1,500 +1,175 @@
-# Electric Automatic Chile - Frontend Application 🔌⚡
+# Electricautomaticchile - Plataforma IoT de Gestión Eléctrica Inteligente
 
-[![Node.js](https://img.shields.io/badge/Node.js-18.x-green.svg)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-14.x-black.svg)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-18.x-blue.svg)](https://reactjs.org/)
-[![Status](https://img.shields.io/badge/Status-Frontend%20Ready-brightgreen.svg)]()
+## 🔌 Descripción del Proyecto
 
-Aplicación frontend moderna para la gestión de dispositivos IoT, clientes y análisis energético de Electric Automatic Chile.
+**Electricautomaticchile** es una plataforma IoT empresarial diseñada específicamente para empresas distribuidoras de electricidad en Chile. La plataforma automatiza el proceso completo de gestión del suministro eléctrico, desde la medición del consumo hasta la reposición automática del servicio tras regularización de pagos.
+
+### 🎯 Propósito Principal
+
+Transformar el proceso manual de reposición de servicio eléctrico (que tradicionalmente toma 24-72 horas) en un proceso automatizado que se ejecuta en segundos, reduciendo costos operativos en más del 30% y eliminando reclamos por demoras.
+
+## 🏗️ Arquitectura del Sistema
+
+### Stack Tecnológico
+
+- **Frontend**: Next.js 14 con TypeScript
+- **Backend**: Next.js API Routes + AWS Amplify
+- **Base de Datos**: MongoDB con Mongoose
+- **Autenticación**: NextAuth.js
+- **Cloud Provider**: AWS (Amplify, S3)
+- **IoT**: Dispositivos con GPS integrado y comunicación en tiempo real
+- **UI/UX**: Tailwind CSS + Radix UI
+- **Monitoreo**: Gráficos con Recharts y Nivo
+
+### Tipos de Usuario
+
+1. **Clientes Finales**: Usuarios residenciales y comerciales
+2. **Empresas Distribuidoras**: Gestión operativa de la red
+3. **Superadministradores**: Control global del sistema
 
 ## 🚀 Características Principales
 
-### 🎨 Interfaz de Usuario Moderna
+### Para Empresas Distribuidoras
 
-- **Next.js 14** con App Router y React 18
-- **Diseño responsive** con Tailwind CSS
-- **Componentes UI** con Radix UI + ShadCN/UI
-- **Modo oscuro/claro** con next-themes
-- **Animaciones fluidas** con Tailwind CSS Animate
+- **Automatización Completa**: Corte y reconexión automática del servicio
+- **Monitoreo en Tiempo Real**: Visualización 24/7 del estado de la red
+- **Prevención de Fraude**: Dispositivos IoT con GPS integrado
+- **Reducción de Costos**: Eliminación de cuadrillas manuales
+- **Cumplimiento Normativo**: Diseñado según lineamientos SEC
 
-### 📊 Dashboards Interactivos
+### Para Clientes Finales
 
-- **Visualizaciones avanzadas** con Nivo y Recharts
-- **Métricas en tiempo real** para monitoreo energético
-- **Dashboards diferenciados** por roles de usuario
-- **Exportación de reportes** en PDF y CSV
-- **Filtros avanzados** y análisis temporal
+- **Portal Web Intuitivo**: Gestión completa del servicio eléctrico
+- **Monitoreo de Consumo**: Gráficos detallados en tiempo real
+- **Gestión de Pagos**: Sistema integrado de facturación
+- **Notificaciones**: Alertas automáticas por email y SMS
+- **Control de Servicio**: Activación/desactivación remota
 
-### 🔐 Autenticación y Seguridad
-
-- **NextAuth.js** para autenticación segura
-- **Roles y permisos** granulares
-- **Sesiones persistentes** y renovación automática
-- **Protección de rutas** basada en roles
-- **Formularios seguros** con validación Zod
-
-### 💬 Comunicación y Formularios
-
-- **Formularios de contacto** optimizados
-- **Lead magnets** con descarga de PDFs
-- **Integración con email** (Resend + Nodemailer)
-- **Notificaciones toast** para feedback del usuario
-
-### 📱 Responsividad y UX
-
-- **Diseño mobile-first** completamente responsive
-- **PWA ready** para instalación en dispositivos
-- **Performance optimizada** con Next.js
-- **SEO optimizado** con metadatos dinámicos
-
-## 🏗️ Arquitectura Frontend
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                 ELECTRIC AUTOMATIC CHILE                   │
-│                   FRONTEND ARCHITECTURE                    │
-└─────────────────────────────────────────────────────────────┘
-
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   WEB BROWSERS  │    │   MOBILE APPS   │    │    TABLETS      │
-│                 │    │                 │    │                 │
-│ • Chrome        │    │ • iOS Safari   │    │ • iPad          │
-│ • Firefox       │    │ • Android      │    │ • Android       │
-│ • Safari        │    │ • WebView      │    │ • Surface       │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
-                                 │
-                    ┌─────────────────┐
-                    │   NEXT.JS APP   │
-                    │                 │
-                    │ • App Router    │
-                    │ • SSR/SSG       │
-                    │ • API Routes    │
-                    └─────────────────┘
-                                 │
-         ┌───────────────────────┼───────────────────────┐
-         │                       │                       │
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   UI LAYER      │    │   DATA LAYER    │    │   SERVICES      │
-│                 │    │                 │    │                 │
-│ • React         │    │ • NextAuth      │    │ • Resend Email  │
-│ • Radix UI      │    │ • Zod Schemas   │    │ • AWS S3        │
-│ • Tailwind      │    │ • Local State   │    │ • Transbank     │
-│ • Recharts      │    │ • Form State    │    │ • External APIs │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                 │
-                    ┌─────────────────┐
-                    │   DEPLOYMENT    │
-                    │                 │
-                    │ • AWS Amplify   │
-                    │ • Vercel        │
-                    │ • CDN Global    │
-                    └─────────────────┘
-```
-
-## 🛠️ Stack Tecnológico
-
-- **Runtime**: Node.js 18.x
-- **Framework**: Next.js 14.x (App Router)
-- **Lenguaje**: TypeScript 5.x
-- **UI Framework**: React 18.x
-- **Estilos**: Tailwind CSS 3.x
-- **Componentes**: Radix UI + ShadCN/UI
-- **Gráficos**: Recharts + Nivo
-- **Autenticación**: NextAuth.js
-- **Formularios**: React Hook Form + Zod
-- **Email**: Resend + Nodemailer
-- **Cloud Storage**: AWS S3
-- **Pagos**: Transbank SDK
-- **Testing**: Jest + React Testing Library
-- **Deployment**: AWS Amplify
-
-## 📦 Instalación
+## 🛠️ Instalación y Configuración
 
 ### Prerrequisitos
 
-- Node.js 18.x o superior
-- npm, yarn o bun
+- Node.js 18+
+- npm o bun
+- MongoDB
+- Docker (opcional, para desarrollo con contenedores)
 
-### Pasos de Instalación
-
-1. **Clonar el repositorio**
-
-```bash
-git clone https://github.com/electric-automatic-chile/frontend.git
-cd frontend
-```
-
-2. **Instalar dependencias**
+### Instalación Básica
 
 ```bash
+# Clonar el repositorio
+git clone [repository-url]
+cd electricautomaticchile
+
+# Instalar dependencias
 npm install
-# o usando bun (recomendado)
-bun install
-```
-
-3. **Configurar variables de entorno**
-
-```bash
-cp .env.example .env.local
-# Editar .env.local con tus configuraciones
-```
-
-4. **Ejecutar en desarrollo**
-
-```bash
-npm run dev
 # o
-bun dev
+bun install
+
+# Configurar variables de entorno
+cp .env.example .env.local
+
+# Ejecutar en modo desarrollo
+npm run dev
 ```
 
-5. **Construir para producción**
+### Desarrollo con Docker
 
 ```bash
-npm run build
-npm start
-```
+# Iniciar servicios de desarrollo
+npm run docker:start
 
-## 🔐 Configuración de Seguridad
+# Ver logs
+npm run docker:logs
 
-### Generación de Secretos Seguros
-
-```bash
-# Generar secretos JWT criptográficamente seguros
-npm run generate-secret
-
-# Validar configuración de seguridad
-npm run validate-security
-```
-
-### Variables de Entorno Críticas
-
-⚠️ **IMPORTANTE**: Nunca use valores por defecto en producción
-
-```env
-# JWT Secret (CRÍTICO - Mínimo 32 caracteres)
-JWT_SECRET=your_super_secure_jwt_secret_here_min_32_chars
-
-# NextAuth
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-nextauth-secret
-
-# MongoDB (CRÍTICO)
-MONGODB_URI=mongodb://localhost:27017/electric-automatic-chile
-
-# Email (Resend)
-RESEND_API_KEY=your-resend-api-key
-EMAIL_FROM=noreply@electricautomaticchile.com
-
-# AWS S3 (para archivos)
-AWS_REGION=us-east-1
-AWS_ACCESS_KEY_ID=your-access-key
-AWS_SECRET_ACCESS_KEY=your-secret-key
-
-# Transbank (pagos)
-TRANSBANK_API_KEY=your-transbank-key
-TRANSBANK_ENVIRONMENT=production
-
-# API Backend (si existe)
-NEXT_PUBLIC_API_URL=https://api.electricautomaticchile.com
-```
-
-### Checklist de Seguridad
-
-- ✅ **JWT_SECRET**: Mínimo 32 caracteres, criptográficamente seguro
-- ✅ **Validación**: Sin fallbacks inseguros hardcodeados
-- ✅ **Entorno**: Variables diferentes para desarrollo/producción
-- ✅ **Rotación**: Secretos rotados regularmente en producción
-- ✅ **Almacenamiento**: Secretos nunca en control de versiones
-
-### Comandos de Seguridad
-
-```bash
-# Generar nuevo JWT_SECRET seguro
-npm run generate-secret
-
-# Validar toda la configuración de seguridad
-npm run validate-security
-
-# Verificar que no hay secretos hardcodeados
-git secrets --scan
-```
-
-## 📚 Rutas y Páginas
-
-### 🏠 Páginas Públicas
-
-```
-/                     # Landing page
-/acercade            # Sobre nosotros
-/navservices         # Servicios
-/formulario          # Formulario de contacto
-/terminosycondiciones # Términos y condiciones
-/auth/login          # Iniciar sesión
-/auth/register       # Registro
-```
-
-### 🔐 Páginas Protegidas
-
-```
-/dashboard-cliente        # Dashboard del cliente
-/dashboard-empresa       # Dashboard de empresa
-/dashboard-superadmin    # Panel de superadministrador
-```
-
-### 📡 API Routes (Internas)
-
-```
-/api/lead-magnet         # Descarga de PDF promocional
-/api/envioformulario     # Procesamiento de formularios
+# Detener servicios
+npm run docker:stop
 ```
 
 ## 🧪 Testing
 
+El proyecto incluye una suite completa de pruebas:
+
 ```bash
-# Ejecutar todos los tests
+# Ejecutar todas las pruebas
 npm test
 
-# Tests con coverage
+# Pruebas con coverage
 npm run test:coverage
 
-# Tests en modo watch
-npm run test:watch
+# Pruebas por categoría
+npm run test:unit
+npm run test:integration
+npm run test:auth
+npm run test:ui
 ```
 
-## 🎨 Desarrollo de UI
+## 📊 Dashboards Disponibles
 
-### Estructura de Componentes
+### Dashboard Cliente (`/dashboard-cliente`)
 
-```
-components/
-├── ui/              # Componentes base (ShadCN/UI)
-├── forms/           # Formularios reutilizables
-├── charts/          # Componentes de gráficos
-├── layout/          # Componentes de layout
-└── dashboard/       # Componentes específicos de dashboard
+- Consumo eléctrico en tiempo real
+- Historial de pagos y facturas
+- Estado del servicio
+- Soporte técnico
 
-app/
-├── (public)/        # Rutas públicas
-├── (protected)/     # Rutas protegidas
-├── api/             # API Routes de Next.js
-└── globals.css      # Estilos globales
-```
+### Dashboard Empresa (`/dashboard-empresa`)
 
-### Scripts Disponibles
+- Control de dispositivos Arduino
+- Estadísticas de consumo sectorial
+- Gestión de clientes
+- Alertas del sistema
+
+### Dashboard Superadmin (`/dashboard-superadmin`)
+
+- Gestión global de empresas
+- Estadísticas globales
+- Sistema de mensajería
+- Configuración avanzada
+
+## 🔒 Seguridad
+
+- Validación de seguridad automatizada
+- Autenticación multi-nivel
+- Encriptación de datos sensibles
+- Cumplimiento con normativas chilenas
+- Monitoreo de accesos y auditoría
+
+## 📋 Scripts Disponibles
 
 ```bash
-npm run dev          # Desarrollo con hot reload
-npm run build        # Construcción para producción
-npm run start        # Servidor de producción
-npm run lint         # Linter
-npm run lint:fix     # Corregir errores de linting
-npm run type-check   # Verificación de tipos TypeScript
+npm run dev          # Desarrollo local
+npm run build        # Build para producción
+npm run start        # Iniciar en producción
+npm run lint         # Linting
+npm test             # Ejecutar pruebas
+npm run docker:start # Desarrollo con Docker
 ```
 
-## 🚀 Despliegue
+## 🔧 Configuración de Entorno
 
-### AWS Amplify
+Para configuración detallada de variables de entorno, seguridad, y despliegue, consulte la documentación técnica en `/docs`.
 
-```bash
-# Configurar Amplify
-amplify init
-amplify add hosting
-amplify publish
-```
+## 📚 Documentación Adicional
 
-### Vercel
-
-```bash
-# Desplegar a Vercel
-vercel --prod
-```
-
-### 🐳 Docker para Desarrollo Local
-
-Ambiente de desarrollo completamente dockerizado para una experiencia de desarrollo súper fluida.
-
-#### 🚀 Inicio Súper Rápido
-
-```powershell
-# Windows PowerShell (Recomendado)
-.\scripts\docker-setup.ps1 start
-
-# O usando npm
-npm run docker:start
-```
-
-#### 📋 Comandos Esenciales
-
-```powershell
-# PowerShell (Windows)
-.\scripts\docker-setup.ps1 start    # Iniciar desarrollo
-.\scripts\docker-setup.ps1 open     # Abrir en navegador
-.\scripts\docker-setup.ps1 logs     # Ver logs
-.\scripts\docker-setup.ps1 stop     # Detener servicios
-.\scripts\docker-setup.ps1 help     # Ver todos los comandos
-
-# NPM (Cross-platform)
-npm run docker:start    # Iniciar desarrollo
-npm run docker:stop     # Detener servicios
-npm run docker:logs     # Ver logs
-```
-
-#### 🛠️ Lo que obtienes
-
-- **🔥 Next.js con Hot Reload** - Cambios instantáneos (puerto 3000)
-- **🗄️ MongoDB** - Base de datos real (puerto 27017)
-- **⚡ Redis** - Cache para mejor rendimiento (puerto 6379)
-- **🖥️ MongoDB UI** - Interfaz web para la BD (puerto 8081)
-
-#### ✨ Ventajas vs Desarrollo Traditional
-
-| Aspecto          | Sin Docker               | Con Docker               |
-| ---------------- | ------------------------ | ------------------------ |
-| **Setup**        | 30+ min configurando BD  | 2 min listo              |
-| **Dependencias** | Instalar MongoDB, Redis  | Todo incluido            |
-| **Consistencia** | "En mi máquina funciona" | Igual para todos         |
-| **Limpieza**     | Archivos por toda la PC  | Todo containerizado      |
-| **Reset**        | Reinstalar todo          | `docker-setup.ps1 clean` |
-
-#### 🎯 Flujo de Trabajo Diario
-
-```powershell
-# 1. Iniciar (primera vez del día)
-.\scripts\docker-setup.ps1 start
-
-# 2. Desarrollar normalmente
-# Tu código cambia → Hot reload automático
-
-# 3. Ver logs si necesitas debug
-.\scripts\docker-setup.ps1 logs
-
-# 4. Al terminar
-.\scripts\docker-setup.ps1 stop
-```
-
-#### 🔍 URLs Importantes
-
-- **📱 Tu App**: http://localhost:3000
-- **🗄️ MongoDB UI**: http://localhost:8081 (admin/admin)
-
-#### 🆘 Solución de Problemas
-
-```powershell
-# Si algo no funciona:
-.\scripts\docker-setup.ps1 restart
-
-# Si necesitas empezar desde cero:
-.\scripts\docker-setup.ps1 clean
-.\scripts\docker-setup.ps1 start
-
-# Para instalar nuevas dependencias:
-.\scripts\docker-setup.ps1 install
-```
-
-## 📱 Características Responsive
-
-- **Mobile First**: Diseñado primero para móviles
-- **Breakpoints**: sm (640px), md (768px), lg (1024px), xl (1280px)
-- **Touch Friendly**: Botones y elementos optimizados para touch
-- **Performance**: Lazy loading y optimización de imágenes
-
-## 🎯 Funcionalidades por Rol
-
-### 👤 Cliente
-
-- Dashboard personal con métricas energéticas
-- Histórico de consumo y facturas
-- Solicitudes de servicio técnico
-- Descarga de reportes personalizados
-
-### 🏢 Empresa
-
-- Panel de gestión de múltiples clientes
-- Analytics consolidados
-- Gestión de dispositivos IoT
-- Reportes empresariales
-
-### ⚡ Super Admin
-
-- Control total del sistema
-- Gestión de usuarios y permisos
-- Métricas del sistema completo
-- Configuración global
-
-## 📈 Performance y Optimización
-
-- **Core Web Vitals** optimizados
-- **Bundle splitting** automático con Next.js
-- **Image optimization** con next/image
-- **Font optimization** con next/font
-- **Static generation** para páginas que no cambian
-- **Incremental static regeneration** para contenido dinámico
-
-## 🔧 Configuración Avanzada
-
-### Middleware
-
-```typescript
-// middleware.ts - Protección de rutas
-export function middleware(request: NextRequest) {
-  // Lógica de autenticación y redirecciones
-}
-```
-
-### Configuración de Next.js
-
-```javascript
-// next.config.mjs
-const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
-  images: {
-    domains: ["your-domain.com"],
-  },
-  // Más configuraciones...
-};
-```
-
-## 🤝 Contribución
-
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
-
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT. Ver el archivo [LICENSE](LICENSE) para más detalles.
+- [Documentación Técnica Completa](./docs/)
+- [Guía de Despliegue](./docs/DEPLOYMENT.md)
+- [Configuración de Seguridad](./docs/SECURITY.md)
+- [Integración con Arduino](./docs/ARDUINO_INTEGRATION.md)
+- [API Reference](./docs/API_REFERENCE.md)
 
 ## 📞 Soporte
 
-- **Email**: soporte@electricautomaticchile.com
-- **Documentación**: [docs.electricautomaticchile.com](https://docs.electricautomaticchile.com)
-- **Issues**: [GitHub Issues](https://github.com/electric-automatic-chile/frontend/issues)
+Para soporte técnico o consultas comerciales:
+
+- **Email**: electricautomaticchile@gmail.com
+- **Documentación**: Ver carpeta `/docs`
+
+## ⚖️ Cumplimiento Legal
+
+Esta plataforma ha sido desarrollada considerando las normativas y lineamientos técnicos de la Superintendencia de Electricidad y Combustibles (SEC) de Chile.
 
 ---
 
-**Desarrollado con ❤️ por el equipo de Electric Automatic Chile**
-
-## ✅ Estado del Proyecto Frontend
-
-### Progreso Completado: **100%** 🎉
-
-- ✅ **UI/UX**: Diseño moderno y responsive
-- ✅ **Autenticación**: NextAuth.js integrado
-- ✅ **Dashboards**: Visualizaciones interactivas
-- ✅ **Formularios**: Contacto y lead magnets
-- ✅ **Performance**: Optimizado para producción
-
-### Estadísticas Finales
-
-- **Framework**: Next.js 14 con App Router
-- **Componentes**: 50+ componentes reutilizables
-- **Páginas**: 10+ rutas implementadas
-- **Testing**: Jest + React Testing Library
-- **Deployment**: AWS Amplify ready
+**Versión**: 0.1.0  
+**Última actualización**: Diciembre 2024

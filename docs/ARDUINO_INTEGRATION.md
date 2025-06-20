@@ -1,223 +1,555 @@
-# Integración Arduino LED - Dashboard Empresa
+# Integración con Arduino IoT - Electricautomaticchile
 
-## Descripción
+## 🔌 Arquitectura de Dispositivos IoT
 
-Se ha integrado exitosamente el sistema de control LED Arduino al dashboard empresa de ElectricAutomaticChile. Esta integración permite controlar remotamente un LED Arduino desde la interfaz web empresarial.
+La plataforma integra dispositivos Arduino especializados para el control y monitoreo de la red eléctrica en tiempo real. Cada dispositivo funciona como un nodo inteligente con capacidades de medición, control y comunicación.
 
-## Características Implementadas
+## 🛠️ Hardware Requerido
 
-### 🔌 APIs REST (Next.js)
-
-- **POST** `/api/arduino/connect` - Conectar con Arduino
-- **POST** `/api/arduino/disconnect` - Desconectar Arduino
-- **GET** `/api/arduino/status` - Obtener estado actual
-- **POST** `/api/arduino/control/[action]` - Controlar LED (on/off/toggle)
-- **GET** `/api/arduino/stats/daily` - Estadísticas diarias
-- **GET** `/api/arduino/stats/hourly` - Estadísticas por horas
-- **GET** `/api/arduino/stats/efficiency` - Métricas de eficiencia
-- **GET** `/api/arduino/stats/export` - Exportar datos (JSON/CSV)
-
-### 🎛️ Componente React/TypeScript
-
-- **Versión reducida**: Para el dashboard principal (resumen)
-- **Versión completa**: Pestaña dedicada con todas las funciones
-- **Auto-refresh**: Actualización automática cada 5 segundos
-- **Notificaciones**: Toast notifications para feedback
-- **Estados visuales**: LED animado que refleja el estado real
-
-### 📊 Base de Datos MongoDB
-
-- **Modelo**: `ArduinoLedStats` para tracking de comandos
-- **Campos**: timestamp, command, duration, source
-- **Índices**: Optimizados para consultas temporales
-- **Agregaciones**: Estadísticas diarias, por horas, eficiencia
-
-### 🎨 Interfaz de Usuario
-
-- **Diseño consistente**: Integrado con el tema del dashboard
-- **Responsive**: Adaptable a móviles y desktop
-- **Accesibilidad**: Iconos descriptivos y estados claros
-- **Tema oscuro/claro**: Soporte completo
-
-## Ubicación en el Dashboard
-
-### Dashboard Principal
-
-- **Grid 4 columnas**: Nuevo card "Control Arduino"
-- **Vista resumida**: Estado conexión, LED status, estadísticas básicas
-- **Controles rápidos**: Botones ON/OFF
-
-### Pestaña Dedicada "Arduino"
-
-- **3 sub-pestañas**:
-  1. **Control**: Panel completo de control con LED visual
-  2. **Estado**: Información detallada del sistema
-  3. **Estadísticas**: KPIs, gráficos y exportación
-
-### Navegación
-
-- **Sidebar**: Nuevo icono ⚡ (Zap) para acceso rápido
-- **TabsList**: Nueva pestaña "Arduino" en la barra superior
-
-## Estructura de Archivos
+### Componentes Principal del Dispositivo
 
 ```
-electricautomaticchile/
-├── app/
-│   ├── api/arduino/
-│   │   ├── connect/route.ts
-│   │   ├── disconnect/route.ts
-│   │   ├── status/route.ts
-│   │   ├── control/[action]/route.ts
-│   │   └── stats/
-│   │       ├── daily/route.ts
-│   │       ├── hourly/route.ts
-│   │       ├── efficiency/route.ts
-│   │       └── export/route.ts
-│   └── dashboard-empresa/
-│       ├── page.tsx (modificado)
-│       └── componentes/
-│           └── control-arduino.tsx (nuevo)
-└── lib/
-    └── arduino-database.ts (nuevo)
+Arduino Uno R3/ESP32 (Procesador principal)
+├── ESP32-WROOM-32 (WiFi/Bluetooth)
+├── SIM800L (Comunicación GSM/GPRS backup)
+├── GPS NEO-6M (Localización anti-fraude)
+├── ACS712 (Sensor de corriente)
+├── ZMPT101B (Sensor de voltaje)
+├── Relé 30A (Control de corte/reconexión)
+├── SD Card Module (Almacenamiento local)
+├── DS3231 (RTC - Timestamp preciso)
+├── LCD 16x2 (Display local)
+└── Fuente 12V/2A (Alimentación)
 ```
 
-## Dependencias Agregadas
+### Especificaciones Técnicas
 
-```json
-{
-  "dependencies": {
-    "serialport": "^12.0.0"
+- **Procesador**: ESP32 240MHz dual-core
+- **Memoria**: 320KB RAM, 4MB Flash
+- **Comunicación**: WiFi 802.11n, GSM 2G/3G, Bluetooth 4.2
+- **Sensores**: Corriente (0-30A), Voltaje (0-250V), GPS
+- **Precisión**: ±1% corriente, ±0.5% voltaje
+- **Rango de Temperatura**: -20°C a +70°C
+- **Certificación**: IP65 (resistente al agua)
+
+## 📡 Protocolo de Comunicación
+
+### Estructura de Datos IoT
+
+```typescript
+interface IoTDataPacket {
+  device_id: string; // ID único del dispositivo
+  timestamp: number; // Unix timestamp
+  gps_coordinates: {
+    latitude: number;
+    longitude: number;
+    altitude: number;
+    accuracy: number;
+  };
+  electrical_measurements: {
+    voltage: number; // Voltios (V)
+    current: number; // Amperios (A)
+    power: number; // Watts (W)
+    energy: number; // kWh acumulado
+    frequency: number; // Hz
+    power_factor: number; // Factor de potencia
+  };
+  device_status: {
+    relay_state: "ON" | "OFF";
+    signal_strength: number; // dBm
+    battery_level: number; // %
+    temperature: number; // °C
+    last_maintenance: number; // Unix timestamp
+  };
+  security: {
+    checksum: string; // Hash MD5 del paquete
+    encrypted: boolean;
+    signature: string; // Firma digital del dispositivo
+  };
+}
+```
+
+### Protocolo MQTT Seguro
+
+```typescript
+// Configuración MQTT con TLS
+const mqttConfig = {
+  broker: "mqtts://iot.electricautomaticchile.cl:8883",
+  clientId: `device_${deviceId}`,
+  username: deviceId,
+  password: deviceCertificate,
+  clean: true,
+  connectTimeout: 30000,
+  reconnectPeriod: 5000,
+  topics: {
+    telemetry: `devices/${deviceId}/telemetry`,
+    commands: `devices/${deviceId}/commands`,
+    status: `devices/${deviceId}/status`,
+    alerts: `devices/${deviceId}/alerts`,
   },
-  "devDependencies": {
-    "@types/serialport": "^8.0.5"
+};
+```
+
+## 🔐 Seguridad del Dispositivo
+
+### Autenticación por Certificado
+
+```cpp
+// Código Arduino - Autenticación
+#include <WiFiClientSecure.h>
+#include <PubSubClient.h>
+
+const char* device_cert = R"(
+-----BEGIN CERTIFICATE-----
+MIIDXTCCAkWgAwIBAgIJAL+...
+-----END CERTIFICATE-----
+)";
+
+const char* device_key = R"(
+-----BEGIN PRIVATE KEY-----
+MIIEvgIBADANBgkqhkiG9w...
+-----END PRIVATE KEY-----
+)";
+
+const char* ca_cert = R"(
+-----BEGIN CERTIFICATE-----
+MIIDQTCCAimgAwIBAgITBm...
+-----END CERTIFICATE-----
+)";
+
+WiFiClientSecure wifiClient;
+PubSubClient mqttClient(wifiClient);
+
+void setupSecureConnection() {
+  wifiClient.setCACert(ca_cert);
+  wifiClient.setCertificate(device_cert);
+  wifiClient.setPrivateKey(device_key);
+
+  mqttClient.setServer("iot.electricautomaticchile.cl", 8883);
+  mqttClient.setCallback(onMqttMessage);
+}
+```
+
+### Validación GPS Anti-Fraude
+
+```cpp
+// Validación de movimiento sospechoso
+struct GPSLocation {
+  float latitude;
+  float longitude;
+  unsigned long timestamp;
+};
+
+GPSLocation lastValidLocation;
+
+bool validateGPSMovement(float lat, float lon) {
+  float distance = calculateDistance(
+    lastValidLocation.latitude,
+    lastValidLocation.longitude,
+    lat, lon
+  );
+
+  unsigned long timeDiff = millis() - lastValidLocation.timestamp;
+
+  // Si se movió más de 50 metros en menos de 5 minutos
+  if (distance > 50.0 && timeDiff < 300000) {
+    sendFraudAlert("SUSPICIOUS_MOVEMENT", distance, timeDiff);
+    return false;
+  }
+
+  return true;
+}
+```
+
+## ⚡ Control de Corte y Reconexión
+
+### Lógica de Control del Relé
+
+```cpp
+#include <EEPROM.h>
+
+const int RELAY_PIN = 12;
+const int RELAY_STATE_ADDR = 0;
+
+enum ServiceState {
+  SERVICE_ON = 1,
+  SERVICE_OFF = 0,
+  SERVICE_MAINTENANCE = 2
+};
+
+void controlElectricalService(ServiceState state) {
+  switch(state) {
+    case SERVICE_ON:
+      digitalWrite(RELAY_PIN, HIGH);
+      EEPROM.write(RELAY_STATE_ADDR, SERVICE_ON);
+      logAction("SERVICE_RESTORED");
+      break;
+
+    case SERVICE_OFF:
+      digitalWrite(RELAY_PIN, LOW);
+      EEPROM.write(RELAY_STATE_ADDR, SERVICE_OFF);
+      logAction("SERVICE_CUT");
+      break;
+
+    case SERVICE_MAINTENANCE:
+      // Modo mantenimiento - no cambiar estado físico
+      logAction("MAINTENANCE_MODE");
+      break;
+  }
+
+  EEPROM.commit();
+  sendStatusUpdate();
+}
+```
+
+### Comandos Remotos Seguros
+
+```typescript
+// Backend - Envío de comandos al dispositivo
+export class IoTDeviceController {
+  async sendSecureCommand(deviceId: string, command: IoTCommand) {
+    // Validar permisos del usuario
+    await this.validateUserPermissions(deviceId, command.type);
+
+    // Encriptar comando
+    const encryptedCommand = this.encryptCommand(command, deviceId);
+
+    // Agregar timestamp y firma
+    const signedCommand = {
+      ...encryptedCommand,
+      timestamp: Date.now(),
+      signature: this.signCommand(encryptedCommand),
+    };
+
+    // Enviar vía MQTT
+    await this.mqttClient.publish(
+      `devices/${deviceId}/commands`,
+      JSON.stringify(signedCommand)
+    );
+
+    // Log de auditoría
+    await this.logCommand(deviceId, command);
+  }
+
+  private encryptCommand(command: IoTCommand, deviceId: string): any {
+    const deviceKey = this.getDeviceKey(deviceId);
+    const cipher = crypto.createCipher("aes-256-gcm", deviceKey);
+
+    let encrypted = cipher.update(JSON.stringify(command), "utf8", "hex");
+    encrypted += cipher.final("hex");
+
+    return {
+      encrypted_data: encrypted,
+      auth_tag: cipher.getAuthTag().toString("hex"),
+      encryption_method: "aes-256-gcm",
+    };
   }
 }
 ```
 
-## Configuración Requerida
+## 📊 Mediciones y Telemetría
 
-### 1. Hardware Arduino
+### Algoritmo de Medición Precisa
 
-- **Código**: Usar `arduino_led_control.ino` del proyecto original
-- **Conexión**: USB al servidor donde corre Next.js
-- **Puerto**: Auto-detección o manual
+```cpp
+#include <ACS712.h>
+#include <ZMPT101B.h>
 
-### 2. Base de Datos
+ACS712 currentSensor(ACS712_30A, A0);
+ZMPT101B voltageSensor(A1);
 
-- **MongoDB**: Configuración existente del proyecto
-- **Colección**: `arduino_led_stats` (se crea automáticamente)
+struct ElectricalMeasurement {
+  float voltage;
+  float current;
+  float power;
+  float energy;
+  float frequency;
+  float powerFactor;
+  unsigned long timestamp;
+};
 
-### 3. Variables de Entorno
+ElectricalMeasurement takeMeasurement() {
+  ElectricalMeasurement measurement;
 
-- Usar la configuración MongoDB existente del proyecto
-- No se requieren variables adicionales
+  // Muestreo múltiple para mayor precisión
+  float voltageSum = 0, currentSum = 0;
+  int samples = 100;
 
-## Uso
+  for(int i = 0; i < samples; i++) {
+    voltageSum += voltageSensor.getRmsVoltage();
+    currentSum += currentSensor.getCurrentAC();
+    delay(1);
+  }
 
-### Conexión Inicial
+  measurement.voltage = voltageSum / samples;
+  measurement.current = currentSum / samples;
+  measurement.power = measurement.voltage * measurement.current;
+  measurement.timestamp = rtc.now().unixtime();
 
-1. Conectar Arduino por USB al servidor
-2. Ir a Dashboard Empresa → Arduino
-3. Hacer clic en "Conectar"
-4. El sistema detectará automáticamente el puerto
+  // Calcular energía acumulada
+  static float totalEnergy = 0;
+  static unsigned long lastMeasurement = 0;
 
-### Control LED
+  if(lastMeasurement > 0) {
+    float timeDiff = (measurement.timestamp - lastMeasurement) / 3600.0; // horas
+    totalEnergy += measurement.power * timeDiff / 1000.0; // kWh
+  }
 
-- **Encender**: Botón "Encender" o API `POST /api/arduino/control/on`
-- **Apagar**: Botón "Apagar" o API `POST /api/arduino/control/off`
-- **Toggle**: Botón "Toggle" o API `POST /api/arduino/control/toggle`
+  measurement.energy = totalEnergy;
+  lastMeasurement = measurement.timestamp;
 
-### Monitoreo
+  return measurement;
+}
+```
 
-- **Estado visual**: LED animado en la interfaz
-- **Auto-refresh**: Actualización automática cada 5 segundos
-- **Notificaciones**: Feedback inmediato de acciones
+### Almacenamiento Local (Backup)
 
-### Estadísticas
+```cpp
+#include <SD.h>
 
-- **Tiempo real**: KPIs actualizados automáticamente
-- **Exportación**: Descarga datos en JSON/CSV
-- **Períodos**: 7, 14, 30, 90 días configurables
+void saveToLocalStorage(ElectricalMeasurement measurement) {
+  if(!SD.begin(4)) {
+    return; // SD no disponible
+  }
 
-## Características Técnicas
+  File dataFile = SD.open("measurements.csv", FILE_WRITE);
 
-### Seguridad
+  if(dataFile) {
+    // Formato CSV para análisis posterior
+    dataFile.print(measurement.timestamp);
+    dataFile.print(",");
+    dataFile.print(measurement.voltage, 2);
+    dataFile.print(",");
+    dataFile.print(measurement.current, 3);
+    dataFile.print(",");
+    dataFile.print(measurement.power, 2);
+    dataFile.print(",");
+    dataFile.println(measurement.energy, 4);
 
-- **Validación**: Comandos validados en backend
-- **Timeouts**: Conexiones con timeout configurado
-- **Error handling**: Manejo robusto de errores
+    dataFile.close();
+  }
+}
+```
 
-### Performance
+## 🔧 Configuración y Mantenimiento
 
-- **Conexión persistente**: Reutilización de conexión serial
-- **Índices DB**: Consultas optimizadas
-- **Lazy loading**: Carga bajo demanda
+### Over-The-Air Updates (OTA)
 
-### Escalabilidad
+```cpp
+#include <ArduinoOTA.h>
+#include <ESP32httpUpdate.h>
 
-- **Múltiples dispositivos**: Arquitectura preparada
-- **Pool de conexiones**: MongoDB optimizado
-- **Cache**: Preparado para implementar
+void setupOTA() {
+  ArduinoOTA.setHostname(deviceId.c_str());
+  ArduinoOTA.setPassword(otaPassword.c_str());
 
-## Troubleshooting
+  ArduinoOTA.onStart([]() {
+    String type = (ArduinoOTA.getCommand() == U_FLASH) ? "sketch" : "filesystem";
+    Serial.println("Start updating " + type);
 
-### Problemas Comunes
+    // Apagar relé durante actualización por seguridad
+    digitalWrite(RELAY_PIN, LOW);
+  });
 
-1. **Arduino no detectado**
+  ArduinoOTA.onEnd([]() {
+    Serial.println("\nEnd");
+    ESP.restart();
+  });
 
-   - Verificar conexión USB
-   - Comprobar drivers CH340/FTDI
-   - Revisar permisos del puerto serie
+  ArduinoOTA.onError([](ota_error_t error) {
+    Serial.printf("Error[%u]: ", error);
+    sendErrorAlert("OTA_FAILED", error);
+  });
 
-2. **Error de conexión**
+  ArduinoOTA.begin();
+}
 
-   - Verificar que no esté usado por otro programa
-   - Reiniciar Arduino
-   - Comprobar baudrate (9600)
+void checkForUpdates() {
+  String updateURL = "https://updates.electricautomaticchile.cl/firmware/";
+  updateURL += deviceId + "/latest.bin";
 
-3. **Estadísticas no cargan**
-   - Verificar conexión MongoDB
-   - Comprobar logs del servidor
-   - Validar esquema de base de datos
+  t_httpUpdate_return ret = httpUpdate.update(updateURL);
 
-### Logs
+  switch(ret) {
+    case HTTP_UPDATE_FAILED:
+      sendErrorAlert("UPDATE_FAILED", httpUpdate.getLastError());
+      break;
+    case HTTP_UPDATE_NO_UPDATES:
+      Serial.println("No updates available");
+      break;
+    case HTTP_UPDATE_OK:
+      Serial.println("Update successful, restarting...");
+      ESP.restart();
+      break;
+  }
+}
+```
 
-- **Browser Console**: Errores de frontend
-- **Server Logs**: Errores de API y conexión
-- **MongoDB Logs**: Errores de base de datos
+### Diagnóstico y Autotest
 
-## Próximas Mejoras
+```cpp
+struct DiagnosticResult {
+  bool wifi_connected;
+  bool mqtt_connected;
+  bool gps_working;
+  bool sensors_ok;
+  bool sd_card_ok;
+  bool relay_working;
+  float signal_strength;
+  int free_memory;
+};
 
-### Funcionalidades Planeadas
+DiagnosticResult runDiagnostics() {
+  DiagnosticResult result = {0};
 
-- [ ] Control múltiples LEDs
-- [ ] Programación de horarios
-- [ ] Alertas automáticas
-- [ ] Dashboard en tiempo real con WebSockets
-- [ ] Integración con sensores adicionales
-- [ ] Control por voz
-- [ ] App móvil dedicada
+  // Test WiFi
+  result.wifi_connected = (WiFi.status() == WL_CONNECTED);
+  result.signal_strength = WiFi.RSSI();
 
-### Optimizaciones Técnicas
+  // Test MQTT
+  result.mqtt_connected = mqttClient.connected();
 
-- [ ] WebSocket para tiempo real
-- [ ] Cache Redis para estadísticas
-- [ ] Compresión de datos históricos
-- [ ] Backup automático de configuraciones
-- [ ] Monitoreo de salud del sistema
+  // Test GPS
+  result.gps_working = (gps.satellites.value() > 3);
 
-## Soporte
+  // Test sensores
+  float testVoltage = voltageSensor.getRmsVoltage();
+  float testCurrent = currentSensor.getCurrentAC();
+  result.sensors_ok = (testVoltage > 0 && testVoltage < 300 &&
+                       testCurrent >= 0 && testCurrent < 35);
 
-Para soporte técnico o reportar bugs:
+  // Test SD Card
+  result.sd_card_ok = SD.begin(4);
 
-1. Revisar logs del sistema
-2. Verificar configuración hardware
-3. Comprobar conectividad de red
-4. Contactar al equipo de desarrollo
+  // Test relé (solo si está permitido)
+  if(allowRelayTest) {
+    bool originalState = digitalRead(RELAY_PIN);
+    digitalWrite(RELAY_PIN, !originalState);
+    delay(100);
+    result.relay_working = (digitalRead(RELAY_PIN) != originalState);
+    digitalWrite(RELAY_PIN, originalState); // Restaurar estado
+  }
+
+  // Memoria libre
+  result.free_memory = ESP.getFreeHeap();
+
+  return result;
+}
+```
+
+## 📋 API de Integración
+
+### Endpoints Backend para IoT
+
+```typescript
+// /api/iot/telemetry
+export async function POST(request: Request) {
+  const { device_id, data, signature } = await request.json();
+
+  // Validar dispositivo y firma
+  const device = await validateDevice(device_id, signature);
+  if (!device) {
+    return Response.json({ error: "Unauthorized device" }, { status: 401 });
+  }
+
+  // Procesar datos de telemetría
+  await processTelemetryData(device_id, data);
+
+  return Response.json({ status: "ok", timestamp: Date.now() });
+}
+
+// /api/iot/command
+export async function POST(request: Request) {
+  const { device_id, command, user_id } = await request.json();
+
+  // Validar permisos del usuario
+  const hasPermission = await validateUserDevicePermission(user_id, device_id);
+  if (!hasPermission) {
+    return Response.json(
+      { error: "Insufficient permissions" },
+      { status: 403 }
+    );
+  }
+
+  // Enviar comando al dispositivo
+  await sendDeviceCommand(device_id, command);
+
+  return Response.json({ status: "command_sent" });
+}
+```
+
+## 🚨 Alertas y Monitoreo
+
+### Sistema de Alertas Críticas
+
+```cpp
+enum AlertType {
+  POWER_OUTAGE,
+  OVERCURRENT,
+  UNDERVOLTAGE,
+  OVERVOLTAGE,
+  DEVICE_TAMPER,
+  GPS_FRAUD,
+  COMMUNICATION_LOST
+};
+
+void sendCriticalAlert(AlertType type, float value = 0) {
+  StaticJsonDocument<512> alertDoc;
+  alertDoc["device_id"] = deviceId;
+  alertDoc["timestamp"] = rtc.now().unixtime();
+  alertDoc["alert_type"] = type;
+  alertDoc["severity"] = "CRITICAL";
+  alertDoc["value"] = value;
+  alertDoc["location"]["lat"] = gps.location.lat();
+  alertDoc["location"]["lng"] = gps.location.lng();
+
+  String alertJson;
+  serializeJson(alertDoc, alertJson);
+
+  // Envío prioritario vía MQTT
+  mqttClient.publish(
+    (String("alerts/") + deviceId).c_str(),
+    alertJson.c_str(),
+    true // retained message
+  );
+
+  // Backup vía SMS si MQTT falla
+  if(!mqttClient.connected()) {
+    sendSMSAlert(alertJson);
+  }
+}
+```
+
+## 📞 Soporte Técnico
+
+### Información de Contacto
+
+- **Soporte IoT**: iot-support@electricautomaticchile.cl
+- **Emergencias 24/7**: +56 9 XXXX-XXXX
+- **Documentación Técnica**: docs.electricautomaticchile.cl/iot
+
+### Logs de Depuración
+
+```cpp
+void debugLog(String message, int level = 1) {
+  if(debugMode && level <= debugLevel) {
+    String timestamp = String(rtc.now().unixtime());
+    String logEntry = timestamp + " [" + String(level) + "] " + message;
+
+    Serial.println(logEntry);
+
+    // Guardar en SD si está disponible
+    if(SD.begin(4)) {
+      File logFile = SD.open("debug.log", FILE_WRITE);
+      if(logFile) {
+        logFile.println(logEntry);
+        logFile.close();
+      }
+    }
+  }
+}
+```
 
 ---
 
-**Integración completada exitosamente** ✅  
-**Fecha**: Diciembre 2024  
-**Versión**: 1.0.0
+**📋 Nota Técnica**: Esta documentación cubre la integración básica. Para implementaciones específicas, consultar con el equipo de IoT de ElectricAutomatic Chile.
