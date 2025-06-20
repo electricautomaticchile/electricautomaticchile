@@ -4,7 +4,7 @@
 
 La API de Electricautomaticchile proporciona acceso programático a todas las funcionalidades de la plataforma IoT de gestión eléctrica.
 
-**Base URL**: `https://api.electricautomaticchile.cl/v1`
+**Base URL**: `https://api-electricautomaticchile.com/api/`
 
 ## 🔐 Autenticación
 
