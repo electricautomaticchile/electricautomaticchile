@@ -520,13 +520,7 @@ void sendCriticalAlert(AlertType type, float value = 0) {
 }
 ```
 
-## 📞 Soporte Técnico
 
-### Información de Contacto
-
-- **Soporte IoT**: iot-support@electricautomaticchile.cl
-- **Emergencias 24/7**: +56 9 XXXX-XXXX
-- **Documentación Técnica**: docs.electricautomaticchile.cl/iot
 
 ### Logs de Depuración
 
