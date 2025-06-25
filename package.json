@@ -82,6 +82,10 @@
     "transbank-sdk": "^6.1.0",
     "zod": "^3.25.67"
   },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "devDependencies": {
     "@aws-amplify/backend": "^1.0.4",
     "@aws-amplify/backend-cli": "^1.2.0",
