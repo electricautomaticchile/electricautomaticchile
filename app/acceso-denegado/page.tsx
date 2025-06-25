@@ -31,7 +31,7 @@ export default function AccesoDenegadoPage() {
             <ShieldAlert className="h-4 w-4" />
             <AlertDescription>
               Esta área requiere permisos específicos. Si crees que deberías
-              tener acceso, contacta al administrador del sistema.
+              tener acceso, contacta al dev del sistema.
             </AlertDescription>
           </Alert>
 
