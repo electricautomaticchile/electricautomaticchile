@@ -44,8 +44,8 @@ export const useLeadMagnet = (): UseLeadMagnetReturn => {
           setSuccess(true);
 
           // Opcional: Tracking para analytics
-          if (typeof window !== "undefined" && window.gtag) {
-            window.gtag("event", "lead_magnet_download", {
+          if (typeof window !== "undefined" && (window as any).gtag) {
+            (window as any).gtag("event", "lead_magnet_download", {
               event_category: "engagement",
               event_label: "PDF Download",
               custom_parameters: {
