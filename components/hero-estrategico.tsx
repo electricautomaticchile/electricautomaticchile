@@ -25,6 +25,7 @@ import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import { apiService } from "@/lib/api/apiService";
 
 export default function HeroEstrategico() {
   const [visible, setVisible] = useState(false);
@@ -64,29 +65,27 @@ export default function HeroEstrategico() {
     setIsDownloading(true);
 
     try {
-      const response = await fetch("/api/lead-magnet", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: leadMagnetEmail }),
+      console.log("🔗 Enviando lead magnet al backend...");
+
+      const response = await apiService.enviarLeadMagnet({
+        email: leadMagnetEmail,
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (response.success) {
         alert(
           "¡Excelente! El informe ha sido enviado a su email. Revise su bandeja de entrada (y carpeta de spam)."
         );
         setLeadMagnetEmail("");
+        console.log("✅ Lead magnet enviado exitosamente");
       } else {
         alert(
-          data.error ||
+          response.error ||
             "Hubo un error al enviar el informe. Por favor intente nuevamente."
         );
+        console.error("❌ Error en respuesta:", response.error);
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("❌ Error al enviar lead magnet:", error);
       alert("Error de conexión. Por favor intente nuevamente.");
     } finally {
       setIsDownloading(false);
