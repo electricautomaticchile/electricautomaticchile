@@ -1,126 +1,170 @@
-"use client"
-import { useState, useEffect, Suspense } from "react"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AlertCircle, KeyRound, User, LockKeyhole } from 'lucide-react'
-import { useSearchParams, useRouter } from "next/navigation"
-import { apiService } from '@/lib/api/apiService'
+"use client";
+import { useState, useEffect, Suspense } from "react";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { AlertCircle, KeyRound, User, LockKeyhole } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { apiService } from "@/lib/api/apiService";
 
 // Componente para el contenido de login
 const LoginContent = () => {
-  const [clientNumber, setClientNumber] = useState("")
-  const [isValidFormat, setIsValidFormat] = useState(true)
-  const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-  const router = useRouter()
-  
+  const [clientNumber, setClientNumber] = useState("");
+  const [isValidFormat, setIsValidFormat] = useState(true);
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
+
   // Obtener parámetros de la URL
-  const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get("callbackUrl") || ""
-  
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "";
+
   // Mostrar error si viene en la URL
   useEffect(() => {
-    const errorParam = searchParams.get("error")
+    const errorParam = searchParams.get("error");
     if (errorParam === "CredentialsSignin") {
-      setError("Credenciales incorrectas. Por favor, verifique su información.")
+      setError(
+        "Credenciales incorrectas. Por favor, verifique su información."
+      );
     }
-  }, [searchParams])
+  }, [searchParams]);
 
   const validateClientNumber = (value: string) => {
-    const regex = /^\d{6}-\d$/
-    return regex.test(value)
-  }
+    const regex = /^\d{6}-\d$/;
+    return regex.test(value);
+  };
 
   const handleClientNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setClientNumber(value)
-    setIsValidFormat(validateClientNumber(value) || value === "")
-    if (error) setError("")
-  }
+    const value = e.target.value;
+    setClientNumber(value);
+    setIsValidFormat(validateClientNumber(value) || value === "");
+    if (error) setError("");
+  };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value)
-    if (error) setError("")
-  }
+    setPassword(e.target.value);
+    if (error) setError("");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     // Validaciones
     if (!clientNumber || !password) {
-      setError("Por favor complete todos los campos")
-      return
+      setError("Por favor complete todos los campos");
+      return;
     }
-    
+
     if (!isValidFormat) {
-      setError("El formato del número de cliente es incorrecto")
-      return
+      setError("El formato del número de cliente es incorrecto");
+      return;
     }
-    
-    setIsLoading(true)
-    setError("")
-    
+
+    setIsLoading(true);
+    setError("");
+
     try {
+      console.log("🚀 Iniciando login...");
+
       // Usar nuestro apiService en lugar de NextAuth
       const response = await apiService.login({
         email: clientNumber, // El backend busca por número de cliente en el campo email
-        password: password
-      })
-      
+        password: password,
+      });
+
+      console.log(
+        "📡 Respuesta completa del backend:",
+        JSON.stringify(response, null, 2)
+      );
+
       if (response.success && response.data) {
-        console.log('✅ Login exitoso:', response.data)
-        
+        console.log("✅ Login exitoso:", response.data);
+
+        // DEBUG: Mostrar alert para confirmar que llegamos aquí
+        alert(
+          `🎉 LOGIN EXITOSO!\nUsuario: ${response.data.user.nombre}\nRole: ${response.data.user.role}\nTipo: ${response.data.user.tipoUsuario}`
+        );
+
         // Redirigir según el tipo de usuario
-        const tipoUsuario = response.data.user.tipoUsuario
-        const role = response.data.user.role
-        
-        console.log('🎯 Determinando redirección:', { tipoUsuario, role })
-        
-        let redirectPath = '/dashboard-empresa' // default
-        
-        if (tipoUsuario === 'admin' || role === 'admin' || role === 'superadmin') {
-          redirectPath = '/dashboard-superadmin'
-        } else if (tipoUsuario === 'cliente' || role === 'cliente') {
-          redirectPath = '/dashboard-cliente'
-        } else if (tipoUsuario === 'empresa') {
-          redirectPath = '/dashboard-empresa'
+        const tipoUsuario = response.data.user.tipoUsuario;
+        const role = response.data.user.role;
+
+        console.log("🎯 Datos del usuario para redirección:", {
+          tipoUsuario,
+          role,
+          nombre: response.data.user.nombre,
+        });
+
+        let redirectPath = "/dashboard-empresa"; // default
+
+        // Lógica de redirección mejorada
+        if (
+          role === "admin" ||
+          role === "superadmin" ||
+          tipoUsuario === "admin"
+        ) {
+          redirectPath = "/dashboard-superadmin";
+          console.log("👑 Usuario administrador detectado");
+        } else if (role === "cliente" || tipoUsuario === "cliente") {
+          redirectPath = "/dashboard-cliente";
+          console.log("👤 Usuario cliente detectado");
+        } else if (role === "empresa" || tipoUsuario === "empresa") {
+          redirectPath = "/dashboard-empresa";
+          console.log("🏢 Usuario empresa detectado");
         }
-        
-        console.log('📍 Redirigiendo a:', redirectPath)
-        
+
+        console.log("📍 Path calculado:", redirectPath);
+
         // Usar callbackUrl si existe, sino usar redirectPath
-        const targetUrl = callbackUrl || redirectPath
-        
-        console.log('🔗 URL final:', targetUrl)
-        
-        // Agregar un pequeño delay y usar window.location como fallback
-        setTimeout(() => {
-          console.log('🚀 Ejecutando redirección...')
-          router.push(targetUrl)
-        }, 100)
-        
-        // Fallback con window.location después de 1 segundo
-        setTimeout(() => {
-          if (window.location.pathname === '/auth/login') {
-            console.log('⚠️ Redirección con router falló, usando window.location')
-            window.location.href = targetUrl
-          }
-        }, 1000)
+        const targetUrl = callbackUrl || redirectPath;
+
+        console.log("🔗 URL final de redirección:", targetUrl);
+
+        // DEBUG: Mostrar alert con la URL de redirección
+        alert(`🔗 Redirigiendo a: ${targetUrl}`);
+
+        // Guardar datos del usuario en localStorage (opcional)
+        if (typeof window !== "undefined") {
+          localStorage.setItem("user", JSON.stringify(response.data.user));
+          localStorage.setItem("token", response.data.token);
+        }
+
+        // Redirección INMEDIATA - sin setTimeout
+        console.log("🚀 Ejecutando redirección inmediata...");
+
+        try {
+          await router.push(targetUrl);
+          console.log("✅ Router.push ejecutado");
+        } catch (routerError) {
+          console.error("❌ Error con router.push:", routerError);
+          // Fallback inmediato con window.location
+          window.location.href = targetUrl;
+        }
       } else {
-        console.error('❌ Error en respuesta:', response)
-        setError(response.error || "Credenciales incorrectas. Por favor, verifique su información.")
+        console.error("❌ Error en respuesta:", response);
+        alert(`❌ ERROR: ${response.error || "Credenciales incorrectas"}`);
+        setError(
+          response.error ||
+            "Credenciales incorrectas. Por favor, verifique su información."
+        );
       }
     } catch (error) {
-      console.error('Error durante el login:', error)
-      setError("Error al iniciar sesión. Intente nuevamente.")
+      console.error("💥 Error durante el login:", error);
+      alert(`💥 ERROR CATCH: ${error}`);
+      setError("Error al iniciar sesión. Intente nuevamente.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -131,15 +175,17 @@ const LoginContent = () => {
             <KeyRound className="h-10 w-10 text-white" />
           </div>
         </div>
-        
+
         <Card className="border-orange-200 dark:border-orange-900/40 shadow-xl">
           <CardHeader className="space-y-2 text-center pb-6 border-b border-orange-100 dark:border-orange-900/30">
-            <CardTitle className="text-2xl font-bold tracking-tight text-orange-700 dark:text-orange-500">Portal de Clientes</CardTitle>
+            <CardTitle className="text-2xl font-bold tracking-tight text-orange-700 dark:text-orange-500">
+              Portal de Clientes
+            </CardTitle>
             <CardDescription className="text-orange-700/70 dark:text-orange-300/70">
               Ingrese sus credenciales para acceder a su cuenta
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent className="pt-6">
             {error && (
               <div className="bg-destructive/10 text-destructive dark:bg-destructive/20 text-sm p-3 rounded-md mb-5 flex items-start gap-2">
@@ -147,10 +193,13 @@ const LoginContent = () => {
                 <span>{error}</span>
               </div>
             )}
-            
+
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="clientNumber" className="text-sm font-medium text-orange-800 dark:text-orange-300">
+                <Label
+                  htmlFor="clientNumber"
+                  className="text-sm font-medium text-orange-800 dark:text-orange-300"
+                >
                   Número de cliente
                 </Label>
                 <div className="relative">
@@ -173,13 +222,20 @@ const LoginContent = () => {
                   </p>
                 )}
               </div>
-              
+
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-sm font-medium text-orange-800 dark:text-orange-300">
+                  <Label
+                    htmlFor="password"
+                    className="text-sm font-medium text-orange-800 dark:text-orange-300"
+                  >
                     Contraseña
                   </Label>
-                  <Link href="/auth/recovery" className="text-xs text-orange-600 dark:text-orange-400 hover:underline" prefetch={false}>
+                  <Link
+                    href="/auth/recovery"
+                    className="text-xs text-orange-600 dark:text-orange-400 hover:underline"
+                    prefetch={false}
+                  >
                     ¿Olvidó su contraseña?
                   </Link>
                 </div>
@@ -198,10 +254,10 @@ const LoginContent = () => {
                   />
                 </div>
               </div>
-              
-              <Button 
-                type="submit" 
-                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white mt-6 shadow-md shadow-orange-500/20" 
+
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white mt-6 shadow-md shadow-orange-500/20"
                 disabled={isLoading}
               >
                 {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
@@ -211,8 +267,8 @@ const LoginContent = () => {
         </Card>
       </div>
     </div>
-  )
-}
+  );
+};
 
 // Componente para el esqueleto de carga
 const LoginSkeleton = () => {
@@ -225,8 +281,8 @@ const LoginSkeleton = () => {
         <div className="h-[400px] bg-gray-200 dark:bg-gray-800 rounded-lg"></div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 // Componente principal que envuelve el contenido con Suspense
 export default function LoginPage() {
@@ -234,5 +290,5 @@ export default function LoginPage() {
     <Suspense fallback={<LoginSkeleton />}>
       <LoginContent />
     </Suspense>
-  )
+  );
 }
