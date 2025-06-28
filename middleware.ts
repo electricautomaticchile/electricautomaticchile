@@ -19,12 +19,22 @@ async function verifyJWT(token: string) {
       throw new Error("Configuración de seguridad insuficiente");
     }
 
+    console.log(
+      `🔐 Verificando JWT con secret de ${process.env.JWT_SECRET.length} caracteres`
+    );
+
     const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
     const { payload } = await jwtVerify(token, secret);
+    console.log(`✅ JWT verificado exitosamente`);
     return payload;
   } catch (error) {
-    console.error("Error verificando JWT:", error);
+    console.error("❌ Error verificando JWT:", {
+      name: error instanceof Error ? error.name : "Unknown",
+      message: error instanceof Error ? error.message : "Unknown error",
+      tokenLength: token?.length || 0,
+      tokenStart: token?.substring(0, 20) || "No token",
+    });
     return null;
   }
 }
@@ -81,10 +91,27 @@ export async function middleware(request: NextRequest) {
     // Obtener el token de las cookies
     const authToken = request.cookies.get("auth_token")?.value;
 
+    // DEBUG: Mostrar información sobre cookies
+    console.log(`🍪 Cookie auth_token encontrada: ${authToken ? "SÍ" : "NO"}`);
+    if (authToken) {
+      console.log(`🍪 Longitud del token: ${authToken.length}`);
+      console.log(`🍪 Primeros 50 chars: ${authToken.substring(0, 50)}...`);
+    }
+
     let tokenPayload = null;
 
     if (authToken) {
+      console.log(`🔍 Verificando JWT...`);
       tokenPayload = await verifyJWT(authToken);
+      console.log(`🔍 JWT válido: ${tokenPayload ? "SÍ" : "NO"}`);
+      if (tokenPayload) {
+        console.log(`🔍 Payload JWT:`, {
+          sub: tokenPayload.sub,
+          userId: tokenPayload.userId,
+          role: tokenPayload.role,
+          tipoUsuario: tokenPayload.tipoUsuario,
+        });
+      }
     }
 
     // Si no hay token válido, redirigir al login

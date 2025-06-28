@@ -133,8 +133,21 @@ const LoginContent = () => {
         console.log("🚀 Ejecutando redirección inmediata...");
 
         try {
+          // Esperar un momento para que las cookies se establezcan
+          await new Promise((resolve) => setTimeout(resolve, 100));
+
           await router.push(targetUrl);
           console.log("✅ Router.push ejecutado");
+
+          // Verificar después de 1 segundo si la redirección funcionó
+          setTimeout(() => {
+            if (window.location.pathname.includes("/auth/login")) {
+              console.log(
+                "⚠️ Redirección no funcionó, usando window.location como fallback"
+              );
+              window.location.href = targetUrl;
+            }
+          }, 1000);
         } catch (routerError) {
           console.error("❌ Error con router.push:", routerError);
           // Fallback inmediato con window.location
