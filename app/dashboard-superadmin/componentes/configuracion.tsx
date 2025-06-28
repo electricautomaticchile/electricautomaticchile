@@ -91,6 +91,13 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
   const [busquedaCliente, setBusquedaCliente] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("todos");
 
+  // Estados para el perfil del superadmin
+  const [perfilSuperadmin, setPerfilSuperadmin] = useState({
+    nombre: user?.nombre || "Administrador",
+    email: user?.email || "admin@electricauto.cl",
+  });
+  const [guardandoPerfil, setGuardandoPerfil] = useState(false);
+
   // Función para crear un superusuario
   const crearSuperusuario = async () => {
     if (creandoSuperusuario) return;
@@ -377,6 +384,45 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
     }
   };
 
+  // Función para guardar el perfil del superadmin
+  const guardarPerfilSuperadmin = async () => {
+    setGuardandoPerfil(true);
+
+    try {
+      // Usar la API para actualizar el perfil del usuario actual
+      const response = await apiService.actualizarUsuario(user?._id || "", {
+        nombre: perfilSuperadmin.nombre,
+        email: perfilSuperadmin.email,
+      });
+
+      if (response.success) {
+        toast({
+          title: "Éxito",
+          description: "Tu perfil ha sido actualizado correctamente.",
+        });
+      } else {
+        throw new Error(response.error || "Error al actualizar el perfil");
+      }
+    } catch (error) {
+      console.error("Error al guardar perfil:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el perfil. Inténtelo nuevamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setGuardandoPerfil(false);
+    }
+  };
+
+  // Función para manejar cambios en el perfil
+  const manejarCambioPerfil = (campo: string, valor: string) => {
+    setPerfilSuperadmin((prev) => ({
+      ...prev,
+      [campo]: valor,
+    }));
+  };
+
   // Para la versión reducida del componente
   if (reducida) {
     return (
@@ -615,7 +661,10 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
                   <Label htmlFor="user-name">Nombre</Label>
                   <Input
                     id="user-name"
-                    defaultValue={user?.nombre || "Administrador"}
+                    value={perfilSuperadmin.nombre}
+                    onChange={(e) =>
+                      manejarCambioPerfil("nombre", e.target.value)
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -623,7 +672,10 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
                   <Input
                     id="user-email"
                     type="email"
-                    defaultValue={user?.email || "admin@electricauto.cl"}
+                    value={perfilSuperadmin.email}
+                    onChange={(e) =>
+                      manejarCambioPerfil("email", e.target.value)
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -704,8 +756,12 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
               </div>
 
               <div className="flex justify-end mt-6">
-                <Button className="bg-orange-600 hover:bg-orange-700">
-                  Guardar Cambios
+                <Button
+                  className="bg-orange-600 hover:bg-orange-700"
+                  onClick={guardarPerfilSuperadmin}
+                  disabled={guardandoPerfil}
+                >
+                  {guardandoPerfil ? "Guardando..." : "Guardar Cambios"}
                 </Button>
               </div>
             </CardContent>
