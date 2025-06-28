@@ -81,8 +81,7 @@ export interface ICotizacion {
 export interface ICliente {
   _id: string;
   nombre: string;
-  email?: string;
-  correo?: string;
+  correo: string;
   telefono?: string;
   empresa?: string;
   numeroCliente?: string;

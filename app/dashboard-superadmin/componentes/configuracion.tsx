@@ -289,10 +289,7 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
   const clientesFiltrados = clientes.filter((cliente) => {
     const coincideBusqueda =
       cliente.nombre.toLowerCase().includes(busquedaCliente.toLowerCase()) ||
-      (cliente.email &&
-        cliente.email.toLowerCase().includes(busquedaCliente.toLowerCase())) ||
-      (cliente.correo &&
-        cliente.correo.toLowerCase().includes(busquedaCliente.toLowerCase())) ||
+      cliente.correo.toLowerCase().includes(busquedaCliente.toLowerCase()) ||
       (cliente.numeroCliente &&
         cliente.numeroCliente
           .toLowerCase()
@@ -327,7 +324,7 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
 
       const datosActualizacion = {
         nombre: clienteSeleccionado.nombre,
-        email: clienteSeleccionado.email || clienteSeleccionado.correo,
+        correo: clienteSeleccionado.correo,
         telefono: clienteSeleccionado.telefono,
         empresa: clienteSeleccionado.empresa,
         // No incluir numeroCliente ni role para mantenerlos bloqueados
@@ -1294,7 +1291,7 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                     <Input
-                      placeholder="Buscar por nombre, email o número de cliente..."
+                      placeholder="Buscar por nombre, correo o número de cliente..."
                       value={busquedaCliente}
                       onChange={(e) => setBusquedaCliente(e.target.value)}
                       className="pl-10"
@@ -1339,7 +1336,7 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Cliente</TableHead>
-                        <TableHead>Email</TableHead>
+                        <TableHead>Correo</TableHead>
                         <TableHead>Teléfono</TableHead>
                         <TableHead>Número Cliente</TableHead>
                         <TableHead>Estado</TableHead>
@@ -1362,9 +1359,7 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
                                 )}
                               </div>
                             </TableCell>
-                            <TableCell>
-                              {cliente.email || cliente.correo || "N/A"}
-                            </TableCell>
+                            <TableCell>{cliente.correo || "N/A"}</TableCell>
                             <TableCell>{cliente.telefono || "N/A"}</TableCell>
                             <TableCell>
                               <span className="font-mono text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
@@ -1472,13 +1467,9 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
                 <Input
                   id="edit-email"
                   type="email"
-                  value={
-                    clienteSeleccionado.email ||
-                    clienteSeleccionado.correo ||
-                    ""
-                  }
+                  value={clienteSeleccionado.correo || ""}
                   onChange={(e) =>
-                    manejarCambioCliente("email", e.target.value)
+                    manejarCambioCliente("correo", e.target.value)
                   }
                   placeholder="correo@ejemplo.com"
                 />
