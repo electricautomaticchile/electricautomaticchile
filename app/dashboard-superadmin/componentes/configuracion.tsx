@@ -389,10 +389,10 @@ export function Configuracion({ reducida = false }: ConfiguracionProps) {
     setGuardandoPerfil(true);
 
     try {
-      // Usar la API para actualizar el perfil del usuario actual
-      const response = await apiService.actualizarUsuario(user?._id || "", {
+      // Los superadministradores están en la colección de Clientes
+      const response = await apiService.actualizarCliente(user?._id || "", {
         nombre: perfilSuperadmin.nombre,
-        email: perfilSuperadmin.email,
+        correo: perfilSuperadmin.email, // Mapear email a correo para el backend
       });
 
       if (response.success) {
