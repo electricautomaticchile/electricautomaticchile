@@ -109,6 +109,35 @@ export interface IUsuario {
   ultimoAcceso?: string;
 }
 
+// Tipos para Superusuarios
+export interface ISuperusuario {
+  _id: string;
+  nombre: string;
+  correo: string;
+  telefono?: string;
+  numeroCliente: string;
+  role: "superadmin";
+  activo: boolean;
+  fechaCreacion: string;
+  fechaActualizacion?: string;
+  ultimoAcceso?: string;
+  configuraciones?: {
+    notificaciones: boolean;
+    tema: "claro" | "oscuro";
+  };
+}
+
+export interface ICrearSuperusuario {
+  nombre: string;
+  correo: string;
+  password: string;
+  telefono?: string;
+  configuraciones?: {
+    notificaciones?: boolean;
+    tema?: "claro" | "oscuro";
+  };
+}
+
 // Tipos para Auth
 export interface LoginCredentials {
   email: string;
@@ -619,6 +648,38 @@ class ApiService {
 
   async obtenerEstadisticasGlobales(): Promise<ApiResponse<any>> {
     return this.makeRequest<any>("/estadisticas/globales");
+  }
+
+  // =================== SUPERUSUARIOS ===================
+
+  async obtenerSuperusuarios(): Promise<ApiResponse<ISuperusuario[]>> {
+    return this.makeRequest<ISuperusuario[]>("/superusuarios");
+  }
+
+  async crearSuperusuario(datos: ICrearSuperusuario): Promise<
+    ApiResponse<{
+      data: ISuperusuario;
+      credenciales: {
+        numeroCliente: string;
+        correo: string;
+        mensaje: string;
+      };
+    }>
+  > {
+    return this.makeRequest("/superusuarios", {
+      method: "POST",
+      body: JSON.stringify(datos),
+    });
+  }
+
+  async obtenerEstadisticasSuperusuarios(): Promise<
+    ApiResponse<{
+      total: number;
+      activos: number;
+      ultimos: ISuperusuario[];
+    }>
+  > {
+    return this.makeRequest("/superusuarios/estadisticas");
   }
 }
 
