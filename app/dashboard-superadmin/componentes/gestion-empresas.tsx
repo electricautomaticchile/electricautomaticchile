@@ -1,19 +1,33 @@
 "use client";
-import { useState, useEffect } from 'react';
-import { 
-  Table, 
-  TableBody, 
-  TableCaption, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import { useState, useEffect } from "react";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PlusCircle, Edit, Trash2, Search, Building2, Loader2 } from 'lucide-react';
+import {
+  PlusCircle,
+  Edit,
+  Trash2,
+  Search,
+  Building2,
+  Loader2,
+} from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { apiService, ICliente } from "@/lib/api/apiService";
 
@@ -25,7 +39,7 @@ interface Empresa {
   email: string;
   telefono: string;
   fechaRegistro: string;
-  estado: 'activo' | 'suspendido' | 'inactivo';
+  estado: "activo" | "suspendido" | "inactivo";
 }
 
 interface ClienteDB {
@@ -53,12 +67,12 @@ interface GestionEmpresasProps {
 export function GestionEmpresas({ reducida = false }: GestionEmpresasProps) {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [empresaActual, setEmpresaActual] = useState<Empresa | null>(null);
-  const [busqueda, setBusqueda] = useState('');
+  const [busqueda, setBusqueda] = useState("");
   const [modalAbierto, setModalAbierto] = useState(false);
   const [modoEdicion, setModoEdicion] = useState(false);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   useEffect(() => {
     cargarEmpresas();
   }, []);
@@ -66,33 +80,43 @@ export function GestionEmpresas({ reducida = false }: GestionEmpresasProps) {
   const cargarEmpresas = async () => {
     try {
       setCargando(true);
-      
+
       const response = await apiService.obtenerClientes();
-      
+
       if (response.success && response.data) {
         // Mapear los datos de la API al formato esperado por el componente
-        const empresasMapeadas = response.data.map((cliente: ICliente, index: number) => ({
-          id: cliente._id,
-          nombre: cliente.nombre,
-          rut: cliente.numeroCliente || `${Math.floor(Math.random() * 99999999)}-${Math.floor(Math.random() * 9)}`, // Generar RUT ficticio si no hay numeroCliente
-          contacto: cliente.nombre, // Usar el nombre como contacto por defecto
-          email: cliente.email || cliente.correo || '',
-          telefono: cliente.telefono || '',
-          fechaRegistro: cliente.fechaRegistro ? new Date(cliente.fechaRegistro).toLocaleDateString('es-CL') : new Date().toLocaleDateString('es-CL'),
-          estado: (cliente.activo || cliente.esActivo) ? 'activo' : 'inactivo' as 'activo' | 'suspendido' | 'inactivo'
-        }));
-        
+        const empresasMapeadas = response.data.map(
+          (cliente: ICliente, index: number) => ({
+            id: cliente._id,
+            nombre: cliente.nombre,
+            rut:
+              cliente.numeroCliente ||
+              `${Math.floor(Math.random() * 99999999)}-${Math.floor(Math.random() * 9)}`, // Generar RUT ficticio si no hay numeroCliente
+            contacto: cliente.nombre, // Usar el nombre como contacto por defecto
+            email: cliente.correo || "",
+            telefono: cliente.telefono || "",
+            fechaRegistro: cliente.fechaRegistro
+              ? new Date(cliente.fechaRegistro).toLocaleDateString("es-CL")
+              : new Date().toLocaleDateString("es-CL"),
+            estado:
+              cliente.activo || cliente.esActivo
+                ? "activo"
+                : ("inactivo" as "activo" | "suspendido" | "inactivo"),
+          })
+        );
+
         setEmpresas(empresasMapeadas);
       } else {
-        console.error('Error cargando empresas:', response.error);
+        console.error("Error cargando empresas:", response.error);
         toast({
           title: "Error",
-          description: "No se pudieron cargar las empresas. Por favor, intente nuevamente.",
+          description:
+            "No se pudieron cargar las empresas. Por favor, intente nuevamente.",
           variant: "destructive",
         });
       }
     } catch (error) {
-      console.error('Error cargando empresas:', error);
+      console.error("Error cargando empresas:", error);
       toast({
         title: "Error",
         description: "Error de conexión. Por favor, intente nuevamente.",
@@ -104,22 +128,23 @@ export function GestionEmpresas({ reducida = false }: GestionEmpresasProps) {
   };
 
   // Filtrar empresas según la búsqueda
-  const empresasFiltradas = empresas.filter(empresa => 
-    empresa.nombre.toLowerCase().includes(busqueda.toLowerCase()) || 
-    empresa.rut.toLowerCase().includes(busqueda.toLowerCase())
+  const empresasFiltradas = empresas.filter(
+    (empresa) =>
+      empresa.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+      empresa.rut.toLowerCase().includes(busqueda.toLowerCase())
   );
 
   // Abrir formulario para crear nueva empresa
   const abrirFormularioNuevo = () => {
     setEmpresaActual({
-      id: '',
-      nombre: '',
-      rut: '',
-      contacto: '',
-      email: '',
-      telefono: '',
-      fechaRegistro: new Date().toLocaleDateString('es-CL'),
-      estado: 'activo'
+      id: "",
+      nombre: "",
+      rut: "",
+      contacto: "",
+      email: "",
+      telefono: "",
+      fechaRegistro: new Date().toLocaleDateString("es-CL"),
+      estado: "activo",
     });
     setModoEdicion(false);
     setModalAbierto(true);
@@ -135,21 +160,23 @@ export function GestionEmpresas({ reducida = false }: GestionEmpresasProps) {
   // Guardar empresa (nueva o editada)
   const guardarEmpresa = () => {
     if (!empresaActual) return;
-    
+
     if (modoEdicion) {
       // Actualizar empresa existente
-      setEmpresas(empresas.map(emp => 
-        emp.id === empresaActual.id ? empresaActual : emp
-      ));
+      setEmpresas(
+        empresas.map((emp) =>
+          emp.id === empresaActual.id ? empresaActual : emp
+        )
+      );
     } else {
       // Crear nueva empresa
       const nuevaEmpresa = {
         ...empresaActual,
-        id: `${empresas.length + 1}` // En una implementación real, esto sería generado por el backend
+        id: `${empresas.length + 1}`, // En una implementación real, esto sería generado por el backend
       };
       setEmpresas([...empresas, nuevaEmpresa]);
     }
-    
+
     setModalAbierto(false);
     setEmpresaActual(null);
   };
@@ -157,7 +184,7 @@ export function GestionEmpresas({ reducida = false }: GestionEmpresasProps) {
   // Eliminar empresa
   const eliminarEmpresa = (id: string) => {
     // En una implementación real, confirmaríamos con el usuario antes de eliminar
-    setEmpresas(empresas.filter(empresa => empresa.id !== id));
+    setEmpresas(empresas.filter((empresa) => empresa.id !== id));
   };
 
   // Actualizar campo de empresa en edición
@@ -165,7 +192,7 @@ export function GestionEmpresas({ reducida = false }: GestionEmpresasProps) {
     if (empresaActual) {
       setEmpresaActual({
         ...empresaActual,
-        [campo]: valor
+        [campo]: valor,
       });
     }
   };
@@ -178,19 +205,21 @@ export function GestionEmpresas({ reducida = false }: GestionEmpresasProps) {
             <Building2 className="h-5 w-5 text-orange-600" />
             Empresas Cliente
           </h2>
-          <Button size="sm" variant="outline" onClick={() => abrirFormularioNuevo()}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => abrirFormularioNuevo()}
+          >
             <PlusCircle className="h-4 w-4 mr-1" /> Agregar
           </Button>
         </div>
-        
+
         {cargando ? (
           <div className="flex justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
           </div>
         ) : error ? (
-          <div className="p-4 text-center text-red-500">
-            {error}
-          </div>
+          <div className="p-4 text-center text-red-500">{error}</div>
         ) : (
           <>
             <Table>
@@ -205,38 +234,56 @@ export function GestionEmpresas({ reducida = false }: GestionEmpresasProps) {
               <TableBody>
                 {empresasFiltradas.slice(0, 3).map((empresa) => (
                   <TableRow key={empresa.id}>
-                    <TableCell className="font-medium">{empresa.nombre}</TableCell>
+                    <TableCell className="font-medium">
+                      {empresa.nombre}
+                    </TableCell>
                     <TableCell>{empresa.rut}</TableCell>
                     <TableCell>
-                      <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                        empresa.estado === 'activo' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                        empresa.estado === 'suspendido' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
-                        'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-                      }`}>
-                        {empresa.estado.charAt(0).toUpperCase() + empresa.estado.slice(1)}
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                          empresa.estado === "activo"
+                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                            : empresa.estado === "suspendido"
+                              ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                              : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                        }`}
+                      >
+                        {empresa.estado.charAt(0).toUpperCase() +
+                          empresa.estado.slice(1)}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button size="icon" variant="ghost" onClick={() => abrirFormularioEditar(empresa)}>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => abrirFormularioEditar(empresa)}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" variant="ghost" onClick={() => eliminarEmpresa(empresa.id)}>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => eliminarEmpresa(empresa.id)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>
                 ))}
-                
+
                 {empresasFiltradas.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                    <TableCell
+                      colSpan={4}
+                      className="text-center py-8 text-gray-500"
+                    >
                       No se encontraron empresas cliente registradas
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
-            
+
             {empresasFiltradas.length > 3 && (
               <div className="mt-2 text-center">
                 <Button variant="link" size="sm" className="text-orange-600">
@@ -250,7 +297,9 @@ export function GestionEmpresas({ reducida = false }: GestionEmpresasProps) {
         <Dialog open={modalAbierto} onOpenChange={setModalAbierto}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{modoEdicion ? 'Editar Empresa' : 'Registrar Nueva Empresa'}</DialogTitle>
+              <DialogTitle>
+                {modoEdicion ? "Editar Empresa" : "Registrar Nueva Empresa"}
+              </DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               {empresaActual && (
@@ -258,48 +307,56 @@ export function GestionEmpresas({ reducida = false }: GestionEmpresasProps) {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="nombre">Nombre de la empresa</Label>
-                      <Input 
-                        id="nombre" 
-                        value={empresaActual.nombre} 
-                        onChange={(e) => actualizarCampo('nombre', e.target.value)}
+                      <Input
+                        id="nombre"
+                        value={empresaActual.nombre}
+                        onChange={(e) =>
+                          actualizarCampo("nombre", e.target.value)
+                        }
                       />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="rut">RUT</Label>
-                      <Input 
-                        id="rut" 
-                        value={empresaActual.rut} 
-                        onChange={(e) => actualizarCampo('rut', e.target.value)}
+                      <Input
+                        id="rut"
+                        value={empresaActual.rut}
+                        onChange={(e) => actualizarCampo("rut", e.target.value)}
                       />
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="contacto">Persona de contacto</Label>
-                      <Input 
-                        id="contacto" 
-                        value={empresaActual.contacto} 
-                        onChange={(e) => actualizarCampo('contacto', e.target.value)}
+                      <Input
+                        id="contacto"
+                        value={empresaActual.contacto}
+                        onChange={(e) =>
+                          actualizarCampo("contacto", e.target.value)
+                        }
                       />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email">Correo electrónico</Label>
-                      <Input 
-                        id="email" 
+                      <Input
+                        id="email"
                         type="email"
-                        value={empresaActual.email} 
-                        onChange={(e) => actualizarCampo('email', e.target.value)}
+                        value={empresaActual.email}
+                        onChange={(e) =>
+                          actualizarCampo("email", e.target.value)
+                        }
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="telefono">Teléfono</Label>
-                    <Input 
-                      id="telefono" 
-                      value={empresaActual.telefono} 
-                      onChange={(e) => actualizarCampo('telefono', e.target.value)}
+                    <Input
+                      id="telefono"
+                      value={empresaActual.telefono}
+                      onChange={(e) =>
+                        actualizarCampo("telefono", e.target.value)
+                      }
                     />
                   </div>
                 </>
@@ -310,7 +367,7 @@ export function GestionEmpresas({ reducida = false }: GestionEmpresasProps) {
                 Cancelar
               </Button>
               <Button type="submit" onClick={guardarEmpresa}>
-                {modoEdicion ? 'Actualizar' : 'Crear'}
+                {modoEdicion ? "Actualizar" : "Crear"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -331,17 +388,17 @@ export function GestionEmpresas({ reducida = false }: GestionEmpresasProps) {
           <PlusCircle className="h-4 w-4 mr-2" /> Registrar Empresa
         </Button>
       </div>
-      
+
       <div className="flex items-center space-x-2 bg-white dark:bg-slate-800 p-2 rounded-md border border-gray-200 dark:border-gray-700">
         <Search className="h-5 w-5 text-gray-500 ml-2" />
-        <Input 
+        <Input
           className="border-0 focus-visible:ring-0 h-9"
-          placeholder="Buscar por nombre o RUT..." 
+          placeholder="Buscar por nombre o RUT..."
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
         />
       </div>
-      
+
       {cargando ? (
         <div className="flex justify-center py-16">
           <Loader2 className="h-12 w-12 animate-spin text-orange-600" />
@@ -366,7 +423,9 @@ export function GestionEmpresas({ reducida = false }: GestionEmpresasProps) {
             <TableBody>
               {empresasFiltradas.map((empresa) => (
                 <TableRow key={empresa.id}>
-                  <TableCell className="font-medium">{empresa.nombre}</TableCell>
+                  <TableCell className="font-medium">
+                    {empresa.nombre}
+                  </TableCell>
                   <TableCell>{empresa.rut}</TableCell>
                   <TableCell>
                     <div>{empresa.contacto}</div>
@@ -374,28 +433,46 @@ export function GestionEmpresas({ reducida = false }: GestionEmpresasProps) {
                   </TableCell>
                   <TableCell>{empresa.fechaRegistro}</TableCell>
                   <TableCell>
-                    <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                      empresa.estado === 'activo' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                      empresa.estado === 'suspendido' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
-                      'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-                    }`}>
-                      {empresa.estado.charAt(0).toUpperCase() + empresa.estado.slice(1)}
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                        empresa.estado === "activo"
+                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                          : empresa.estado === "suspendido"
+                            ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                            : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                      }`}
+                    >
+                      {empresa.estado.charAt(0).toUpperCase() +
+                        empresa.estado.slice(1)}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant="ghost" className="text-blue-600 hover:text-blue-700" onClick={() => abrirFormularioEditar(empresa)}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-blue-600 hover:text-blue-700"
+                      onClick={() => abrirFormularioEditar(empresa)}
+                    >
                       Editar
                     </Button>
-                    <Button size="sm" variant="ghost" className="text-red-600 hover:text-red-700" onClick={() => eliminarEmpresa(empresa.id)}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-red-600 hover:text-red-700"
+                      onClick={() => eliminarEmpresa(empresa.id)}
+                    >
                       Eliminar
                     </Button>
                   </TableCell>
                 </TableRow>
               ))}
-              
+
               {empresasFiltradas.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-16 text-gray-500">
+                  <TableCell
+                    colSpan={6}
+                    className="text-center py-16 text-gray-500"
+                  >
                     No se encontraron empresas que coincidan con la búsqueda
                   </TableCell>
                 </TableRow>
@@ -404,11 +481,13 @@ export function GestionEmpresas({ reducida = false }: GestionEmpresasProps) {
           </Table>
         </div>
       )}
-      
+
       <Dialog open={modalAbierto} onOpenChange={setModalAbierto}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{modoEdicion ? 'Editar Empresa' : 'Registrar Nueva Empresa'}</DialogTitle>
+            <DialogTitle>
+              {modoEdicion ? "Editar Empresa" : "Registrar Nueva Empresa"}
+            </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             {empresaActual && (
@@ -416,58 +495,69 @@ export function GestionEmpresas({ reducida = false }: GestionEmpresasProps) {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="nombre">Nombre de la empresa</Label>
-                    <Input 
-                      id="nombre" 
-                      value={empresaActual.nombre} 
-                      onChange={(e) => actualizarCampo('nombre', e.target.value)}
+                    <Input
+                      id="nombre"
+                      value={empresaActual.nombre}
+                      onChange={(e) =>
+                        actualizarCampo("nombre", e.target.value)
+                      }
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="rut">RUT</Label>
-                    <Input 
-                      id="rut" 
-                      value={empresaActual.rut} 
-                      onChange={(e) => actualizarCampo('rut', e.target.value)}
+                    <Input
+                      id="rut"
+                      value={empresaActual.rut}
+                      onChange={(e) => actualizarCampo("rut", e.target.value)}
                     />
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="contacto">Persona de contacto</Label>
-                    <Input 
-                      id="contacto" 
-                      value={empresaActual.contacto} 
-                      onChange={(e) => actualizarCampo('contacto', e.target.value)}
+                    <Input
+                      id="contacto"
+                      value={empresaActual.contacto}
+                      onChange={(e) =>
+                        actualizarCampo("contacto", e.target.value)
+                      }
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Correo electrónico</Label>
-                    <Input 
-                      id="email" 
+                    <Input
+                      id="email"
                       type="email"
-                      value={empresaActual.email} 
-                      onChange={(e) => actualizarCampo('email', e.target.value)}
+                      value={empresaActual.email}
+                      onChange={(e) => actualizarCampo("email", e.target.value)}
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="telefono">Teléfono</Label>
-                  <Input 
-                    id="telefono" 
-                    value={empresaActual.telefono} 
-                    onChange={(e) => actualizarCampo('telefono', e.target.value)}
+                  <Input
+                    id="telefono"
+                    value={empresaActual.telefono}
+                    onChange={(e) =>
+                      actualizarCampo("telefono", e.target.value)
+                    }
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="estado">Estado</Label>
-                  <select 
+                  <select
                     id="estado"
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     value={empresaActual.estado}
-                    onChange={(e) => actualizarCampo('estado', e.target.value as 'activo' | 'suspendido' | 'inactivo')}
+                    onChange={(e) =>
+                      actualizarCampo(
+                        "estado",
+                        e.target.value as "activo" | "suspendido" | "inactivo"
+                      )
+                    }
                   >
                     <option value="activo">Activo</option>
                     <option value="suspendido">Suspendido</option>
@@ -482,11 +572,11 @@ export function GestionEmpresas({ reducida = false }: GestionEmpresasProps) {
               Cancelar
             </Button>
             <Button type="submit" onClick={guardarEmpresa}>
-              {modoEdicion ? 'Actualizar' : 'Crear'}
+              {modoEdicion ? "Actualizar" : "Crear"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
-} 
+}
