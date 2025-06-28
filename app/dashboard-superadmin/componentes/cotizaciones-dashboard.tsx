@@ -315,15 +315,10 @@ export function CotizacionesDashboard({
       setIsUpdating(true);
       setErrorMsg(null);
 
-      const response = await fetch(
-        `/api/cotizaciones?id=${cotizacionAEliminar}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const response = await apiService.eliminarCotizacion(cotizacionAEliminar);
 
-      if (!response.ok) {
-        throw new Error("Error al eliminar la cotización");
+      if (!response.success) {
+        throw new Error(response.error || "Error al eliminar la cotización");
       }
 
       // Eliminar la cotización del estado local
@@ -348,7 +343,6 @@ export function CotizacionesDashboard({
       toast({
         title: "Cotización eliminada",
         description: "La cotización ha sido eliminada correctamente.",
-        variant: "success",
       });
     } catch (error) {
       console.error("Error al eliminar cotización:", error);
@@ -989,12 +983,12 @@ export function CotizacionesDashboard({
                     cotizacionSeleccionada.servicio === "cotizacion_reposicion"
                       ? "estandar"
                       : cotizacionSeleccionada.servicio ===
-                        "cotizacion_monitoreo"
-                      ? "basico"
-                      : cotizacionSeleccionada.servicio ===
-                        "cotizacion_completa"
-                      ? "premium"
-                      : "basico",
+                          "cotizacion_monitoreo"
+                        ? "basico"
+                        : cotizacionSeleccionada.servicio ===
+                            "cotizacion_completa"
+                          ? "premium"
+                          : "basico",
                 }}
                 onComplete={() => {
                   setActiveTab("cotizaciones");
