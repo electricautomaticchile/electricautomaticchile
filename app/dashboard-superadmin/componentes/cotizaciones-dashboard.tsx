@@ -983,12 +983,12 @@ export function CotizacionesDashboard({
                     cotizacionSeleccionada.servicio === "cotizacion_reposicion"
                       ? "estandar"
                       : cotizacionSeleccionada.servicio ===
-                          "cotizacion_monitoreo"
-                        ? "basico"
-                        : cotizacionSeleccionada.servicio ===
-                            "cotizacion_completa"
-                          ? "premium"
-                          : "basico",
+                        "cotizacion_monitoreo"
+                      ? "basico"
+                      : cotizacionSeleccionada.servicio ===
+                        "cotizacion_completa"
+                      ? "premium"
+                      : "basico",
                 }}
                 onComplete={() => {
                   setActiveTab("cotizaciones");
