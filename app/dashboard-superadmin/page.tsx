@@ -128,6 +128,15 @@ export default function DashboardSuperadmin() {
               <Mensajeria reducida={true} />
               <Notificaciones reducida={true} />
             </div>
+
+            {/* Panel de Cotizaciones - Destacado */}
+            <div className="grid gap-6 md:grid-cols-1 mb-6">
+              <CotizacionesDashboard
+                reducida={true}
+                onVerTodas={() => setComponenteActivo("cotizaciones")}
+              />
+            </div>
+
             <div className="grid gap-6 md:grid-cols-2 mb-6">
               <FacturacionGlobal reducida={true} />
               <GestionEmpresas reducida={true} />
@@ -157,35 +166,6 @@ export default function DashboardSuperadmin() {
             </div>
 
             {renderizarComponenteActivo()}
-
-            {!componenteActivo && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-xl font-bold">
-                        Cotizaciones Recientes
-                      </CardTitle>
-                      <CardDescription>
-                        Gestión de solicitudes de clientes
-                      </CardDescription>
-                    </div>
-                    <Link href="/dashboard-superadmin/cotizaciones">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-orange-600 hover:text-orange-700"
-                      >
-                        Ver todas <ArrowRight className="h-4 w-4 ml-1" />
-                      </Button>
-                    </Link>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <CotizacionesDashboard reducida={true} />
-                </CardContent>
-              </Card>
-            )}
           </main>
         </div>
       </div>
