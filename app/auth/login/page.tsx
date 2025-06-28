@@ -89,11 +89,6 @@ const LoginContent = () => {
       if (response.success && response.data) {
         console.log("✅ Login exitoso:", response.data);
 
-        // DEBUG: Mostrar alert para confirmar que llegamos aquí
-        alert(
-          `🎉 LOGIN EXITOSO!\nUsuario: ${response.data.user.nombre}\nRole: ${response.data.user.role}\nTipo: ${response.data.user.tipoUsuario}`
-        );
-
         // Redirigir según el tipo de usuario
         const tipoUsuario = response.data.user.tipoUsuario;
         const role = response.data.user.role;
@@ -129,13 +124,9 @@ const LoginContent = () => {
 
         console.log("🔗 URL final de redirección:", targetUrl);
 
-        // DEBUG: Mostrar alert con la URL de redirección
-        alert(`🔗 Redirigiendo a: ${targetUrl}`);
-
-        // Guardar datos del usuario en localStorage (opcional)
+        // Guardar datos del usuario (el token ya se guarda automáticamente por apiService)
         if (typeof window !== "undefined") {
           localStorage.setItem("user", JSON.stringify(response.data.user));
-          localStorage.setItem("token", response.data.token);
         }
 
         // Redirección INMEDIATA - sin setTimeout
@@ -151,7 +142,6 @@ const LoginContent = () => {
         }
       } else {
         console.error("❌ Error en respuesta:", response);
-        alert(`❌ ERROR: ${response.error || "Credenciales incorrectas"}`);
         setError(
           response.error ||
             "Credenciales incorrectas. Por favor, verifique su información."
@@ -159,7 +149,6 @@ const LoginContent = () => {
       }
     } catch (error) {
       console.error("💥 Error durante el login:", error);
-      alert(`💥 ERROR CATCH: ${error}`);
       setError("Error al iniciar sesión. Intente nuevamente.");
     } finally {
       setIsLoading(false);
