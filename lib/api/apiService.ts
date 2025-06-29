@@ -256,6 +256,7 @@ export interface AuthResponse {
   user: IUsuario;
   token: string;
   refreshToken: string;
+  requiereCambioPassword?: boolean;
 }
 
 // Clase para manejar el almacenamiento de tokens
@@ -467,6 +468,35 @@ class ApiService {
 
   async getProfile(): Promise<ApiResponse<IUsuario>> {
     return this.makeRequest<IUsuario>("/auth/me");
+  }
+
+  async cambiarPassword(
+    passwordActual: string,
+    passwordNueva: string
+  ): Promise<ApiResponse<{ passwordTemporal?: boolean }>> {
+    return this.makeRequest("/auth/cambiar-password", {
+      method: "POST",
+      body: JSON.stringify({ passwordActual, passwordNueva }),
+    });
+  }
+
+  async solicitarRecuperacion(
+    emailOrNumeroCliente: string
+  ): Promise<ApiResponse<any>> {
+    return this.makeRequest("/auth/solicitar-recuperacion", {
+      method: "POST",
+      body: JSON.stringify({ emailOrNumeroCliente }),
+    });
+  }
+
+  async restablecerPassword(
+    token: string,
+    nuevaPassword: string
+  ): Promise<ApiResponse<{ numeroCliente: string; tipoUsuario: string }>> {
+    return this.makeRequest("/auth/restablecer-password", {
+      method: "POST",
+      body: JSON.stringify({ token, nuevaPassword }),
+    });
   }
 
   // =================== COTIZACIONES ===================

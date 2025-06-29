@@ -69,9 +69,31 @@ export function useAuth() {
   const checkAuthStatus = useCallback(async () => {
     try {
       setLoading(true);
-      // Verificar si hay token en localStorage
-      const token = localStorage.getItem("auth_token");
+
+      // Verificar si hay token usando el mismo método que el apiService
+      // Primero intentar localStorage, luego cookies
+      let token = null;
+      if (typeof window !== "undefined") {
+        token = localStorage.getItem("auth_token");
+
+        // Si no está en localStorage, intentar obtener de cookies
+        if (!token) {
+          const cookies = document.cookie.split(";");
+          for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split("=");
+            if (name === "auth_token") {
+              token = value;
+              break;
+            }
+          }
+        }
+      }
+
+      console.log("🔍 Token encontrado:", token ? "SÍ" : "NO");
+      console.log("🔍 Longitud del token:", token?.length || 0);
+
       if (!token) {
+        console.log("❌ No hay token, usando usuario temporal");
         setUser(tempUser); // Usuario temporal para desarrollo
         setIsAuthenticated(false);
         setIsRealAuthenticated(false);
@@ -79,16 +101,60 @@ export function useAuth() {
         return;
       }
 
+      // Primero intentar obtener usuario de localStorage (más rápido)
+      const savedUser = localStorage.getItem("user");
+      if (savedUser) {
+        try {
+          const userData = JSON.parse(savedUser);
+          console.log("✅ Usuario encontrado en localStorage:", userData);
+          setUser(userData);
+          setIsAuthenticated(true);
+          setIsRealAuthenticated(true);
+          setLoading(false);
+
+          // Verificar perfil en segundo plano para sincronizar
+          apiService
+            .getProfile()
+            .then((response) => {
+              if (response.success && response.data) {
+                setUser(response.data);
+                localStorage.setItem("user", JSON.stringify(response.data));
+              }
+            })
+            .catch((error) => {
+              console.log("Error al verificar perfil en segundo plano:", error);
+            });
+
+          return;
+        } catch (error) {
+          console.log("Error al parsear usuario guardado:", error);
+        }
+      }
+
+      // Si no hay usuario en localStorage, consultar API
       const response = await apiService.getProfile();
       if (response.success && response.data) {
         setUser(response.data);
         setIsAuthenticated(true);
         setIsRealAuthenticated(true);
-        console.log("✅ Usuario autenticado:", response.data);
+        localStorage.setItem("user", JSON.stringify(response.data));
+        console.log("✅ Usuario autenticado desde API:", response.data);
       } else {
-        // Token inválido, usar usuario temporal
+        // Token inválido, limpiar todo
+        console.log("❌ Token inválido, limpiando datos");
         localStorage.removeItem("auth_token");
         localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("requiereCambioPassword");
+
+        // Limpiar cookies también
+        if (typeof window !== "undefined") {
+          document.cookie =
+            "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+          document.cookie =
+            "refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        }
+
         setUser(tempUser);
         setIsAuthenticated(false);
         setIsRealAuthenticated(false);
@@ -119,9 +185,18 @@ export function useAuth() {
         setIsAuthenticated(true);
         setIsRealAuthenticated(true);
 
+        // Guardar usuario en localStorage
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+
+        // Si requiere cambio de contraseña, guardarlo
+        if (response.data.requiereCambioPassword) {
+          localStorage.setItem("requiereCambioPassword", "true");
+        }
+
         console.log("🎯 Estado actualizado:", {
           user: response.data.user,
           isAuthenticated: true,
+          requiereCambioPassword: response.data.requiereCambioPassword || false,
         });
       }
       return response;
@@ -142,9 +217,19 @@ export function useAuth() {
       setUser(tempUser); // Volver al usuario temporal
       setIsAuthenticated(false);
       setIsRealAuthenticated(false);
+
+      // Limpiar localStorage
       localStorage.removeItem("auth_token");
       localStorage.removeItem("refresh_token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("requiereCambioPassword");
+
+      // Limpiar cookies
       if (typeof window !== "undefined") {
+        document.cookie =
+          "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        document.cookie =
+          "refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
         window.location.href = "/";
       }
     }
@@ -162,8 +247,8 @@ export function useAuth() {
     status: loading
       ? "loading"
       : isRealAuthenticated
-      ? "authenticated"
-      : "unauthenticated",
+        ? "authenticated"
+        : "unauthenticated",
     isAdmin:
       (isRealAuthenticated &&
         (user?.tipoUsuario === "admin" || user?.role === "admin")) ||
