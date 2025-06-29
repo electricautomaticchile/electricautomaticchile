@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { EmpresaRoute } from "@/components/auth/protected-route";
+import { CambioPasswordModal } from "@/components/ui/cambio-password-modal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -31,7 +32,16 @@ import {
   Settings,
   LogOut,
   Zap,
+  KeyRound,
+  ChevronDown,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Componente de barra de navegación lateral
 const Sidebar = () => {
@@ -103,23 +113,49 @@ const Sidebar = () => {
 };
 
 // Componente de encabezado superior
-const Header = () => {
+const Header = ({ onCambiarPassword }: { onCambiarPassword: () => void }) => {
   return (
     <div className="fixed top-0 left-16 right-0 h-16 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-6 z-10">
       <h1 className="text-xl font-bold">Dashboard Empresa</h1>
 
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <div className="h-9 w-9 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
-            <CircleUserRound className="h-5 w-5 text-orange-600" />
-          </div>
-          <div>
-            <div className="text-sm font-medium">
-              Constructora Santiago S.A.
-            </div>
-            <div className="text-xs text-gray-500">Administrador</div>
-          </div>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="flex items-center gap-2 h-auto p-2"
+            >
+              <div className="h-9 w-9 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
+                <CircleUserRound className="h-5 w-5 text-orange-600" />
+              </div>
+              <div className="text-left">
+                <div className="text-sm font-medium">
+                  Constructora Santiago S.A.
+                </div>
+                <div className="text-xs text-gray-500">Administrador</div>
+              </div>
+              <ChevronDown className="h-4 w-4 text-gray-400" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem
+              onClick={onCambiarPassword}
+              className="flex items-center gap-2"
+            >
+              <KeyRound className="h-4 w-4" />
+              Cambiar Contraseña
+            </DropdownMenuItem>
+            <DropdownMenuItem className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Configuración
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="flex items-center gap-2 text-red-600">
+              <LogOut className="h-4 w-4" />
+              Cerrar Sesión
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
@@ -128,12 +164,30 @@ const Header = () => {
 // Componente principal del dashboard
 export default function DashboardEmpresa() {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [mostrarModalPassword, setMostrarModalPassword] = useState(false);
+  const [requiereCambioPassword, setRequiereCambioPassword] = useState(false);
+
+  // Verificar si requiere cambio de contraseña al cargar
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const requiereCambio = localStorage.getItem("requiereCambioPassword");
+      if (requiereCambio === "true") {
+        setRequiereCambioPassword(true);
+        setMostrarModalPassword(true);
+      }
+    }
+  }, []);
+
+  const handlePasswordChangeSuccess = () => {
+    setRequiereCambioPassword(false);
+    // Nota: localStorage se limpia automáticamente en el modal
+  };
 
   return (
     <EmpresaRoute>
       <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
         <Sidebar />
-        <Header />
+        <Header onCambiarPassword={() => setMostrarModalPassword(true)} />
 
         <div className="pl-16 pt-16 pb-8">
           <Tabs
@@ -311,6 +365,14 @@ export default function DashboardEmpresa() {
           </Tabs>
         </div>
       </div>
+
+      {/* Modal de cambio de contraseña */}
+      <CambioPasswordModal
+        isOpen={mostrarModalPassword}
+        onClose={() => setMostrarModalPassword(false)}
+        onSuccess={handlePasswordChangeSuccess}
+        mostrarAdvertencia={requiereCambioPassword}
+      />
     </EmpresaRoute>
   );
 }
