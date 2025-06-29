@@ -89,7 +89,39 @@ const LoginContent = () => {
       if (response.success && response.data) {
         console.log("✅ Login exitoso:", response.data);
 
-        // Redirigir según el tipo de usuario
+        // Verificar si requiere cambio de contraseña
+        if (response.data.requiereCambioPassword) {
+          console.log("⚠️ Usuario requiere cambio de contraseña");
+
+          // Guardar datos del usuario (el token ya se guarda automáticamente por apiService)
+          if (typeof window !== "undefined") {
+            localStorage.setItem("user", JSON.stringify(response.data.user));
+            localStorage.setItem("requiereCambioPassword", "true");
+          }
+
+          // Redirigir al dashboard pero con flag de cambio de contraseña
+          const targetUrl = callbackUrl || "/dashboard-empresa";
+
+          console.log(
+            "🔗 Redirigiendo con cambio de contraseña requerido:",
+            targetUrl
+          );
+
+          try {
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            await router.push(targetUrl);
+            console.log(
+              "✅ Router.push ejecutado (requiere cambio de contraseña)"
+            );
+          } catch (routerError) {
+            console.error("❌ Error con router.push:", routerError);
+            window.location.href = targetUrl;
+          }
+
+          return;
+        }
+
+        // Redirigir según el tipo de usuario (login normal)
         const tipoUsuario = response.data.user.tipoUsuario;
         const role = response.data.user.role;
 
