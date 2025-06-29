@@ -61,13 +61,13 @@ ${credenciales.passwordTemporal ? "NOTA: Contraseña temporal - debe cambiarla e
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="w-[95vw] max-w-lg max-h-[95vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="space-y-2">
+          <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
             <Key className="h-5 w-5 text-blue-600" />
             Credenciales de Acceso
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm sm:text-base">
             Guarde estas credenciales y compártalas con la empresa
           </DialogDescription>
         </DialogHeader>
@@ -168,12 +168,21 @@ ${credenciales.passwordTemporal ? "NOTA: Contraseña temporal - debe cambiarla e
           </Alert>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={copiarTodo}>
+        <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+          <Button
+            variant="outline"
+            onClick={copiarTodo}
+            className="w-full sm:w-auto"
+          >
             <Copy className="h-4 w-4 mr-2" />
             Copiar Todo
           </Button>
-          <Button onClick={() => onOpenChange(false)}>Cerrar</Button>
+          <Button
+            onClick={() => onOpenChange(false)}
+            className="w-full sm:w-auto"
+          >
+            Cerrar
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

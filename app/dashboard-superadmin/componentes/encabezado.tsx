@@ -31,9 +31,15 @@ import { useAuth } from "@/lib/hooks/useApi";
 
 interface EncabezadoProps {
   tipoUsuario: "superadmin" | "admin" | "cliente";
+  menuMovil?: React.ReactNode;
+  onCambioComponente?: (nombreComponente: string | null) => void;
 }
 
-export function Encabezado({ tipoUsuario }: EncabezadoProps) {
+export function Encabezado({
+  tipoUsuario,
+  menuMovil,
+  onCambioComponente,
+}: EncabezadoProps) {
   const {
     notifications,
     messages,
@@ -82,9 +88,11 @@ export function Encabezado({ tipoUsuario }: EncabezadoProps) {
   };
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b  px-4 ">
+    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-background px-4">
       <div className="w-full flex justify-between items-center">
         <div className="flex items-center gap-4">
+          {/* Menú móvil */}
+          {menuMovil}
           {tipoUsuario === "superadmin" && (
             <div className="inline-flex items-center rounded-md bg-orange-50 px-2 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20 dark:bg-orange-900/20 dark:text-orange-300">
               <span className="mr-1">Superadministrador</span>
@@ -107,26 +115,6 @@ export function Encabezado({ tipoUsuario }: EncabezadoProps) {
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Cambio de tema */}
-          {mounted && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              title={
-                theme === "dark"
-                  ? "Cambiar a modo claro"
-                  : "Cambiar a modo oscuro"
-              }
-            >
-              {theme === "dark" ? (
-                <Sun className="h-5 w-5" />
-              ) : (
-                <Moon className="h-5 w-5" />
-              )}
-            </Button>
-          )}
-
           {/* Mensajes */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -213,8 +201,8 @@ export function Encabezado({ tipoUsuario }: EncabezadoProps) {
                           notif.tipo === "alerta"
                             ? "text-red-600"
                             : notif.tipo === "info"
-                            ? "text-blue-600"
-                            : "text-green-600"
+                              ? "text-blue-600"
+                              : "text-green-600"
                         }`}
                       >
                         {notif.titulo}
@@ -231,8 +219,8 @@ export function Encabezado({ tipoUsuario }: EncabezadoProps) {
                             notif.prioridad === "alta"
                               ? "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300"
                               : notif.prioridad === "media"
-                              ? "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
-                              : "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
+                                ? "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
+                                : "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
                           }
                         >
                           {notif.prioridad}
@@ -279,7 +267,9 @@ export function Encabezado({ tipoUsuario }: EncabezadoProps) {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>Mi cuenta</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={irAConfiguracion}>
+              <DropdownMenuItem
+                onClick={() => onCambioComponente?.("configuracion")}
+              >
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Configuración</span>
               </DropdownMenuItem>

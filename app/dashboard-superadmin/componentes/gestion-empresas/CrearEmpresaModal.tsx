@@ -48,23 +48,37 @@ export function CrearEmpresaModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Crear Nueva Empresa</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="w-[95vw] max-w-4xl max-h-[95vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="space-y-2">
+          <DialogTitle className="text-lg sm:text-xl">
+            Crear Nueva Empresa
+          </DialogTitle>
+          <DialogDescription className="text-sm sm:text-base">
             Completa la información para registrar una nueva empresa cliente
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
           <Tabs defaultValue="empresa" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="empresa">Información de Empresa</TabsTrigger>
-              <TabsTrigger value="contacto">Contacto Principal</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 h-auto">
+              <TabsTrigger
+                value="empresa"
+                className="text-xs sm:text-sm px-2 py-2 sm:px-4 sm:py-2"
+              >
+                <span className="hidden sm:inline">Información de Empresa</span>
+                <span className="sm:hidden">Empresa</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="contacto"
+                className="text-xs sm:text-sm px-2 py-2 sm:px-4 sm:py-2"
+              >
+                <span className="hidden sm:inline">Contacto Principal</span>
+                <span className="sm:hidden">Contacto</span>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="empresa" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="nombreEmpresa">Nombre de la Empresa *</Label>
                   <Input
@@ -91,7 +105,7 @@ export function CrearEmpresaModal({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="rut">RUT *</Label>
                   <Input
@@ -117,7 +131,7 @@ export function CrearEmpresaModal({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="telefono">Teléfono *</Label>
                   <Input
@@ -153,7 +167,7 @@ export function CrearEmpresaModal({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="ciudad">Ciudad *</Label>
                   <Input
@@ -182,7 +196,7 @@ export function CrearEmpresaModal({
             </TabsContent>
 
             <TabsContent value="contacto" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="contactoNombre">Nombre Completo *</Label>
                   <Input
@@ -213,7 +227,7 @@ export function CrearEmpresaModal({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="contactoTelefono">Teléfono *</Label>
                   <Input
@@ -247,18 +261,19 @@ export function CrearEmpresaModal({
             </TabsContent>
           </Tabs>
 
-          <DialogFooter className="mt-6">
+          <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0 mt-6">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={cargandoCreacion}
+              className="w-full sm:w-auto"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 w-full sm:w-auto"
               disabled={cargandoCreacion}
             >
               {cargandoCreacion ? "Creando..." : "Crear Empresa"}

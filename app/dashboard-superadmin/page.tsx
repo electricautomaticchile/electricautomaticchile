@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { SuperAdminRoute } from "@/components/auth/protected-route";
 import { BarrasNavegacion } from "./componentes/barras-navegacion";
+import { NavegacionMovil } from "./componentes/navegacion-movil";
 import { Encabezado } from "./componentes/encabezado";
 import GestionEmpresas from "./componentes/gestion-empresas";
 import { EstadisticasGlobales } from "./componentes/estadisticas-globales";
@@ -122,50 +123,70 @@ export default function DashboardSuperadmin() {
       default:
         // Vista por defecto: dashboard general
         return (
-          <>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-6">
+          <div className="space-y-4 md:space-y-6">
+            {/* Estadísticas principales */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <EstadisticasGlobales reducida={true} />
               <Mensajeria reducida={true} />
               <Notificaciones reducida={true} />
             </div>
 
             {/* Panel de Cotizaciones - Destacado */}
-            <div className="grid gap-6 md:grid-cols-1 mb-6">
+            <div className="w-full">
               <CotizacionesDashboard
                 reducida={true}
                 onVerTodas={() => setComponenteActivo("cotizaciones")}
               />
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 mb-6">
+            {/* Gestión y Facturación */}
+            <div className="grid gap-4 lg:grid-cols-2">
               <FacturacionGlobal reducida={true} />
               <GestionEmpresas reducida={true} />
             </div>
-            <div className="grid gap-6 md:grid-cols-1">
+
+            {/* Registros de Actividad */}
+            <div className="w-full">
               <RegistrosActividad reducida={true} />
             </div>
-          </>
+          </div>
         );
     }
   };
 
   return (
     <SuperAdminRoute>
-      <div className="grid min-h-screen w-full overflow-hidden lg:grid-cols-[280px_1fr]">
-        <BarrasNavegacion onCambioComponente={setComponenteActivo} />
-        <div className="flex flex-col">
-          <Encabezado tipoUsuario="superadmin" />
-          <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
-            <div className="mb-4">
-              <h1 className="text-3xl font-bold text-orange-600">
-                Panel de Administración Principal
-              </h1>
-              <p className="text-gray-500 dark:text-gray-400">
-                Gestión centralizada de la plataforma Electric Automatic Chile
-              </p>
-            </div>
+      <div className="flex h-screen w-full overflow-hidden">
+        {/* Sidebar - Oculto en móviles, visible en desktop */}
+        <div className="hidden lg:block">
+          <BarrasNavegacion onCambioComponente={setComponenteActivo} />
+        </div>
 
-            {renderizarComponenteActivo()}
+        {/* Contenido principal */}
+        <div className="flex flex-1 flex-col min-w-0">
+          <Encabezado
+            tipoUsuario="superadmin"
+            menuMovil={
+              <NavegacionMovil onCambioComponente={setComponenteActivo} />
+            }
+            onCambioComponente={setComponenteActivo}
+          />
+          <main className="flex-1 overflow-auto">
+            <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
+              {/* Solo mostrar título y descripción en el panel principal */}
+              {!componenteActivo && (
+                <div className="space-y-1 md:space-y-2">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-orange-600">
+                    Panel de Administración Principal
+                  </h1>
+                  <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
+                    Gestión centralizada de la plataforma Electricautomaticchile
+                  </p>
+                </div>
+              )}
+
+              {renderizarComponenteActivo()}
+            </div>
           </main>
         </div>
       </div>

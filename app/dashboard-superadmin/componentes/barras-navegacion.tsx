@@ -35,6 +35,13 @@ export function BarrasNavegacion({
     setMenuAbierto(!menuAbierto);
   };
 
+  // Cerrar menú al hacer click fuera (solo en móviles)
+  const cerrarMenuMovil = () => {
+    if (window.innerWidth < 1024) {
+      setMenuAbierto(false);
+    }
+  };
+
   const BotonNavegacion = ({
     icono,
     texto,
@@ -66,133 +73,90 @@ export function BarrasNavegacion({
   );
 
   return (
-    <nav>
-      <div className="border-r border-gray-200 dark:border-gray-800">
-        <div className="flex h-full max-h-screen flex-col gap-2">
-          <div className="flex h-[60px] items-center border-b border-gray-200 dark:border-gray-800 px-6">
-            <Link
-              href="#"
-              className="flex items-center gap-2 font-semibold"
-              prefetch={false}
-            >
-              <div className="lg:hidden" onClick={alternarMenu}>
-                <Logo width={24} height={24} />
-              </div>
-              <div className="hidden lg:block">
-                <Logo width={24} height={24} />
-              </div>
-              <span className="text-lg text-gray-900 dark:text-white">
-                Electric<span className="text-orange-600">Admin</span>
-              </span>
-            </Link>
-            <div className="ml-auto flex gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 relative"
-                onClick={() => {
-                  onCambioComponente("mensajeria");
-                }}
-              >
-                <MessageSquare className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                {unreadMessagesCount > 0 && (
-                  <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
-                )}
-                <span className="sr-only">Mensajes</span>
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 relative"
-                onClick={() => {
-                  onCambioComponente("notificaciones");
-                }}
-              >
-                <Bell className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                {unreadNotificationsCount > 0 && (
-                  <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
-                )}
-                <span className="sr-only">Notificaciones</span>
-              </Button>
-            </div>
-          </div>
-          <div
-            className={`flex-1 overflow-auto py-2 ${
-              menuAbierto ? "block" : "hidden"
-            } lg:block`}
-          >
-            <nav className="grid items-start px-4 text-base font-medium">
-              <BotonNavegacion
-                icono={<Home className="h-4 w-4" />}
-                texto="Panel Principal"
-                onClick={() => onCambioComponente(null)}
-              />
-              <BotonNavegacion
-                icono={<Building2 className="h-4 w-4" />}
-                texto="Gestión de Empresas"
-                onClick={() => onCambioComponente("gestion-empresas")}
-              />
-              <BotonNavegacion
-                icono={<FileSpreadsheet className="h-4 w-4" />}
-                texto="Cotizaciones"
-                onClick={() => onCambioComponente("cotizaciones")}
-              />
-              <BotonNavegacion
-                icono={<BarChart3 className="h-4 w-4" />}
-                texto="Estadísticas Globales"
-                onClick={() => onCambioComponente("estadisticas-globales")}
-              />
-              <BotonNavegacion
-                icono={<DollarSign className="h-4 w-4" />}
-                texto="Facturación Global"
-                onClick={() => onCambioComponente("facturacion-global")}
-              />
-              <BotonNavegacion
-                icono={<History className="h-4 w-4" />}
-                texto="Registros de Actividad"
-                onClick={() => onCambioComponente("registros-actividad")}
-              />
-              <BotonNavegacion
-                icono={<MessageSquare className="h-4 w-4" />}
-                texto="Mensajería"
-                onClick={() => onCambioComponente("mensajeria")}
-                badge={unreadMessagesCount}
-              />
-              <BotonNavegacion
-                icono={<Bell className="h-4 w-4" />}
-                texto="Notificaciones"
-                onClick={() => onCambioComponente("notificaciones")}
-                badge={unreadNotificationsCount}
-              />
-              <BotonNavegacion
-                icono={<Settings className="h-4 w-4" />}
-                texto="Configuración"
-                onClick={() => onCambioComponente("configuracion")}
-              />
-            </nav>
-          </div>
-          <div className="mt-auto p-4 border-t border-gray-200 dark:border-gray-800">
-            <div className="flex items-center gap-3 rounded-lg px-3 py-2">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src="/avatars/admin.jpg" alt="Admin" />
-                <AvatarFallback className="bg-orange-500 text-white">
-                  {user?.nombre?.charAt(0) || "A"}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  {user?.numeroCliente || "-------"}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  <span className="block text-[10px]">
-                    electricautomaticchile@gmail.com
-                  </span>
-                </p>
-              </div>
-            </div>
-          </div>
+    <div className="w-64 h-full border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-background">
+      <div className="flex h-full flex-col">
+        {/* Navegación */}
+        <div className="flex-1 overflow-auto py-4">
+          <nav className="space-y-1 px-3">
+            <BotonNavegacion
+              icono={<Home className="h-4 w-4" />}
+              texto="Panel Principal"
+              onClick={() => {
+                onCambioComponente(null);
+                cerrarMenuMovil();
+              }}
+            />
+            <BotonNavegacion
+              icono={<Building2 className="h-4 w-4" />}
+              texto="Gestión de Empresas"
+              onClick={() => {
+                onCambioComponente("gestion-empresas");
+                cerrarMenuMovil();
+              }}
+            />
+            <BotonNavegacion
+              icono={<FileSpreadsheet className="h-4 w-4" />}
+              texto="Cotizaciones"
+              onClick={() => {
+                onCambioComponente("cotizaciones");
+                cerrarMenuMovil();
+              }}
+            />
+            <BotonNavegacion
+              icono={<BarChart3 className="h-4 w-4" />}
+              texto="Estadísticas Globales"
+              onClick={() => {
+                onCambioComponente("estadisticas-globales");
+                cerrarMenuMovil();
+              }}
+            />
+            <BotonNavegacion
+              icono={<DollarSign className="h-4 w-4" />}
+              texto="Facturación Global"
+              onClick={() => {
+                onCambioComponente("facturacion-global");
+                cerrarMenuMovil();
+              }}
+            />
+            <BotonNavegacion
+              icono={<History className="h-4 w-4" />}
+              texto="Registros de Actividad"
+              onClick={() => {
+                onCambioComponente("registros-actividad");
+                cerrarMenuMovil();
+              }}
+            />
+            <BotonNavegacion
+              icono={<MessageSquare className="h-4 w-4" />}
+              texto="Mensajería"
+              onClick={() => {
+                onCambioComponente("mensajeria");
+                cerrarMenuMovil();
+              }}
+              badge={unreadMessagesCount}
+            />
+            <BotonNavegacion
+              icono={<Bell className="h-4 w-4" />}
+              texto="Notificaciones"
+              onClick={() => {
+                onCambioComponente("notificaciones");
+                cerrarMenuMovil();
+              }}
+              badge={unreadNotificationsCount}
+            />
+            <BotonNavegacion
+              icono={<Settings className="h-4 w-4" />}
+              texto="Configuración"
+              onClick={() => {
+                onCambioComponente("configuracion");
+                cerrarMenuMovil();
+              }}
+            />
+          </nav>
         </div>
+
+        {/* Footer del sidebar */}
       </div>
-    </nav>
+    </div>
   );
 }
