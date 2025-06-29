@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { SuperAdminRoute } from "@/components/auth/protected-route";
 import { BarrasNavegacion } from "./componentes/barras-navegacion";
 import { Encabezado } from "./componentes/encabezado";
-import { GestionEmpresas } from "./componentes/gestion-empresas";
+import GestionEmpresas from "./componentes/gestion-empresas";
 import { EstadisticasGlobales } from "./componentes/estadisticas-globales";
 import { Notificaciones } from "./componentes/notificaciones";
 import { Mensajeria } from "./componentes/mensajeria";

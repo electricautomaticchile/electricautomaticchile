@@ -1,579 +1,1264 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/components/ui/use-toast";
 import {
-  PlusCircle,
+  Building2,
+  Plus,
+  Search,
+  Filter,
   Edit,
   Trash2,
-  Search,
-  Building2,
-  Loader2,
+  Eye,
+  RefreshCw,
+  Key,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  MapPin,
+  Phone,
+  Mail,
+  Calendar,
+  Users,
+  Activity,
+  Copy,
 } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
-import { apiService, ICliente } from "@/lib/api/apiService";
+import {
+  apiService,
+  IEmpresa,
+  ICrearEmpresa,
+  CrearEmpresaResponse,
+  ResetearPasswordEmpresaResponse,
+} from "@/lib/api/apiService";
 
-interface Empresa {
-  id: string;
-  nombre: string;
-  rut: string;
-  contacto: string;
-  email: string;
-  telefono: string;
-  fechaRegistro: string;
-  estado: "activo" | "suspendido" | "inactivo";
-}
-
-interface ClienteDB {
-  _id: string;
-  nombre: string;
-  correo: string;
-  telefono: string;
-  empresa?: string;
-  rut: string;
-  numeroCliente: string;
-  direccion: string;
-  fechaRegistro: Date;
-  esActivo: boolean;
-  passwordTemporal?: string;
-  role: string;
-  planSeleccionado?: string;
-  montoMensual?: number;
-  notas?: string;
+interface EstadisticasEmpresas {
+  totales: {
+    total: number;
+    activas: number;
+    suspendidas: number;
+    inactivas: number;
+  };
+  ultimas: IEmpresa[];
+  porRegion: { _id: string; count: number }[];
 }
 
 interface GestionEmpresasProps {
   reducida?: boolean;
 }
 
-export function GestionEmpresas({ reducida = false }: GestionEmpresasProps) {
-  const [empresas, setEmpresas] = useState<Empresa[]>([]);
-  const [empresaActual, setEmpresaActual] = useState<Empresa | null>(null);
-  const [busqueda, setBusqueda] = useState("");
-  const [modalAbierto, setModalAbierto] = useState(false);
-  const [modoEdicion, setModoEdicion] = useState(false);
-  const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+interface Credenciales {
+  numeroCliente: string;
+  correo: string;
+  password: string;
+  passwordTemporal: boolean;
+  mensaje: string;
+}
+
+export default function GestionEmpresas({
+  reducida = false,
+}: GestionEmpresasProps) {
+  const [empresas, setEmpresas] = useState<IEmpresa[]>([]);
+  const [estadisticas, setEstadisticas] = useState<EstadisticasEmpresas | null>(
+    null
+  );
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState<string>("todos");
+  const [filtroRegion, setFiltroRegion] = useState<string>("todas");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedEmpresa, setSelectedEmpresa] = useState<IEmpresa | null>(null);
+  const [showCredenciales, setShowCredenciales] = useState<Credenciales | null>(
+    null
+  );
+  const { toast } = useToast();
+
+  // Estado para crear nueva empresa
+  const [nuevaEmpresa, setNuevaEmpresa] = useState<ICrearEmpresa>({
+    nombreEmpresa: "",
+    razonSocial: "",
+    rut: "",
+    correo: "",
+    telefono: "",
+    direccion: "",
+    ciudad: "",
+    region: "",
+    contactoPrincipal: {
+      nombre: "",
+      cargo: "",
+      telefono: "",
+      correo: "",
+    },
+  });
+
+  const regiones = [
+    "Región de Arica y Parinacota",
+    "Región de Tarapacá",
+    "Región de Antofagasta",
+    "Región de Atacama",
+    "Región de Coquimbo",
+    "Región de Valparaíso",
+    "Región Metropolitana",
+    "Región del Libertador General Bernardo O'Higgins",
+    "Región del Maule",
+    "Región de Ñuble",
+    "Región del Biobío",
+    "Región de La Araucanía",
+    "Región de Los Ríos",
+    "Región de Los Lagos",
+    "Región Aysén del General Carlos Ibáñez del Campo",
+    "Región de Magallanes y de la Antártica Chilena",
+  ];
 
   useEffect(() => {
     cargarEmpresas();
-  }, []);
+    cargarEstadisticas();
+  }, [currentPage, filtroEstado, filtroRegion, searchTerm]);
 
   const cargarEmpresas = async () => {
     try {
-      setCargando(true);
+      setLoading(true);
+      const params: any = {
+        page: currentPage,
+        limit: 10,
+      };
 
-      const response = await apiService.obtenerClientes();
+      if (filtroEstado !== "todos") params.estado = filtroEstado;
+      if (filtroRegion !== "todas") params.region = filtroRegion;
+      if (searchTerm) params.search = searchTerm;
+
+      const response = await apiService.obtenerEmpresas(params);
 
       if (response.success && response.data) {
-        // Mapear los datos de la API al formato esperado por el componente
-        const empresasMapeadas = response.data.map(
-          (cliente: ICliente, index: number) => ({
-            id: cliente._id,
-            nombre: cliente.nombre,
-            rut:
-              cliente.numeroCliente ||
-              `${Math.floor(Math.random() * 99999999)}-${Math.floor(Math.random() * 9)}`, // Generar RUT ficticio si no hay numeroCliente
-            contacto: cliente.nombre, // Usar el nombre como contacto por defecto
-            email: cliente.correo || "",
-            telefono: cliente.telefono || "",
-            fechaRegistro: cliente.fechaRegistro
-              ? new Date(cliente.fechaRegistro).toLocaleDateString("es-CL")
-              : new Date().toLocaleDateString("es-CL"),
-            estado:
-              cliente.activo || cliente.esActivo
-                ? "activo"
-                : ("inactivo" as "activo" | "suspendido" | "inactivo"),
-          })
-        );
-
-        setEmpresas(empresasMapeadas);
+        setEmpresas(response.data);
+        if (response.pagination) {
+          setTotalPages(response.pagination.totalPages);
+        }
       } else {
-        console.error("Error cargando empresas:", response.error);
         toast({
-          title: "Error",
-          description:
-            "No se pudieron cargar las empresas. Por favor, intente nuevamente.",
           variant: "destructive",
+          title: "Error",
+          description: response.error || "Error al cargar empresas",
         });
       }
     } catch (error) {
-      console.error("Error cargando empresas:", error);
+      console.error("Error al cargar empresas:", error);
       toast({
-        title: "Error",
-        description: "Error de conexión. Por favor, intente nuevamente.",
         variant: "destructive",
+        title: "Error",
+        description: "Error al cargar empresas",
       });
     } finally {
-      setCargando(false);
+      setLoading(false);
     }
   };
 
-  // Filtrar empresas según la búsqueda
-  const empresasFiltradas = empresas.filter(
-    (empresa) =>
-      empresa.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-      empresa.rut.toLowerCase().includes(busqueda.toLowerCase())
-  );
-
-  // Abrir formulario para crear nueva empresa
-  const abrirFormularioNuevo = () => {
-    setEmpresaActual({
-      id: "",
-      nombre: "",
-      rut: "",
-      contacto: "",
-      email: "",
-      telefono: "",
-      fechaRegistro: new Date().toLocaleDateString("es-CL"),
-      estado: "activo",
-    });
-    setModoEdicion(false);
-    setModalAbierto(true);
-  };
-
-  // Abrir formulario para editar empresa existente
-  const abrirFormularioEditar = (empresa: Empresa) => {
-    setEmpresaActual(empresa);
-    setModoEdicion(true);
-    setModalAbierto(true);
-  };
-
-  // Guardar empresa (nueva o editada)
-  const guardarEmpresa = () => {
-    if (!empresaActual) return;
-
-    if (modoEdicion) {
-      // Actualizar empresa existente
-      setEmpresas(
-        empresas.map((emp) =>
-          emp.id === empresaActual.id ? empresaActual : emp
-        )
-      );
-    } else {
-      // Crear nueva empresa
-      const nuevaEmpresa = {
-        ...empresaActual,
-        id: `${empresas.length + 1}`, // En una implementación real, esto sería generado por el backend
-      };
-      setEmpresas([...empresas, nuevaEmpresa]);
+  const cargarEstadisticas = async () => {
+    try {
+      const response = await apiService.obtenerEstadisticasEmpresas();
+      if (response.success && response.data) {
+        setEstadisticas(response.data);
+      }
+    } catch (error) {
+      console.error("Error al cargar estadísticas:", error);
     }
-
-    setModalAbierto(false);
-    setEmpresaActual(null);
   };
 
-  // Eliminar empresa
-  const eliminarEmpresa = (id: string) => {
-    // En una implementación real, confirmaríamos con el usuario antes de eliminar
-    setEmpresas(empresas.filter((empresa) => empresa.id !== id));
-  };
+  const crearEmpresa = async () => {
+    try {
+      // Validaciones básicas
+      if (
+        !nuevaEmpresa.nombreEmpresa ||
+        !nuevaEmpresa.razonSocial ||
+        !nuevaEmpresa.rut ||
+        !nuevaEmpresa.correo
+      ) {
+        toast({
+          variant: "destructive",
+          title: "Error de validación",
+          description: "Nombre, razón social, RUT y correo son requeridos",
+        });
+        return;
+      }
 
-  // Actualizar campo de empresa en edición
-  const actualizarCampo = (campo: keyof Empresa, valor: string) => {
-    if (empresaActual) {
-      setEmpresaActual({
-        ...empresaActual,
-        [campo]: valor,
+      if (
+        !nuevaEmpresa.contactoPrincipal.nombre ||
+        !nuevaEmpresa.contactoPrincipal.correo
+      ) {
+        toast({
+          variant: "destructive",
+          title: "Error de validación",
+          description: "Datos del contacto principal son requeridos",
+        });
+        return;
+      }
+
+      const response: CrearEmpresaResponse =
+        await apiService.crearEmpresa(nuevaEmpresa);
+
+      if (response.success && response.data) {
+        toast({
+          variant: "default",
+          title: "Empresa creada exitosamente",
+          description: `Se ha creado la empresa ${response.data.nombreEmpresa}`,
+        });
+
+        // Mostrar credenciales - están en el nivel raíz de la respuesta
+        setShowCredenciales({
+          numeroCliente: response.credenciales.numeroCliente,
+          correo: response.credenciales.correo,
+          password: response.credenciales.password,
+          passwordTemporal: response.credenciales.passwordTemporal,
+          mensaje: response.credenciales.mensaje,
+        });
+
+        // Limpiar formulario y cerrar modal
+        setNuevaEmpresa({
+          nombreEmpresa: "",
+          razonSocial: "",
+          rut: "",
+          correo: "",
+          telefono: "",
+          direccion: "",
+          ciudad: "",
+          region: "",
+          contactoPrincipal: {
+            nombre: "",
+            cargo: "",
+            telefono: "",
+            correo: "",
+          },
+        });
+        setShowCreateModal(false);
+
+        // Recargar lista
+        cargarEmpresas();
+        cargarEstadisticas();
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error al crear empresa",
+          description: response.error || "Error desconocido",
+        });
+      }
+    } catch (error) {
+      console.error("Error al crear empresa:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Error al crear empresa",
       });
     }
   };
 
+  const cambiarEstadoEmpresa = async (
+    id: string,
+    nuevoEstado: "activo" | "suspendido" | "inactivo",
+    motivo?: string
+  ) => {
+    try {
+      const response = await apiService.cambiarEstadoEmpresa(
+        id,
+        nuevoEstado,
+        motivo
+      );
+
+      if (response.success) {
+        toast({
+          variant: "default",
+          title: "Estado actualizado",
+          description: `La empresa ha sido marcada como ${nuevoEstado}`,
+        });
+        cargarEmpresas();
+        cargarEstadisticas();
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: response.error || "Error al cambiar estado",
+        });
+      }
+    } catch (error) {
+      console.error("Error al cambiar estado:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Error al cambiar estado",
+      });
+    }
+  };
+
+  const resetearPassword = async (id: string) => {
+    try {
+      const response: ResetearPasswordEmpresaResponse =
+        await apiService.resetearPasswordEmpresa(id);
+
+      if (response.success && response.data) {
+        toast({
+          variant: "default",
+          title: "Contraseña reseteada",
+          description: "Se ha generado una nueva contraseña temporal",
+        });
+
+        // Mostrar nueva contraseña
+        setShowCredenciales({
+          numeroCliente: response.data.numeroCliente,
+          correo: response.data.correo,
+          password: response.nuevaPassword,
+          passwordTemporal: true,
+          mensaje: "Nueva contraseña temporal generada",
+        });
+
+        cargarEmpresas();
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: response.error || "Error al resetear contraseña",
+        });
+      }
+    } catch (error) {
+      console.error("Error al resetear contraseña:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Error al resetear contraseña",
+      });
+    }
+  };
+
+  const getEstadoBadge = (estado: string) => {
+    switch (estado) {
+      case "activo":
+        return (
+          <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
+            <CheckCircle className="w-3 h-3 mr-1" />
+            Activo
+          </Badge>
+        );
+      case "suspendido":
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
+            <AlertTriangle className="w-3 h-3 mr-1" />
+            Suspendido
+          </Badge>
+        );
+      case "inactivo":
+        return (
+          <Badge className="bg-red-100 text-red-800 hover:bg-red-200">
+            <XCircle className="w-3 h-3 mr-1" />
+            Inactivo
+          </Badge>
+        );
+      default:
+        return <Badge variant="secondary">Desconocido</Badge>;
+    }
+  };
+
+  // Vista reducida para el dashboard principal
   if (reducida) {
     return (
-      <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-orange-600" />
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-blue-600" />
             Empresas Cliente
-          </h2>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => abrirFormularioNuevo()}
-          >
-            <PlusCircle className="h-4 w-4 mr-1" /> Agregar
-          </Button>
-        </div>
-
-        {cargando ? (
-          <div className="flex justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
-          </div>
-        ) : error ? (
-          <div className="p-4 text-center text-red-500">{error}</div>
-        ) : (
-          <>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nombre</TableHead>
-                  <TableHead>RUT</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {empresasFiltradas.slice(0, 3).map((empresa) => (
-                  <TableRow key={empresa.id}>
-                    <TableCell className="font-medium">
-                      {empresa.nombre}
-                    </TableCell>
-                    <TableCell>{empresa.rut}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                          empresa.estado === "activo"
-                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                            : empresa.estado === "suspendido"
-                              ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                              : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
-                        }`}
-                      >
-                        {empresa.estado.charAt(0).toUpperCase() +
-                          empresa.estado.slice(1)}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => abrirFormularioEditar(empresa)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => eliminarEmpresa(empresa.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-
-                {empresasFiltradas.length === 0 && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={4}
-                      className="text-center py-8 text-gray-500"
-                    >
-                      No se encontraron empresas cliente registradas
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-
-            {empresasFiltradas.length > 3 && (
-              <div className="mt-2 text-center">
-                <Button variant="link" size="sm" className="text-orange-600">
-                  Ver todas las empresas
-                </Button>
-              </div>
-            )}
-          </>
-        )}
-
-        <Dialog open={modalAbierto} onOpenChange={setModalAbierto}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {modoEdicion ? "Editar Empresa" : "Registrar Nueva Empresa"}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              {empresaActual && (
-                <>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="nombre">Nombre de la empresa</Label>
-                      <Input
-                        id="nombre"
-                        value={empresaActual.nombre}
-                        onChange={(e) =>
-                          actualizarCampo("nombre", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="rut">RUT</Label>
-                      <Input
-                        id="rut"
-                        value={empresaActual.rut}
-                        onChange={(e) => actualizarCampo("rut", e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="contacto">Persona de contacto</Label>
-                      <Input
-                        id="contacto"
-                        value={empresaActual.contacto}
-                        onChange={(e) =>
-                          actualizarCampo("contacto", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Correo electrónico</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={empresaActual.email}
-                        onChange={(e) =>
-                          actualizarCampo("email", e.target.value)
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="telefono">Teléfono</Label>
-                    <Input
-                      id="telefono"
-                      value={empresaActual.telefono}
-                      onChange={(e) =>
-                        actualizarCampo("telefono", e.target.value)
-                      }
-                    />
-                  </div>
-                </>
-              )}
+          </CardTitle>
+          <CardDescription>Resumen de empresas registradas</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex justify-center py-4">
+              <RefreshCw className="h-6 w-6 animate-spin" />
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setModalAbierto(false)}>
-                Cancelar
+          ) : estadisticas ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {estadisticas.totales.total}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Total</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">
+                    {estadisticas.totales.activas}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Activas</div>
+                </div>
+              </div>
+
+              {estadisticas.ultimas.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium">Últimas empresas:</h4>
+                  {estadisticas.ultimas.slice(0, 3).map((empresa) => (
+                    <div
+                      key={empresa._id}
+                      className="flex items-center justify-between text-sm"
+                    >
+                      <span className="truncate">{empresa.nombreEmpresa}</span>
+                      {getEstadoBadge(empresa.estado)}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => (window.location.href = "/dashboard-superadmin")}
+              >
+                Ver todas las empresas
               </Button>
-              <Button type="submit" onClick={guardarEmpresa}>
-                {modoEdicion ? "Actualizar" : "Crear"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+            </div>
+          ) : (
+            <div className="text-center py-4 text-muted-foreground">
+              No hay datos disponibles
+            </div>
+          )}
+        </CardContent>
+      </Card>
     );
   }
 
-  // Vista completa (no reducida)
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <Building2 className="h-6 w-6 text-orange-600" />
-          Gestión de Empresas Cliente
-        </h2>
-        <Button onClick={() => abrirFormularioNuevo()}>
-          <PlusCircle className="h-4 w-4 mr-2" /> Registrar Empresa
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">
+            Gestión de Empresas
+          </h2>
+          <p className="text-muted-foreground">
+            Administra empresas clientes y sus accesos al sistema
+          </p>
+        </div>
+        <Button
+          onClick={() => setShowCreateModal(true)}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Nueva Empresa
         </Button>
       </div>
 
-      <div className="flex items-center space-x-2 bg-white dark:bg-slate-800 p-2 rounded-md border border-gray-200 dark:border-gray-700">
-        <Search className="h-5 w-5 text-gray-500 ml-2" />
-        <Input
-          className="border-0 focus-visible:ring-0 h-9"
-          placeholder="Buscar por nombre o RUT..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-        />
-      </div>
-
-      {cargando ? (
-        <div className="flex justify-center py-16">
-          <Loader2 className="h-12 w-12 animate-spin text-orange-600" />
-        </div>
-      ) : error ? (
-        <div className="p-8 text-center text-red-500 bg-white dark:bg-slate-800 rounded-lg">
-          {error}
-        </div>
-      ) : (
-        <div className="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Empresa</TableHead>
-                <TableHead>RUT</TableHead>
-                <TableHead>Contacto</TableHead>
-                <TableHead>Fecha registro</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {empresasFiltradas.map((empresa) => (
-                <TableRow key={empresa.id}>
-                  <TableCell className="font-medium">
-                    {empresa.nombre}
-                  </TableCell>
-                  <TableCell>{empresa.rut}</TableCell>
-                  <TableCell>
-                    <div>{empresa.contacto}</div>
-                    <div className="text-sm text-gray-500">{empresa.email}</div>
-                  </TableCell>
-                  <TableCell>{empresa.fechaRegistro}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                        empresa.estado === "activo"
-                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                          : empresa.estado === "suspendido"
-                            ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                            : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
-                      }`}
-                    >
-                      {empresa.estado.charAt(0).toUpperCase() +
-                        empresa.estado.slice(1)}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-blue-600 hover:text-blue-700"
-                      onClick={() => abrirFormularioEditar(empresa)}
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-red-600 hover:text-red-700"
-                      onClick={() => eliminarEmpresa(empresa.id)}
-                    >
-                      Eliminar
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-
-              {empresasFiltradas.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="text-center py-16 text-gray-500"
-                  >
-                    No se encontraron empresas que coincidan con la búsqueda
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+      {/* Estadísticas */}
+      {estadisticas && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Empresas
+              </CardTitle>
+              <Building2 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {estadisticas.totales.total}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Activas</CardTitle>
+              <CheckCircle className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {estadisticas.totales.activas}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Suspendidas</CardTitle>
+              <AlertTriangle className="h-4 w-4 text-yellow-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-600">
+                {estadisticas.totales.suspendidas}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Inactivas</CardTitle>
+              <XCircle className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">
+                {estadisticas.totales.inactivas}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 
-      <Dialog open={modalAbierto} onOpenChange={setModalAbierto}>
-        <DialogContent className="sm:max-w-md">
+      {/* Filtros y búsqueda */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Filtros</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar empresas..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+            </div>
+            <Select value={filtroEstado} onValueChange={setFiltroEstado}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos los estados</SelectItem>
+                <SelectItem value="activo">Activo</SelectItem>
+                <SelectItem value="suspendido">Suspendido</SelectItem>
+                <SelectItem value="inactivo">Inactivo</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filtroRegion} onValueChange={setFiltroRegion}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Región" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todas">Todas las regiones</SelectItem>
+                {regiones.map((region) => (
+                  <SelectItem key={region} value={region}>
+                    {region}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Tabla de empresas */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Empresas Registradas</CardTitle>
+          <CardDescription>
+            Lista de todas las empresas en el sistema
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex justify-center py-4">
+              <RefreshCw className="h-6 w-6 animate-spin" />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Empresa</TableHead>
+                  <TableHead>RUT</TableHead>
+                  <TableHead>N° Cliente</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Región</TableHead>
+                  <TableHead>Contacto</TableHead>
+                  <TableHead>Último Acceso</TableHead>
+                  <TableHead>Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {empresas.map((empresa) => (
+                  <TableRow key={empresa._id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">
+                          {empresa.nombreEmpresa}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {empresa.razonSocial}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-mono">{empresa.rut}</TableCell>
+                    <TableCell className="font-mono">
+                      {empresa.numeroCliente}
+                    </TableCell>
+                    <TableCell>{getEstadoBadge(empresa.estado)}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <MapPin className="w-3 h-3 mr-1" />
+                        {empresa.region}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">
+                          {empresa.contactoPrincipal.nombre}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {empresa.contactoPrincipal.correo}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {empresa.ultimoAcceso ? (
+                        <div className="flex items-center">
+                          <Calendar className="w-3 h-3 mr-1" />
+                          {new Date(empresa.ultimoAcceso).toLocaleDateString()}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">Nunca</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedEmpresa(empresa);
+                            setShowDetailModal(true);
+                          }}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Select
+                          onValueChange={(value) => {
+                            if (value === "resetear") {
+                              resetearPassword(empresa._id);
+                            } else {
+                              cambiarEstadoEmpresa(empresa._id, value as any);
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="w-[120px]">
+                            <SelectValue placeholder="Acciones" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="activo">Activar</SelectItem>
+                            <SelectItem value="suspendido">
+                              Suspender
+                            </SelectItem>
+                            <SelectItem value="inactivo">Desactivar</SelectItem>
+                            <SelectItem value="resetear">
+                              Resetear Password
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+
+          {/* Paginación */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <div className="text-sm text-muted-foreground">
+                Página {currentPage} de {totalPages}
+              </div>
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage <= 1}
+                >
+                  Anterior
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setCurrentPage(Math.min(totalPages, currentPage + 1))
+                  }
+                  disabled={currentPage >= totalPages}
+                >
+                  Siguiente
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Modal Crear Empresa */}
+      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              {modoEdicion ? "Editar Empresa" : "Registrar Nueva Empresa"}
-            </DialogTitle>
+            <DialogTitle>Crear Nueva Empresa</DialogTitle>
+            <DialogDescription>
+              Complete los datos para registrar una nueva empresa en el sistema
+            </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {empresaActual && (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="nombre">Nombre de la empresa</Label>
-                    <Input
-                      id="nombre"
-                      value={empresaActual.nombre}
-                      onChange={(e) =>
-                        actualizarCampo("nombre", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="rut">RUT</Label>
-                    <Input
-                      id="rut"
-                      value={empresaActual.rut}
-                      onChange={(e) => actualizarCampo("rut", e.target.value)}
-                    />
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="contacto">Persona de contacto</Label>
-                    <Input
-                      id="contacto"
-                      value={empresaActual.contacto}
-                      onChange={(e) =>
-                        actualizarCampo("contacto", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Correo electrónico</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={empresaActual.email}
-                      onChange={(e) => actualizarCampo("email", e.target.value)}
-                    />
-                  </div>
-                </div>
+          <Tabs defaultValue="empresa" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="empresa">Datos de la Empresa</TabsTrigger>
+              <TabsTrigger value="contacto">Contacto Principal</TabsTrigger>
+            </TabsList>
 
+            <TabsContent value="empresa" className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="nombreEmpresa">Nombre de la Empresa</Label>
+                  <Input
+                    id="nombreEmpresa"
+                    value={nuevaEmpresa.nombreEmpresa}
+                    onChange={(e) =>
+                      setNuevaEmpresa({
+                        ...nuevaEmpresa,
+                        nombreEmpresa: e.target.value,
+                      })
+                    }
+                    placeholder="Empresa Eléctrica S.A."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="razonSocial">Razón Social</Label>
+                  <Input
+                    id="razonSocial"
+                    value={nuevaEmpresa.razonSocial}
+                    onChange={(e) =>
+                      setNuevaEmpresa({
+                        ...nuevaEmpresa,
+                        razonSocial: e.target.value,
+                      })
+                    }
+                    placeholder="Empresa Eléctrica Sociedad Anónima"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="rut">RUT</Label>
+                  <Input
+                    id="rut"
+                    value={nuevaEmpresa.rut}
+                    onChange={(e) =>
+                      setNuevaEmpresa({ ...nuevaEmpresa, rut: e.target.value })
+                    }
+                    placeholder="76.123.456-7"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="correo">Correo Corporativo</Label>
+                  <Input
+                    id="correo"
+                    type="email"
+                    value={nuevaEmpresa.correo}
+                    onChange={(e) =>
+                      setNuevaEmpresa({
+                        ...nuevaEmpresa,
+                        correo: e.target.value,
+                      })
+                    }
+                    placeholder="contacto@empresa.com"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="telefono">Teléfono</Label>
                   <Input
                     id="telefono"
-                    value={empresaActual.telefono}
+                    value={nuevaEmpresa.telefono}
                     onChange={(e) =>
-                      actualizarCampo("telefono", e.target.value)
+                      setNuevaEmpresa({
+                        ...nuevaEmpresa,
+                        telefono: e.target.value,
+                      })
                     }
+                    placeholder="+56 9 1234 5678"
                   />
                 </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="estado">Estado</Label>
-                  <select
-                    id="estado"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    value={empresaActual.estado}
-                    onChange={(e) =>
-                      actualizarCampo(
-                        "estado",
-                        e.target.value as "activo" | "suspendido" | "inactivo"
-                      )
+                  <Label htmlFor="region">Región</Label>
+                  <Select
+                    value={nuevaEmpresa.region}
+                    onValueChange={(value) =>
+                      setNuevaEmpresa({ ...nuevaEmpresa, region: value })
                     }
                   >
-                    <option value="activo">Activo</option>
-                    <option value="suspendido">Suspendido</option>
-                    <option value="inactivo">Inactivo</option>
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione región" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {regiones.map((region) => (
+                        <SelectItem key={region} value={region}>
+                          {region}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              </>
-            )}
-          </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="ciudad">Ciudad</Label>
+                  <Input
+                    id="ciudad"
+                    value={nuevaEmpresa.ciudad}
+                    onChange={(e) =>
+                      setNuevaEmpresa({
+                        ...nuevaEmpresa,
+                        ciudad: e.target.value,
+                      })
+                    }
+                    placeholder="Santiago"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="direccion">Dirección</Label>
+                  <Input
+                    id="direccion"
+                    value={nuevaEmpresa.direccion}
+                    onChange={(e) =>
+                      setNuevaEmpresa({
+                        ...nuevaEmpresa,
+                        direccion: e.target.value,
+                      })
+                    }
+                    placeholder="Av. Principal 123, Santiago"
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="contacto" className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="contactoNombre">Nombre Completo</Label>
+                  <Input
+                    id="contactoNombre"
+                    value={nuevaEmpresa.contactoPrincipal.nombre}
+                    onChange={(e) =>
+                      setNuevaEmpresa({
+                        ...nuevaEmpresa,
+                        contactoPrincipal: {
+                          ...nuevaEmpresa.contactoPrincipal,
+                          nombre: e.target.value,
+                        },
+                      })
+                    }
+                    placeholder="Juan Pérez"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contactoCargo">Cargo</Label>
+                  <Input
+                    id="contactoCargo"
+                    value={nuevaEmpresa.contactoPrincipal.cargo}
+                    onChange={(e) =>
+                      setNuevaEmpresa({
+                        ...nuevaEmpresa,
+                        contactoPrincipal: {
+                          ...nuevaEmpresa.contactoPrincipal,
+                          cargo: e.target.value,
+                        },
+                      })
+                    }
+                    placeholder="Gerente General"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="contactoTelefono">Teléfono</Label>
+                  <Input
+                    id="contactoTelefono"
+                    value={nuevaEmpresa.contactoPrincipal.telefono}
+                    onChange={(e) =>
+                      setNuevaEmpresa({
+                        ...nuevaEmpresa,
+                        contactoPrincipal: {
+                          ...nuevaEmpresa.contactoPrincipal,
+                          telefono: e.target.value,
+                        },
+                      })
+                    }
+                    placeholder="+56 9 8765 4321"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contactoCorreo">Correo</Label>
+                  <Input
+                    id="contactoCorreo"
+                    type="email"
+                    value={nuevaEmpresa.contactoPrincipal.correo}
+                    onChange={(e) =>
+                      setNuevaEmpresa({
+                        ...nuevaEmpresa,
+                        contactoPrincipal: {
+                          ...nuevaEmpresa.contactoPrincipal,
+                          correo: e.target.value,
+                        },
+                      })
+                    }
+                    placeholder="juan.perez@empresa.com"
+                  />
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => setModalAbierto(false)}>
+            <Button variant="outline" onClick={() => setShowCreateModal(false)}>
               Cancelar
             </Button>
-            <Button type="submit" onClick={guardarEmpresa}>
-              {modoEdicion ? "Actualizar" : "Crear"}
+            <Button
+              onClick={crearEmpresa}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Crear Empresa
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Detalle Empresa */}
+      <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Detalles de la Empresa</DialogTitle>
+            <DialogDescription>
+              Información completa de la empresa seleccionada
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedEmpresa && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold mb-2">Información General</h4>
+                    <div className="space-y-2 text-sm">
+                      <div>
+                        <strong>Nombre:</strong> {selectedEmpresa.nombreEmpresa}
+                      </div>
+                      <div>
+                        <strong>Razón Social:</strong>{" "}
+                        {selectedEmpresa.razonSocial}
+                      </div>
+                      <div>
+                        <strong>RUT:</strong> {selectedEmpresa.rut}
+                      </div>
+                      <div>
+                        <strong>N° Cliente:</strong>{" "}
+                        {selectedEmpresa.numeroCliente}
+                      </div>
+                      <div>
+                        <strong>Estado:</strong>{" "}
+                        {getEstadoBadge(selectedEmpresa.estado)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold mb-2">Contacto</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center">
+                        <Mail className="w-3 h-3 mr-2" />
+                        {selectedEmpresa.correo}
+                      </div>
+                      <div className="flex items-center">
+                        <Phone className="w-3 h-3 mr-2" />
+                        {selectedEmpresa.telefono}
+                      </div>
+                      <div className="flex items-center">
+                        <MapPin className="w-3 h-3 mr-2" />
+                        {selectedEmpresa.direccion}
+                      </div>
+                      <div>
+                        <strong>Ciudad:</strong> {selectedEmpresa.ciudad}
+                      </div>
+                      <div>
+                        <strong>Región:</strong> {selectedEmpresa.region}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-semibold mb-2">Contacto Principal</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <strong>Nombre:</strong>{" "}
+                    {selectedEmpresa.contactoPrincipal.nombre}
+                  </div>
+                  <div>
+                    <strong>Cargo:</strong>{" "}
+                    {selectedEmpresa.contactoPrincipal.cargo}
+                  </div>
+                  <div>
+                    <strong>Teléfono:</strong>{" "}
+                    {selectedEmpresa.contactoPrincipal.telefono}
+                  </div>
+                  <div>
+                    <strong>Correo:</strong>{" "}
+                    {selectedEmpresa.contactoPrincipal.correo}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-semibold mb-2">Historial</h4>
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <strong>Creada:</strong>
+                    <div className="flex items-center mt-1">
+                      <Calendar className="w-3 h-3 mr-1" />
+                      {new Date(
+                        selectedEmpresa.fechaCreacion
+                      ).toLocaleDateString()}
+                    </div>
+                  </div>
+                  {selectedEmpresa.ultimoAcceso && (
+                    <div>
+                      <strong>Último Acceso:</strong>
+                      <div className="flex items-center mt-1">
+                        <Activity className="w-3 h-3 mr-1" />
+                        {new Date(
+                          selectedEmpresa.ultimoAcceso
+                        ).toLocaleDateString()}
+                      </div>
+                    </div>
+                  )}
+                  {selectedEmpresa.fechaSuspension && (
+                    <div>
+                      <strong>Suspendida:</strong>
+                      <div className="flex items-center mt-1">
+                        <AlertTriangle className="w-3 h-3 mr-1" />
+                        {new Date(
+                          selectedEmpresa.fechaSuspension
+                        ).toLocaleDateString()}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {selectedEmpresa.motivoSuspension && (
+                  <div className="mt-4">
+                    <strong>Motivo de Suspensión:</strong>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {selectedEmpresa.motivoSuspension}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Credenciales */}
+      <Dialog
+        open={!!showCredenciales}
+        onOpenChange={() => setShowCredenciales(null)}
+      >
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Key className="h-5 w-5 text-blue-600" />
+              Credenciales de Acceso
+            </DialogTitle>
+            <DialogDescription>
+              Guarde estas credenciales y compártalas con la empresa
+            </DialogDescription>
+          </DialogHeader>
+
+          {showCredenciales && (
+            <div className="space-y-6">
+              <Alert className="border-blue-200 bg-blue-50">
+                <Key className="h-4 w-4" />
+                <AlertDescription className="font-medium">
+                  {showCredenciales.mensaje}
+                </AlertDescription>
+              </Alert>
+
+              <div className="space-y-4">
+                <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="text-sm font-medium text-gray-700">
+                      Número de Cliente
+                    </Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        navigator.clipboard.writeText(
+                          showCredenciales.numeroCliente.toString()
+                        );
+                        toast({
+                          title: "Copiado",
+                          description:
+                            "Número de cliente copiado al portapapeles",
+                        });
+                      }}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="font-mono text-lg font-bold text-blue-600">
+                    {showCredenciales.numeroCliente}
+                  </div>
+                </div>
+
+                <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="text-sm font-medium text-gray-700">
+                      Correo de Acceso
+                    </Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        navigator.clipboard.writeText(showCredenciales.correo);
+                        toast({
+                          title: "Copiado",
+                          description: "Correo copiado al portapapeles",
+                        });
+                      }}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="font-mono text-lg">
+                    {showCredenciales.correo}
+                  </div>
+                </div>
+
+                <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="text-sm font-medium text-gray-700">
+                      Contraseña{" "}
+                      {showCredenciales.passwordTemporal && (
+                        <span className="text-orange-600">(Temporal)</span>
+                      )}
+                    </Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        navigator.clipboard.writeText(
+                          showCredenciales.password
+                        );
+                        toast({
+                          title: "Copiado",
+                          description: "Contraseña copiada al portapapeles",
+                        });
+                      }}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="font-mono text-lg font-bold text-green-600">
+                    {showCredenciales.password}
+                  </div>
+                </div>
+              </div>
+
+              <Alert className="border-amber-200 bg-amber-50">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Instrucciones:</strong>
+                  <br />
+                  • La empresa debe acceder al dashboard usando estas
+                  credenciales
+                  <br />• URL de acceso:{" "}
+                  <code className="bg-white px-1 rounded">
+                    {window.location.origin}/auth/login
+                  </code>
+                  {showCredenciales.passwordTemporal && (
+                    <>
+                      <br />• Se solicitará cambiar la contraseña en el primer
+                      acceso
+                    </>
+                  )}
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                const credencialesTexto = `
+CREDENCIALES DE ACCESO - ${showCredenciales?.numeroCliente}
+
+Número de Cliente: ${showCredenciales?.numeroCliente}
+Correo: ${showCredenciales?.correo}
+Contraseña: ${showCredenciales?.password}
+
+URL de Acceso: ${window.location.origin}/auth/login
+
+${showCredenciales?.passwordTemporal ? "NOTA: Contraseña temporal - debe cambiarla en el primer acceso" : ""}
+                `.trim();
+
+                navigator.clipboard.writeText(credencialesTexto);
+                toast({
+                  title: "Credenciales copiadas",
+                  description:
+                    "Todas las credenciales han sido copiadas al portapapeles",
+                });
+              }}
+            >
+              <Copy className="h-4 w-4 mr-2" />
+              Copiar Todo
+            </Button>
+            <Button onClick={() => setShowCredenciales(null)}>Cerrar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
