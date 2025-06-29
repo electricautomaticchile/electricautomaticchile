@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { ClienteRoute } from "@/components/auth/protected-route";
+import { CambioPasswordModal } from "@/components/ui/cambio-password-modal";
 import { BarraNavegacionLateral } from "./componentes/barras-navegacion";
 import Encabezado from "./componentes/encabezado";
 import { ConsumoElectrico } from "./componentes/consumo-electrico";
@@ -20,6 +21,8 @@ export default function DashboardCliente() {
   const [estadoServicio, setEstadoServicio] = useState<
     "activo" | "desactivado" | "suspendido"
   >("activo");
+  const [mostrarModalPassword, setMostrarModalPassword] = useState(false);
+  const [requiereCambioPassword, setRequiereCambioPassword] = useState(false);
   const [datosCliente, setDatosCliente] = useState({
     nombre: "Juan Pérez",
     numeroCliente: "123456-7",
@@ -63,6 +66,22 @@ export default function DashboardCliente() {
       }
     };
   }, []);
+
+  // Verificar si requiere cambio de contraseña al cargar
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const requiereCambio = localStorage.getItem("requiereCambioPassword");
+      if (requiereCambio === "true") {
+        setRequiereCambioPassword(true);
+        setMostrarModalPassword(true);
+      }
+    }
+  }, []);
+
+  const handlePasswordChangeSuccess = () => {
+    setRequiereCambioPassword(false);
+    // Nota: localStorage se limpia automáticamente en el modal
+  };
 
   // Cargar datos del cliente
   useEffect(() => {
@@ -135,16 +154,16 @@ export default function DashboardCliente() {
                       estadoServicio === "activo"
                         ? "bg-green-500"
                         : estadoServicio === "desactivado"
-                        ? "bg-gray-500"
-                        : "bg-red-500"
+                          ? "bg-gray-500"
+                          : "bg-red-500"
                     }`}
                   ></div>
                   <p className="text-lg font-semibold">
                     {estadoServicio === "activo"
                       ? "Activo"
                       : estadoServicio === "desactivado"
-                      ? "Desactivado"
-                      : "Suspendido"}
+                        ? "Desactivado"
+                        : "Suspendido"}
                   </p>
                 </div>
               </div>
@@ -191,7 +210,7 @@ export default function DashboardCliente() {
       <div className="grid min-h-screen w-full overflow-hidden lg:grid-cols-[280px_1fr]">
         <BarraNavegacionLateral />
         <div className="flex flex-col">
-          <Encabezado />
+          <Encabezado onCambiarPassword={() => setMostrarModalPassword(true)} />
           <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
             <div className="mb-4">
               <h1 className="text-3xl font-bold text-orange-600">
@@ -206,6 +225,14 @@ export default function DashboardCliente() {
           </main>
         </div>
       </div>
+
+      {/* Modal de cambio de contraseña */}
+      <CambioPasswordModal
+        isOpen={mostrarModalPassword}
+        onClose={() => setMostrarModalPassword(false)}
+        onSuccess={handlePasswordChangeSuccess}
+        mostrarAdvertencia={requiereCambioPassword}
+      />
     </ClienteRoute>
   );
 }

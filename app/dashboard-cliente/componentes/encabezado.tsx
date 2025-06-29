@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Search, User } from "lucide-react";
+import { Bell, Search, User, KeyRound } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -14,7 +14,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/hooks/useApi";
 
-export default function Encabezado() {
+interface EncabezadoProps {
+  onCambiarPassword?: () => void;
+}
+
+export default function Encabezado({ onCambiarPassword }: EncabezadoProps) {
   const { user, logout, isAuthenticated } = useAuth();
   const [notificacionesCount] = useState(2);
 
@@ -62,6 +66,12 @@ export default function Encabezado() {
               <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem>Perfil</DropdownMenuItem>
+              {onCambiarPassword && (
+                <DropdownMenuItem onClick={onCambiarPassword}>
+                  <KeyRound className="mr-2 h-4 w-4" />
+                  <span>Cambiar Contraseña</span>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem>Configuración</DropdownMenuItem>
               <DropdownMenuSeparator />
               {isAuthenticated && user && (
