@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { SuperAdminRoute } from "@/components/auth/protected-route";
+import { CambioPasswordModal } from "@/components/ui/cambio-password-modal";
 import { BarrasNavegacion } from "./componentes/barras-navegacion";
 import { NavegacionMovil } from "./componentes/navegacion-movil";
 import { Encabezado } from "./componentes/encabezado";
@@ -32,6 +33,8 @@ import { apiService, ICliente, ICotizacion } from "@/lib/api/apiService";
 export default function DashboardSuperadmin() {
   const [componenteActivo, setComponenteActivo] = useState<string | null>(null);
   const [sesionActiva, setSesionActiva] = useState(true);
+  const [mostrarModalPassword, setMostrarModalPassword] = useState(false);
+  const [requiereCambioPassword, setRequiereCambioPassword] = useState(false);
 
   // Control de tiempo de inactividad (30 minutos)
   useEffect(() => {
@@ -67,6 +70,22 @@ export default function DashboardSuperadmin() {
   useEffect(() => {
     cargarEstadisticasBasicas();
   }, []);
+
+  // Verificar si requiere cambio de contraseña al cargar
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const requiereCambio = localStorage.getItem("requiereCambioPassword");
+      if (requiereCambio === "true") {
+        setRequiereCambioPassword(true);
+        setMostrarModalPassword(true);
+      }
+    }
+  }, []);
+
+  const handlePasswordChangeSuccess = () => {
+    setRequiereCambioPassword(false);
+    // Nota: localStorage se limpia automáticamente en el modal
+  };
 
   const cargarEstadisticasBasicas = async () => {
     try {
@@ -170,6 +189,7 @@ export default function DashboardSuperadmin() {
               <NavegacionMovil onCambioComponente={setComponenteActivo} />
             }
             onCambioComponente={setComponenteActivo}
+            onCambiarPassword={() => setMostrarModalPassword(true)}
           />
           <main className="flex-1 overflow-auto">
             <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
@@ -190,6 +210,14 @@ export default function DashboardSuperadmin() {
           </main>
         </div>
       </div>
+
+      {/* Modal de cambio de contraseña */}
+      <CambioPasswordModal
+        isOpen={mostrarModalPassword}
+        onClose={() => setMostrarModalPassword(false)}
+        onSuccess={handlePasswordChangeSuccess}
+        mostrarAdvertencia={requiereCambioPassword}
+      />
     </SuperAdminRoute>
   );
 }

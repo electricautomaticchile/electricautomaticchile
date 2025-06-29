@@ -9,6 +9,7 @@ import {
   Moon,
   MessageSquare,
   Mail,
+  KeyRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -33,12 +34,14 @@ interface EncabezadoProps {
   tipoUsuario: "superadmin" | "admin" | "cliente";
   menuMovil?: React.ReactNode;
   onCambioComponente?: (nombreComponente: string | null) => void;
+  onCambiarPassword?: () => void;
 }
 
 export function Encabezado({
   tipoUsuario,
   menuMovil,
   onCambioComponente,
+  onCambiarPassword,
 }: EncabezadoProps) {
   const {
     notifications,
@@ -267,6 +270,12 @@ export function Encabezado({
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>Mi cuenta</DropdownMenuLabel>
               <DropdownMenuSeparator />
+              {onCambiarPassword && (
+                <DropdownMenuItem onClick={onCambiarPassword}>
+                  <KeyRound className="mr-2 h-4 w-4" />
+                  <span>Cambiar Contraseña</span>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 onClick={() => onCambioComponente?.("configuracion")}
               >
