@@ -83,6 +83,10 @@ export interface ICliente {
   nombre: string;
   correo: string;
   telefono?: string;
+  direccion?: string;
+  ciudad?: string;
+  rut?: string;
+  tipoCliente?: "particular" | "empresa";
   empresa?: string;
   numeroCliente?: string;
   role?: string;
@@ -93,6 +97,7 @@ export interface ICliente {
   montoMensual?: number;
   fechaRegistro?: string;
   fechaActivacion?: string;
+  ultimoAcceso?: string;
   notas?: string;
 }
 
