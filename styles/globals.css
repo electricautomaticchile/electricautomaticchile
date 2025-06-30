@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-  
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -57,12 +55,22 @@
   }
   body {
     @apply bg-background text-foreground;
-    transition: background-color 0.5s ease, color 0.5s ease;
+    transition:
+      background-color 0.5s ease,
+      color 0.5s ease;
   }
 
   /* Añadir transiciones para componentes comunes */
-  button, a, input, textarea, select, .card, .popover, .dropdown-menu {
-    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow;
+  button,
+  a,
+  input,
+  textarea,
+  select,
+  .card,
+  .popover,
+  .dropdown-menu {
+    transition-property:
+      background-color, border-color, color, fill, stroke, opacity, box-shadow;
     transition-duration: 0.3s;
     transition-timing-function: ease;
   }
