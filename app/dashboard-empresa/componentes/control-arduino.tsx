@@ -304,7 +304,7 @@ export function ControlArduino({ reducida = false }: ControlArduinoProps) {
 
   // Versión completa
   return (
-    <div className="bg-white dark:bg-slate-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+    <div className="bg-background p-6 rounded-lg border border-gray-200 dark:border-gray-700">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">

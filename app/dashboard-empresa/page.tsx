@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { EmpresaRoute } from "@/components/auth/protected-route";
 import { CambioPasswordModal } from "@/components/ui/cambio-password-modal";
+import { EncabezadoEmpresa } from "./componentes/encabezado";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -12,152 +13,125 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
+// Importar componentes
 import { GestionClientes } from "./componentes/gestion-clientes";
 import { EstadisticasConsumo } from "./componentes/estadisticas-consumo";
 import { DispositivosActivos } from "./componentes/dispositivos-activos";
 import { AlertasSistema } from "./componentes/alertas-sistema";
 import { ConsumoSectorial } from "./componentes/consumo-sectorial";
 import { ControlArduino } from "./componentes/control-arduino";
+import { ConfiguracionEmpresa } from "./componentes/configuracion-empresa";
 
 import {
   Users,
-  Home,
+  LayoutDashboard,
   BarChart2,
   Battery,
   BellRing,
   Lightbulb,
-  CircleUserRound,
-  Building,
-  Settings,
-  LogOut,
   Zap,
-  KeyRound,
-  ChevronDown,
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  Shield,
+  Clock,
+  X,
+  Settings,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
-// Componente de barra de navegación lateral
-const Sidebar = () => {
-  return (
-    <div className="fixed left-0 top-0 bottom-0 w-16 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-gray-800 flex flex-col items-center py-4">
-      <div className="flex-1 flex flex-col gap-4 pt-8">
-        <div className="flex justify-center items-center w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/20 text-orange-600">
-          <Building className="h-5 w-5" />
-        </div>
-        <div className="w-full border-t border-gray-200 dark:border-gray-800 pt-4 flex flex-col items-center gap-4">
-          <Button variant="ghost" size="icon" className="rounded-full" asChild>
-            <a href="#dashboard">
-              <Home className="h-5 w-5" />
-            </a>
-          </Button>
-
-          <Button variant="ghost" size="icon" className="rounded-full" asChild>
-            <a href="#clientes">
-              <Users className="h-5 w-5" />
-            </a>
-          </Button>
-
-          <Button variant="ghost" size="icon" className="rounded-full" asChild>
-            <a href="#estadisticas">
-              <BarChart2 className="h-5 w-5" />
-            </a>
-          </Button>
-
-          <Button variant="ghost" size="icon" className="rounded-full" asChild>
-            <a href="#dispositivos">
-              <Battery className="h-5 w-5" />
-            </a>
-          </Button>
-
-          <Button variant="ghost" size="icon" className="rounded-full" asChild>
-            <a href="#alertas">
-              <BellRing className="h-5 w-5" />
-            </a>
-          </Button>
-
-          <Button variant="ghost" size="icon" className="rounded-full" asChild>
-            <a href="#consumo">
-              <Lightbulb className="h-5 w-5" />
-            </a>
-          </Button>
-
-          <Button variant="ghost" size="icon" className="rounded-full" asChild>
-            <a href="#arduino">
-              <Zap className="h-5 w-5" />
-            </a>
-          </Button>
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-4 pt-4 border-t border-gray-200 dark:border-gray-800">
-        <Button variant="ghost" size="icon" className="rounded-full">
-          <Settings className="h-5 w-5" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="rounded-full text-red-600"
-        >
-          <LogOut className="h-5 w-5" />
-        </Button>
-      </div>
-    </div>
-  );
+// Datos de resumen del dashboard
+const resumenDashboard = {
+  clientesActivos: 24,
+  clientesTotales: 26,
+  consumoMensual: 45720, // kWh
+  variacionConsumo: -2.3, // %
+  dispositivosActivos: 187,
+  dispositivosTotales: 195,
+  alertasActivas: 3,
+  eficienciaPromedio: 87.5, // %
 };
 
-// Componente de encabezado superior
-const Header = ({ onCambiarPassword }: { onCambiarPassword: () => void }) => {
-  return (
-    <div className="fixed top-0 left-16 right-0 h-16 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-6 z-10">
-      <h1 className="text-xl font-bold">Dashboard Empresa</h1>
+// Componente de navegación móvil
+const MobileNavigation = ({
+  isOpen,
+  onClose,
+  activeTab,
+  onTabChange,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+}) => {
+  const menuItems = [
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "clientes", label: "Clientes", icon: Users },
+    { id: "estadisticas", label: "Estadísticas", icon: BarChart2 },
+    { id: "dispositivos", label: "Dispositivos", icon: Battery },
+    { id: "alertas", label: "Alertas", icon: BellRing, badge: "3" },
+    { id: "consumo", label: "Consumo", icon: Lightbulb },
+    { id: "arduino", label: "Arduino", icon: Zap },
+    { id: "configuracion", label: "Configuración", icon: Settings },
+  ];
 
-      <div className="flex items-center gap-4">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="flex items-center gap-2 h-auto p-2"
-            >
-              <div className="h-9 w-9 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
-                <CircleUserRound className="h-5 w-5 text-orange-600" />
-              </div>
-              <div className="text-left">
-                <div className="text-sm font-medium">
-                  Constructora Santiago S.A.
-                </div>
-                <div className="text-xs text-gray-500">Administrador</div>
-              </div>
-              <ChevronDown className="h-4 w-4 text-gray-400" />
+  if (!isOpen) return null;
+
+  return (
+    <>
+      {/* Overlay */}
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+        onClick={onClose}
+      />
+
+      {/* Sidebar móvil */}
+      <div className="fixed top-0 left-0 h-full w-64 bg-background border-r border-gray-200 dark:border-gray-800 z-50 lg:hidden transform transition-transform duration-300 ease-in-out">
+        <div className="flex flex-col h-full">
+          {/* Header del sidebar */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Navegación
+            </h2>
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="h-5 w-5" />
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem
-              onClick={onCambiarPassword}
-              className="flex items-center gap-2"
-            >
-              <KeyRound className="h-4 w-4" />
-              Cambiar Contraseña
-            </DropdownMenuItem>
-            <DropdownMenuItem className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Configuración
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="flex items-center gap-2 text-red-600">
-              <LogOut className="h-4 w-4" />
-              Cerrar Sesión
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          </div>
+
+          {/* Menú de navegación */}
+          <nav className="flex-1 p-4 space-y-2">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    onTabChange(item.id);
+                    onClose();
+                  }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    isActive
+                      ? "bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-900"
+                      : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-slate-800"
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="flex-1 text-left">{item.label}</span>
+                  {item.badge && (
+                    <Badge variant="secondary" className="text-xs">
+                      {item.badge}
+                    </Badge>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -166,6 +140,7 @@ export default function DashboardEmpresa() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [mostrarModalPassword, setMostrarModalPassword] = useState(false);
   const [requiereCambioPassword, setRequiereCambioPassword] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Verificar si requiere cambio de contraseña al cargar
   useEffect(() => {
@@ -180,85 +155,247 @@ export default function DashboardEmpresa() {
 
   const handlePasswordChangeSuccess = () => {
     setRequiereCambioPassword(false);
-    // Nota: localStorage se limpia automáticamente en el modal
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   return (
     <EmpresaRoute>
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
-        <Sidebar />
-        <Header onCambiarPassword={() => setMostrarModalPassword(true)} />
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <EncabezadoEmpresa
+          onCambiarPassword={() => setMostrarModalPassword(true)}
+          onToggleMobileMenu={toggleMobileMenu}
+          isMobileMenuOpen={isMobileMenuOpen}
+        />
 
-        <div className="pl-16 pt-16 pb-8">
+        {/* Navegación móvil */}
+        <MobileNavigation
+          isOpen={isMobileMenuOpen}
+          onClose={() => setIsMobileMenuOpen(false)}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+
+        {/* Contenido principal */}
+        <main className="p-4 md:p-6">
           <Tabs
-            defaultValue="dashboard"
-            className="p-4"
+            value={activeTab}
             onValueChange={setActiveTab}
+            className="space-y-6"
           >
-            <div className="mb-6 px-2">
-              <TabsList className="w-full justify-start">
+            {/* Navegación tabs desktop */}
+            <div className="hidden lg:block">
+              <TabsList className="w-full justify-start h-auto p-1 bg-muted/30 border border-gray-200 dark:border-gray-700">
                 <TabsTrigger
                   value="dashboard"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 h-10"
                 >
-                  <Home className="h-4 w-4" />
+                  <LayoutDashboard className="h-4 w-4" />
                   Dashboard
                 </TabsTrigger>
                 <TabsTrigger
                   value="clientes"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 h-10"
                 >
                   <Users className="h-4 w-4" />
                   Clientes
                 </TabsTrigger>
                 <TabsTrigger
                   value="estadisticas"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 h-10"
                 >
                   <BarChart2 className="h-4 w-4" />
                   Estadísticas
                 </TabsTrigger>
                 <TabsTrigger
                   value="dispositivos"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 h-10"
                 >
                   <Battery className="h-4 w-4" />
                   Dispositivos
                 </TabsTrigger>
                 <TabsTrigger
                   value="alertas"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 h-10 relative"
                 >
                   <BellRing className="h-4 w-4" />
                   Alertas
+                  <Badge
+                    variant="destructive"
+                    className="ml-1 text-xs px-1.5 py-0.5"
+                  >
+                    3
+                  </Badge>
                 </TabsTrigger>
                 <TabsTrigger
                   value="consumo"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 h-10"
                 >
                   <Lightbulb className="h-4 w-4" />
                   Consumo
                 </TabsTrigger>
                 <TabsTrigger
                   value="arduino"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 h-10"
                 >
                   <Zap className="h-4 w-4" />
                   Arduino
                 </TabsTrigger>
+                <TabsTrigger
+                  value="configuracion"
+                  className="flex items-center gap-2 h-10"
+                >
+                  <Settings className="h-4 w-4" />
+                  Configuración
+                </TabsTrigger>
               </TabsList>
             </div>
 
-            <TabsContent value="dashboard" id="dashboard">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            {/* Dashboard Overview */}
+            <TabsContent value="dashboard" className="space-y-6">
+              {/* KPIs principales */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 <Card>
-                  <CardHeader className="pb-2">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                          Clientes Activos
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                            {resumenDashboard.clientesActivos}
+                          </p>
+                          <span className="text-sm text-gray-500">
+                            / {resumenDashboard.clientesTotales}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+                        <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 mt-3">
+                      <Shield className="h-3 w-3 text-green-500" />
+                      <span className="text-xs text-green-600 dark:text-green-400">
+                        92% activos
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                          Consumo Mensual
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                            {resumenDashboard.consumoMensual.toLocaleString()}
+                          </p>
+                          <span className="text-sm text-gray-500">kWh</span>
+                        </div>
+                      </div>
+                      <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
+                        <Activity className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 mt-3">
+                      {resumenDashboard.variacionConsumo > 0 ? (
+                        <TrendingUp className="h-3 w-3 text-red-500" />
+                      ) : (
+                        <TrendingDown className="h-3 w-3 text-green-500" />
+                      )}
+                      <span
+                        className={`text-xs ${
+                          resumenDashboard.variacionConsumo > 0
+                            ? "text-red-600 dark:text-red-400"
+                            : "text-green-600 dark:text-green-400"
+                        }`}
+                      >
+                        {resumenDashboard.variacionConsumo > 0 ? "+" : ""}
+                        {resumenDashboard.variacionConsumo}% vs mes anterior
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                          Dispositivos
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                            {resumenDashboard.dispositivosActivos}
+                          </p>
+                          <span className="text-sm text-gray-500">
+                            / {resumenDashboard.dispositivosTotales}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="w-10 h-10 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
+                        <Battery className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 mt-3">
+                      <Shield className="h-3 w-3 text-green-500" />
+                      <span className="text-xs text-green-600 dark:text-green-400">
+                        {Math.round(
+                          (resumenDashboard.dispositivosActivos /
+                            resumenDashboard.dispositivosTotales) *
+                            100
+                        )}
+                        % operativos
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                          Eficiencia
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                            {resumenDashboard.eficienciaPromedio}%
+                          </p>
+                        </div>
+                      </div>
+                      <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
+                        <Zap className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 mt-3">
+                      <Clock className="h-3 w-3 text-blue-500" />
+                      <span className="text-xs text-blue-600 dark:text-blue-400">
+                        Última hora
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Secciones principales en cards */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader className="pb-4">
                     <CardTitle className="text-lg font-bold flex items-center gap-2">
                       <Users className="h-5 w-5 text-orange-600" />
                       Resumen de Clientes
                     </CardTitle>
                     <CardDescription>
-                      Estado de sus clientes finales
+                      Estado actual de su cartera de clientes
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -267,12 +404,14 @@ export default function DashboardEmpresa() {
                 </Card>
 
                 <Card>
-                  <CardHeader className="pb-2">
+                  <CardHeader className="pb-4">
                     <CardTitle className="text-lg font-bold flex items-center gap-2">
                       <BarChart2 className="h-5 w-5 text-orange-600" />
                       Consumo Energético
                     </CardTitle>
-                    <CardDescription>Estadísticas de consumo</CardDescription>
+                    <CardDescription>
+                      Estadísticas y tendencias de consumo
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <EstadisticasConsumo reducida={true} />
@@ -280,12 +419,14 @@ export default function DashboardEmpresa() {
                 </Card>
 
                 <Card>
-                  <CardHeader className="pb-2">
+                  <CardHeader className="pb-4">
                     <CardTitle className="text-lg font-bold flex items-center gap-2">
                       <Battery className="h-5 w-5 text-orange-600" />
-                      Dispositivos
+                      Estado de Dispositivos
                     </CardTitle>
-                    <CardDescription>Estado de los medidores</CardDescription>
+                    <CardDescription>
+                      Monitoreo de medidores y sensores
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <DispositivosActivos reducida={true} />
@@ -293,77 +434,88 @@ export default function DashboardEmpresa() {
                 </Card>
 
                 <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg font-bold flex items-center gap-2">
-                      <Zap className="h-5 w-5 text-orange-600" />
-                      Control Arduino
-                    </CardTitle>
-                    <CardDescription>Sistema IoT LED</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ControlArduino reducida={true} />
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader className="pb-2">
+                  <CardHeader className="pb-4">
                     <CardTitle className="text-lg font-bold flex items-center gap-2">
                       <BellRing className="h-5 w-5 text-orange-600" />
                       Alertas del Sistema
+                      <Badge variant="destructive" className="ml-2 text-xs">
+                        {resumenDashboard.alertasActivas}
+                      </Badge>
                     </CardTitle>
                     <CardDescription>
-                      Alertas activas que requieren atención
+                      Notificaciones que requieren atención
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <AlertasSistema reducida={true} />
                   </CardContent>
                 </Card>
+              </div>
 
+              {/* Secciones adicionales */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card>
-                  <CardHeader className="pb-2">
+                  <CardHeader className="pb-4">
                     <CardTitle className="text-lg font-bold flex items-center gap-2">
                       <Lightbulb className="h-5 w-5 text-orange-600" />
-                      Consumo por Sector
+                      Distribución de Consumo
                     </CardTitle>
                     <CardDescription>
-                      Distribución del consumo energético
+                      Análisis por sectores y zonas
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ConsumoSectorial reducida={true} />
                   </CardContent>
                 </Card>
+
+                <Card>
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-lg font-bold flex items-center gap-2">
+                      <Zap className="h-5 w-5 text-orange-600" />
+                      Control Arduino IoT
+                    </CardTitle>
+                    <CardDescription>
+                      Sistema de control y monitoreo
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ControlArduino reducida={true} />
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
 
-            <TabsContent value="clientes" id="clientes">
+            {/* Tabs de contenido completo */}
+            <TabsContent value="clientes">
               <GestionClientes />
             </TabsContent>
 
-            <TabsContent value="estadisticas" id="estadisticas">
+            <TabsContent value="estadisticas">
               <EstadisticasConsumo />
             </TabsContent>
 
-            <TabsContent value="dispositivos" id="dispositivos">
+            <TabsContent value="dispositivos">
               <DispositivosActivos />
             </TabsContent>
 
-            <TabsContent value="alertas" id="alertas">
+            <TabsContent value="alertas">
               <AlertasSistema />
             </TabsContent>
 
-            <TabsContent value="consumo" id="consumo">
+            <TabsContent value="consumo">
               <ConsumoSectorial />
             </TabsContent>
 
-            <TabsContent value="arduino" id="arduino">
+            <TabsContent value="arduino">
               <ControlArduino />
             </TabsContent>
+
+            <TabsContent value="configuracion">
+              <ConfiguracionEmpresa />
+            </TabsContent>
           </Tabs>
-        </div>
+        </main>
       </div>
 
       {/* Modal de cambio de contraseña */}

@@ -1,65 +1,84 @@
 "use client";
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Lightbulb, PieChart, BarChart, CalendarDays, Building } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import {
+  Lightbulb,
+  Building,
+  CalendarDays,
+  TrendingUp,
+  Download,
+  AlertCircle,
+} from "lucide-react";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+  RadialBarChart,
+  RadialBar,
+} from "recharts";
 
-// Componente para mostrar un gráfico ficticio
-const DummyChart = ({ tipo, altura = 200 }: { tipo: string; altura?: number }) => {
-  return (
-    <div 
-      className="w-full bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center" 
-      style={{ height: `${altura}px` }}
-    >
-      <div className="text-center">
-        {tipo === 'pie' ? (
-          <PieChart className="h-8 w-8 text-orange-600 mx-auto mb-2" />
-        ) : (
-          <BarChart className="h-8 w-8 text-orange-600 mx-auto mb-2" />
-        )}
-        <p className="text-gray-500">Gráfico de {tipo}</p>
-        <p className="text-xs text-gray-400 mt-1">
-          (Esta es una visualización simulada)
-        </p>
-      </div>
-    </div>
-  );
-};
-
-// Datos simulados de consumo por sector
-const datosSectores = [
-  { nombre: 'Iluminación', consumo: 2450, porcentaje: 28 },
-  { nombre: 'Climatización', consumo: 2100, porcentaje: 24 },
-  { nombre: 'Equipos de oficina', consumo: 1750, porcentaje: 20 },
-  { nombre: 'Servidores', consumo: 1400, porcentaje: 16 },
-  { nombre: 'Cocina/Comedor', consumo: 700, porcentaje: 8 },
-  { nombre: 'Otros', consumo: 350, porcentaje: 4 }
+// Colores para los gráficos
+const SECTOR_COLORS = [
+  "#ea580c", // Naranja principal
+  "#f97316", // Naranja secundario
+  "#22c55e", // Verde
+  "#3b82f6", // Azul
+  "#f59e0b", // Amarillo
+  "#8b5cf6", // Púrpura
+  "#ef4444", // Rojo
+  "#06b6d4", // Cyan
 ];
 
-// Datos simulados de consumo por área
-const datosAreas = [
-  { nombre: 'Piso 1 - Recepción', consumo: 1050, porcentaje: 12 },
-  { nombre: 'Piso 2 - Oficinas', consumo: 2450, porcentaje: 28 },
-  { nombre: 'Piso 3 - Administración', consumo: 1750, porcentaje: 20 },
-  { nombre: 'Piso 4 - Desarrollo', consumo: 1925, porcentaje: 22 },
-  { nombre: 'Piso 5 - Gerencia', consumo: 1575, porcentaje: 18 }
+const AREA_COLORS = [
+  "#1e40af", // Azul oscuro
+  "#ea580c", // Naranja
+  "#059669", // Verde esmeralda
+  "#7c3aed", // Púrpura
+  "#dc2626", // Rojo
 ];
 
-// Datos simulados de franjas horarias
-const datosFranjasHorarias = [
-  { franja: '00:00 - 06:00', consumo: 875, porcentaje: 10 },
-  { franja: '06:00 - 09:00', consumo: 1225, porcentaje: 14 },
-  { franja: '09:00 - 12:00', consumo: 2100, porcentaje: 24 },
-  { franja: '12:00 - 14:00', consumo: 1400, porcentaje: 16 },
-  { franja: '14:00 - 18:00', consumo: 2275, porcentaje: 26 },
-  { franja: '18:00 - 00:00', consumo: 875, porcentaje: 10 }
+const HORARIO_COLORS = [
+  "#312e81", // Índigo oscuro (madrugada)
+  "#1e40af", // Azul (mañana)
+  "#059669", // Verde (media mañana)
+  "#f59e0b", // Amarillo (almuerzo)
+  "#ea580c", // Naranja (tarde)
+  "#dc2626", // Rojo (noche)
 ];
 
-// Formatear consumo en kWh
-const formatearConsumo = (valor: number) => {
-  return `${valor.toLocaleString('es-CL')} kWh`;
-};
+// Interfaces
+interface DatoSector {
+  nombre: string;
+  consumo: number;
+  porcentaje: number;
+  costo: number;
+  tendencia: number;
+  color: string;
+}
 
 interface ConsumoSectorialProps {
   reducida?: boolean;
@@ -67,7 +86,117 @@ interface ConsumoSectorialProps {
 
 export function ConsumoSectorial({ reducida = false }: ConsumoSectorialProps) {
   const [periodoSeleccionado, setPeriodoSeleccionado] = useState("nov-2023");
-  
+  const [loading, setLoading] = useState(false);
+  const [datosSectores, setDatosSectores] = useState<DatoSector[]>([]);
+  const [datosAreas, setDatosAreas] = useState<DatoSector[]>([]);
+  const [datosFranjasHorarias, setDatosFranjasHorarias] = useState<
+    DatoSector[]
+  >([]);
+
+  // Cargar datos simulados con variación
+  const cargarDatos = async (periodo: string) => {
+    setLoading(true);
+    try {
+      // Simulación de datos de sectores con variación realista
+      const sectores = [
+        { nombre: "Iluminación", base: 2450, variacion: 0.15 },
+        { nombre: "Climatización", base: 2100, variacion: 0.25 },
+        { nombre: "Equipos de oficina", base: 1750, variacion: 0.1 },
+        { nombre: "Servidores", base: 1400, variacion: 0.05 },
+        { nombre: "Cocina/Comedor", base: 700, variacion: 0.2 },
+        { nombre: "Otros", base: 350, variacion: 0.3 },
+      ];
+
+      const areas = [
+        { nombre: "Piso 1 - Recepción", base: 1050, variacion: 0.1 },
+        { nombre: "Piso 2 - Oficinas", base: 2450, variacion: 0.15 },
+        { nombre: "Piso 3 - Administración", base: 1750, variacion: 0.12 },
+        { nombre: "Piso 4 - Desarrollo", base: 1925, variacion: 0.18 },
+        { nombre: "Piso 5 - Gerencia", base: 1575, variacion: 0.08 },
+      ];
+
+      const franjas = [
+        { nombre: "00:00 - 06:00", base: 875, variacion: 0.2 },
+        { nombre: "06:00 - 09:00", base: 1225, variacion: 0.25 },
+        { nombre: "09:00 - 12:00", base: 2100, variacion: 0.15 },
+        { nombre: "12:00 - 14:00", base: 1400, variacion: 0.2 },
+        { nombre: "14:00 - 18:00", base: 2275, variacion: 0.18 },
+        { nombre: "18:00 - 00:00", base: 875, variacion: 0.22 },
+      ];
+
+      // Generar datos con variación
+      const generarDatos = (datos: any[], colores: string[]) => {
+        const total = datos.reduce((sum, item) => sum + item.base, 0);
+        return datos.map((item, index) => {
+          const variacion = (Math.random() - 0.5) * 2 * item.variacion;
+          const consumo = Math.floor(item.base * (1 + variacion));
+          const porcentaje = Math.round((consumo / total) * 100);
+          return {
+            nombre: item.nombre,
+            consumo,
+            porcentaje,
+            costo: Math.floor(consumo * (30 + Math.random() * 10)), // Costo por kWh variable
+            tendencia: (Math.random() - 0.5) * 20, // Tendencia en %
+            color: colores[index % colores.length],
+          };
+        });
+      };
+
+      setDatosSectores(generarDatos(sectores, SECTOR_COLORS));
+      setDatosAreas(generarDatos(areas, AREA_COLORS));
+      setDatosFranjasHorarias(generarDatos(franjas, HORARIO_COLORS));
+    } catch (error) {
+      console.error("Error cargando datos de consumo sectorial:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    cargarDatos(periodoSeleccionado);
+  }, [periodoSeleccionado]);
+
+  // Tooltip personalizado para gráficos de pie
+  const CustomPieTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-card/80 p-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+          <p className="font-medium">{data.nombre}</p>
+          <p className="text-orange-600">{`Consumo: ${data.consumo.toLocaleString("es-CL")} kWh`}</p>
+          <p className="text-green-600">{`Costo: $${data.costo.toLocaleString("es-CL")}`}</p>
+          <p className="text-gray-600">{`Porcentaje: ${data.porcentaje}%`}</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Tooltip personalizado para gráficos de barras
+  const CustomBarTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-card/80 p-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+          <p className="font-medium">{label}</p>
+          <p className="text-orange-600">{`Consumo: ${payload[0].value.toLocaleString("es-CL")} kWh`}</p>
+          <p className="text-green-600">{`Costo: $${data.costo.toLocaleString("es-CL")}`}</p>
+          <p
+            className={`text-sm ${data.tendencia >= 0 ? "text-green-600" : "text-red-600"}`}
+          >
+            {`Tendencia: ${data.tendencia >= 0 ? "+" : ""}${data.tendencia.toFixed(1)}%`}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Formatear consumo en kWh
+  const formatearConsumo = (valor: number) => {
+    return `${valor.toLocaleString("es-CL")} kWh`;
+  };
+
   // Para la versión reducida del componente
   if (reducida) {
     return (
@@ -75,22 +204,57 @@ export function ConsumoSectorial({ reducida = false }: ConsumoSectorialProps) {
         <div className="grid grid-cols-2 gap-3 mb-3">
           <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg text-center">
             <div className="text-xs text-gray-500">Mayor consumo</div>
-            <div className="text-lg font-bold text-blue-600">Iluminación</div>
+            <div className="text-lg font-bold text-blue-600">
+              {datosSectores.length > 0
+                ? datosSectores[0].nombre
+                : "Iluminación"}
+            </div>
           </div>
           <div className="bg-green-50 dark:bg-green-900/20 p-2 rounded-lg text-center">
             <div className="text-xs text-gray-500">Menor consumo</div>
-            <div className="text-lg font-bold text-green-600">Otros</div>
+            <div className="text-lg font-bold text-green-600">
+              {datosSectores.length > 0
+                ? datosSectores[datosSectores.length - 1].nombre
+                : "Otros"}
+            </div>
           </div>
         </div>
-        
+
+        <div className="h-24">
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <LoadingSpinner />
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={datosSectores.slice(0, 4)}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={20}
+                  outerRadius={40}
+                  paddingAngle={2}
+                  dataKey="consumo"
+                >
+                  {datosSectores.slice(0, 4).map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomPieTooltip />} />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+
         <div className="space-y-2">
           {datosSectores.slice(0, 3).map((sector, index) => (
             <div key={index} className="flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${
-                  index === 0 ? 'bg-blue-500' : 
-                  index === 1 ? 'bg-orange-500' : 'bg-green-500'
-                }`}></div>
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: sector.color }}
+                ></div>
                 <span className="text-sm">{sector.nombre}</span>
               </div>
               <div className="text-sm font-medium">{sector.porcentaje}%</div>
@@ -100,29 +264,43 @@ export function ConsumoSectorial({ reducida = false }: ConsumoSectorialProps) {
       </div>
     );
   }
-  
+
   // Versión completa del componente
   return (
-    <div className="bg-white dark:bg-slate-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+    <div className="bg-background p-6 rounded-lg border border-gray-200 dark:border-gray-700">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold flex items-center gap-2">
           <Lightbulb className="h-6 w-6 text-orange-600" />
           Consumo por Sector
         </h2>
-        
-        <Select defaultValue={periodoSeleccionado} onValueChange={setPeriodoSeleccionado}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Seleccionar período" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="nov-2023">Noviembre 2023</SelectItem>
-            <SelectItem value="oct-2023">Octubre 2023</SelectItem>
-            <SelectItem value="sep-2023">Septiembre 2023</SelectItem>
-            <SelectItem value="ago-2023">Agosto 2023</SelectItem>
-          </SelectContent>
-        </Select>
+
+        <div className="flex items-center gap-3">
+          <Select
+            defaultValue={periodoSeleccionado}
+            onValueChange={setPeriodoSeleccionado}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Seleccionar período" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="nov-2023">Noviembre 2023</SelectItem>
+              <SelectItem value="oct-2023">Octubre 2023</SelectItem>
+              <SelectItem value="sep-2023">Septiembre 2023</SelectItem>
+              <SelectItem value="ano-2023">Todo 2023</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1"
+          >
+            <Download className="h-4 w-4" />
+            Exportar
+          </Button>
+        </div>
       </div>
-      
+
       <Tabs defaultValue="sectores">
         <TabsList className="w-full">
           <TabsTrigger value="sectores" className="flex items-center gap-1">
@@ -138,165 +316,444 @@ export function ConsumoSectorial({ reducida = false }: ConsumoSectorialProps) {
             Por Horario
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="sectores" className="mt-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <DummyChart tipo="pie" altura={250} />
-            </div>
-            
-            <div>
-              <h3 className="text-lg font-medium mb-4">Distribución del Consumo por Equipamiento</h3>
-              <div className="space-y-3">
-                {datosSectores.map((sector, index) => (
-                  <div key={index}>
-                    <div className="flex justify-between items-center mb-1">
-                      <span>{sector.nombre}</span>
-                      <span className="font-medium">{formatearConsumo(sector.consumo)}</span>
+          <div className="grid lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Distribución por Equipamiento</CardTitle>
+                <CardDescription>
+                  Porcentaje de consumo por tipo de equipo
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80">
+                  {loading ? (
+                    <div className="flex items-center justify-center h-full">
+                      <LoadingSpinner />
                     </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                      <div 
-                        className={`h-2.5 rounded-full ${
-                          index === 0 ? 'bg-blue-500' : 
-                          index === 1 ? 'bg-orange-500' : 
-                          index === 2 ? 'bg-green-500' : 
-                          index === 3 ? 'bg-purple-500' : 
-                          index === 4 ? 'bg-yellow-500' : 'bg-gray-500'
-                        }`} 
-                        style={{ width: `${sector.porcentaje}%` }}
-                      ></div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={datosSectores}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ nombre, porcentaje }) =>
+                            `${nombre}: ${porcentaje}%`
+                          }
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="consumo"
+                        >
+                          {datosSectores.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip content={<CustomPieTooltip />} />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Desglose Detallado</CardTitle>
+                <CardDescription>Consumo y costos por sector</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {datosSectores.map((sector, index) => (
+                    <div
+                      key={index}
+                      className="border-b border-gray-100 dark:border-gray-700 pb-3 last:border-b-0"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-4 h-4 rounded-full"
+                            style={{ backgroundColor: sector.color }}
+                          ></div>
+                          <span className="font-medium">{sector.nombre}</span>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold">
+                            {formatearConsumo(sector.consumo)}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            ${sector.costo.toLocaleString("es-CL")}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div
+                          className="h-2 rounded-full transition-all duration-500"
+                          style={{
+                            width: `${sector.porcentaje}%`,
+                            backgroundColor: sector.color,
+                          }}
+                        ></div>
+                      </div>
+
+                      <div className="flex justify-between items-center mt-1">
+                        <span className="text-xs text-gray-500">
+                          {sector.porcentaje}% del total
+                        </span>
+                        <span
+                          className={`text-xs flex items-center ${
+                            sector.tendencia >= 0
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          <TrendingUp className="h-3 w-3 mr-1" />
+                          {sector.tendencia >= 0 ? "+" : ""}
+                          {sector.tendencia.toFixed(1)}%
+                        </span>
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-500 text-right mt-1">{sector.porcentaje}% del consumo total</div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="mt-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-100 dark:border-orange-900">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5" />
+              <div>
+                <h3 className="font-medium text-orange-800 dark:text-orange-300 mb-2">
+                  Recomendaciones por Equipamiento
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <span className="text-orange-600">•</span>
+                      <span>
+                        <strong>Iluminación:</strong> Migrar a LED inteligente
+                        con sensores de movimiento podría reducir consumo en
+                        25%.
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="text-orange-600">•</span>
+                      <span>
+                        <strong>Climatización:</strong> Programar temperaturas
+                        por zonas podría ahorrar hasta 18% en energía.
+                      </span>
+                    </div>
                   </div>
-                ))}
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <span className="text-orange-600">•</span>
+                      <span>
+                        <strong>Equipos de oficina:</strong> Activar modo ahorro
+                        de energía en todos los equipos fuera de horario
+                        laboral.
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="text-orange-600">•</span>
+                      <span>
+                        <strong>Servidores:</strong> Considerar virtualización
+                        para optimizar el uso de recursos computacionales.
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          
-          <div className="mt-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-100 dark:border-orange-900">
-            <h3 className="text-lg font-medium text-orange-800 dark:text-orange-300 mb-2">Recomendaciones de Ahorro</h3>
-            <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-              <li className="flex gap-2">
-                <span className="text-orange-600">•</span>
-                <span><strong>Iluminación (28%):</strong> Considere reemplazar la iluminación actual por tecnología LED de bajo consumo y configurar sensores de movimiento en áreas de poco tránsito.</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="text-orange-600">•</span>
-                <span><strong>Climatización (24%):</strong> Ajustar la temperatura de los sistemas de climatización en 1°C podría representar un ahorro de aproximadamente 7% en este sector.</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="text-orange-600">•</span>
-                <span><strong>Equipos de oficina (20%):</strong> Configure todos los equipos en modo de ahorro energético y programe su apagado automático fuera del horario laboral.</span>
-              </li>
-            </ul>
-          </div>
         </TabsContent>
-        
+
         <TabsContent value="areas" className="mt-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <DummyChart tipo="bar" altura={250} />
-            </div>
-            
-            <div>
-              <h3 className="text-lg font-medium mb-4">Distribución del Consumo por Área</h3>
-              <div className="space-y-3">
-                {datosAreas.map((area, index) => (
-                  <div key={index}>
-                    <div className="flex justify-between items-center mb-1">
-                      <span>{area.nombre}</span>
-                      <span className="font-medium">{formatearConsumo(area.consumo)}</span>
+          <div className="grid lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Consumo por Área</CardTitle>
+                <CardDescription>
+                  Distribución de consumo por piso/área
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80">
+                  {loading ? (
+                    <div className="flex items-center justify-center h-full">
+                      <LoadingSpinner />
                     </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                      <div 
-                        className={`h-2.5 rounded-full ${
-                          index === 0 ? 'bg-blue-500' : 
-                          index === 1 ? 'bg-orange-500' : 
-                          index === 2 ? 'bg-green-500' : 
-                          index === 3 ? 'bg-purple-500' : 'bg-yellow-500'
-                        }`} 
-                        style={{ width: `${area.porcentaje}%` }}
-                      ></div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={datosAreas} layout="horizontal">
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                        <XAxis type="number" stroke="#64748b" />
+                        <YAxis
+                          dataKey="nombre"
+                          type="category"
+                          stroke="#64748b"
+                          width={120}
+                        />
+                        <Tooltip content={<CustomBarTooltip />} />
+                        <Bar
+                          dataKey="consumo"
+                          fill="#ea580c"
+                          radius={[0, 4, 4, 0]}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Análisis por Área</CardTitle>
+                <CardDescription>
+                  Eficiencia energética por ubicación
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {datosAreas.map((area, index) => (
+                    <div
+                      key={index}
+                      className="border-b border-gray-100 dark:border-gray-700 pb-3 last:border-b-0"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="font-medium">{area.nombre}</span>
+                        <div className="text-right">
+                          <div className="font-bold">
+                            {formatearConsumo(area.consumo)}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            ${area.costo.toLocaleString("es-CL")}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div
+                          className="h-2 rounded-full transition-all duration-500"
+                          style={{
+                            width: `${area.porcentaje}%`,
+                            backgroundColor: area.color,
+                          }}
+                        ></div>
+                      </div>
+
+                      <div className="flex justify-between items-center mt-1">
+                        <span className="text-xs text-gray-500">
+                          {area.porcentaje}% del total
+                        </span>
+                        <span
+                          className={`text-xs flex items-center ${
+                            area.tendencia >= 0
+                              ? "text-red-600"
+                              : "text-green-600"
+                          }`}
+                        >
+                          <TrendingUp className="h-3 w-3 mr-1" />
+                          {area.tendencia >= 0 ? "+" : ""}
+                          {area.tendencia.toFixed(1)}%
+                        </span>
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-500 text-right mt-1">{area.porcentaje}% del consumo total</div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-900">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+              <div>
+                <h3 className="font-medium text-blue-800 dark:text-blue-300 mb-2">
+                  Análisis de Eficiencia por Área
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <span className="text-blue-600">•</span>
+                      <span>
+                        <strong>Piso 2 - Oficinas:</strong> Mayor consumo por m²
+                        debido a alta densidad de estaciones de trabajo.
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="text-blue-600">•</span>
+                      <span>
+                        <strong>Piso 4 - Desarrollo:</strong> Consumo elevado
+                        justificado por equipos especializados 24/7.
+                      </span>
+                    </div>
                   </div>
-                ))}
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <span className="text-blue-600">•</span>
+                      <span>
+                        <strong>Piso 1 - Recepción:</strong> Oportunidad de
+                        optimización en sistemas de iluminación decorativa.
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="text-blue-600">•</span>
+                      <span>
+                        <strong>Piso 5 - Gerencia:</strong> Eficiencia óptima
+                        gracias a sistemas automatizados recientes.
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-          
-          <div className="mt-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-100 dark:border-orange-900">
-            <h3 className="text-lg font-medium text-orange-800 dark:text-orange-300 mb-2">Análisis por Área</h3>
-            <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-              <li className="flex gap-2">
-                <span className="text-orange-600">•</span>
-                <span><strong>Piso 2 - Oficinas (28%):</strong> El mayor consumo se registra en esta área debido a la alta densidad de equipos informáticos y sistemas de iluminación.</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="text-orange-600">•</span>
-                <span><strong>Piso 4 - Desarrollo (22%):</strong> El consumo elevado se debe principalmente a equipos servidores y estaciones de trabajo que permanecen encendidos durante horarios extendidos.</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="text-orange-600">•</span>
-                <span><strong>Piso 1 - Recepción (12%):</strong> A pesar de su menor tamaño, el consumo es significativo debido a sistemas de iluminación permanente y equipos de seguridad.</span>
-              </li>
-            </ul>
           </div>
         </TabsContent>
-        
+
         <TabsContent value="horarios" className="mt-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <DummyChart tipo="bar" altura={250} />
-            </div>
-            
-            <div>
-              <h3 className="text-lg font-medium mb-4">Distribución del Consumo por Horario</h3>
-              <div className="space-y-3">
-                {datosFranjasHorarias.map((franja, index) => (
-                  <div key={index}>
-                    <div className="flex justify-between items-center mb-1">
-                      <span>{franja.franja}</span>
-                      <span className="font-medium">{formatearConsumo(franja.consumo)}</span>
+          <div className="grid lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Consumo por Horario</CardTitle>
+                <CardDescription>
+                  Distribución de consumo por franja horaria
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80">
+                  {loading ? (
+                    <div className="flex items-center justify-center h-full">
+                      <LoadingSpinner />
                     </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                      <div 
-                        className={`h-2.5 rounded-full ${
-                          index === 0 ? 'bg-indigo-500' : 
-                          index === 1 ? 'bg-blue-500' : 
-                          index === 2 ? 'bg-green-500' : 
-                          index === 3 ? 'bg-yellow-500' : 
-                          index === 4 ? 'bg-orange-500' : 'bg-red-500'
-                        }`} 
-                        style={{ width: `${franja.porcentaje}%` }}
-                      ></div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={datosFranjasHorarias}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                        <XAxis dataKey="nombre" stroke="#64748b" />
+                        <YAxis stroke="#64748b" />
+                        <Tooltip content={<CustomBarTooltip />} />
+                        <Bar
+                          dataKey="consumo"
+                          fill="#ea580c"
+                          radius={[4, 4, 0, 0]}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Patrones Horarios</CardTitle>
+                <CardDescription>
+                  Análisis de consumo por franja
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {datosFranjasHorarias.map((franja, index) => (
+                    <div
+                      key={index}
+                      className="border-b border-gray-100 dark:border-gray-700 pb-3 last:border-b-0"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="font-medium">{franja.nombre}</span>
+                        <div className="text-right">
+                          <div className="font-bold">
+                            {formatearConsumo(franja.consumo)}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            ${franja.costo.toLocaleString("es-CL")}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div
+                          className="h-2 rounded-full transition-all duration-500"
+                          style={{
+                            width: `${franja.porcentaje}%`,
+                            backgroundColor: franja.color,
+                          }}
+                        ></div>
+                      </div>
+
+                      <div className="flex justify-between items-center mt-1">
+                        <span className="text-xs text-gray-500">
+                          {franja.porcentaje}% del total
+                        </span>
+                        <span
+                          className={`text-xs flex items-center ${
+                            franja.tendencia >= 0
+                              ? "text-red-600"
+                              : "text-green-600"
+                          }`}
+                        >
+                          <TrendingUp className="h-3 w-3 mr-1" />
+                          {franja.tendencia >= 0 ? "+" : ""}
+                          {franja.tendencia.toFixed(1)}%
+                        </span>
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-500 text-right mt-1">{franja.porcentaje}% del consumo total</div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-900">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="h-5 w-5 text-green-600 mt-0.5" />
+              <div>
+                <h3 className="font-medium text-green-800 dark:text-green-300 mb-2">
+                  Optimización Horaria
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <span className="text-green-600">•</span>
+                      <span>
+                        <strong>Horario pico (14:00-18:00):</strong> Programar
+                        cargas no críticas fuera de esta franja.
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="text-green-600">•</span>
+                      <span>
+                        <strong>Valle nocturno (00:00-06:00):</strong>{" "}
+                        Aprovechar para procesos de mantenimiento y respaldos.
+                      </span>
+                    </div>
                   </div>
-                ))}
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <span className="text-green-600">•</span>
+                      <span>
+                        <strong>Horario almuerzo (12:00-14:00):</strong>{" "}
+                        Oportunidad de reducir climatización en oficinas.
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="text-green-600">•</span>
+                      <span>
+                        <strong>Gestión inteligente:</strong> Implementar
+                        sistemas de control automático por franjas horarias.
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-          
-          <div className="mt-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-100 dark:border-orange-900">
-            <h3 className="text-lg font-medium text-orange-800 dark:text-orange-300 mb-2">Optimización por Horario</h3>
-            <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-              <li className="flex gap-2">
-                <span className="text-orange-600">•</span>
-                <span><strong>Horario pico (14:00 - 18:00):</strong> Se recomienda programar sistemas de climatización para reducir su potencia durante estos periodos sin afectar el confort.</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="text-orange-600">•</span>
-                <span><strong>Horario valle (00:00 - 06:00):</strong> El consumo en este periodo corresponde principalmente a sistemas esenciales y servidores. Considere revisar qué equipos no esenciales podrían apagarse.</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="text-orange-600">•</span>
-                <span><strong>Aprovechamiento tarifario:</strong> Considere programar actividades de alto consumo energético en franjas horarias con tarifas reducidas para optimizar costos.</span>
-              </li>
-            </ul>
           </div>
         </TabsContent>
       </Tabs>
     </div>
   );
-} 
+}
