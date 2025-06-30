@@ -41,13 +41,12 @@ export const useDeviceData = (options: UseDeviceDataOptions) => {
   const [error, setError] = useState<string | null>(null);
 
   const {
-    connectionStatus,
-    connect,
-    authenticate,
-    joinClientRoom,
-    on,
-    sendDeviceCommand,
-  } = useWebSocket({ autoConnect });
+    socket,
+    isConnected,
+    deviceData: webSocketDeviceData,
+    notifications,
+    sendMessage,
+  } = useWebSocket();
 
   // Cargar dispositivos iniciales
   const loadDevices = useCallback(async () => {
@@ -71,71 +70,50 @@ export const useDeviceData = (options: UseDeviceDataOptions) => {
     }
   }, [clienteId]);
 
-  // Configurar autenticación y sala cuando se conecte
+  // Procesar datos del WebSocket cuando lleguen
   useEffect(() => {
-    if (connectionStatus.connected && !connectionStatus.authenticated) {
-      // Obtener token de localStorage
-      const token = localStorage.getItem("auth_token");
-      if (token) {
-        authenticate(token);
-      }
-    }
-
-    if (connectionStatus.authenticated) {
-      joinClientRoom(clienteId);
-    }
-  }, [connectionStatus, authenticate, joinClientRoom, clienteId]);
-
-  // Suscribirse a eventos de WebSocket
-  useEffect(() => {
-    if (!connectionStatus.authenticated) return;
-
-    // Manejar datos de dispositivos en tiempo real
-    const unsubscribeDeviceData = on("device-data", (data: DeviceData) => {
-      console.log("📊 Datos de dispositivo recibidos:", data);
+    if (webSocketDeviceData && webSocketDeviceData.dispositivoId) {
+      const deviceId = webSocketDeviceData.dispositivoId;
+      const newDeviceData: DeviceData = {
+        deviceId,
+        timestamp: webSocketDeviceData.timestamp || new Date().toISOString(),
+        lecturas: webSocketDeviceData.data || []
+      };
 
       setDeviceData((prev) => {
         const newMap = new Map(prev);
-        const deviceHistory = newMap.get(data.deviceId) || [];
-
-        // Mantener solo los últimos 100 registros por dispositivo
-        const updatedHistory = [...deviceHistory, data].slice(-100);
-        newMap.set(data.deviceId, updatedHistory);
-
+        const deviceHistory = newMap.get(deviceId) || [];
+        const updatedHistory = [...deviceHistory, newDeviceData].slice(-100);
+        newMap.set(deviceId, updatedHistory);
         return newMap;
       });
+    }
+  }, [webSocketDeviceData]);
+
+  // Convertir notificaciones del WebSocket a alertas
+  useEffect(() => {
+    notifications.forEach((notification) => {
+      if (notification.dispositivo) {
+        const alert: DeviceAlert = {
+          deviceId: notification.dispositivo,
+          timestamp: notification.timestamp,
+          tipoAlerta: notification.tipo,
+          mensaje: notification.mensaje,
+          esResuelta: false
+        };
+
+        setAlerts((prev) => {
+          const exists = prev.some(
+            (a) => a.deviceId === alert.deviceId && a.timestamp === alert.timestamp
+          );
+          if (!exists) {
+            return [alert, ...prev].slice(0, 50);
+          }
+          return prev;
+        });
+      }
     });
-
-    // Manejar alertas de dispositivos
-    const unsubscribeDeviceAlert = on("device-alert", (alert: DeviceAlert) => {
-      console.log("🚨 Alerta de dispositivo:", alert);
-
-      setAlerts((prev) => {
-        // Evitar duplicados basados en timestamp y deviceId
-        const exists = prev.some(
-          (a) =>
-            a.deviceId === alert.deviceId && a.timestamp === alert.timestamp
-        );
-
-        if (!exists) {
-          return [alert, ...prev].slice(0, 50); // Mantener últimas 50 alertas
-        }
-        return prev;
-      });
-    });
-
-    // Manejar actualizaciones de estadísticas
-    const unsubscribeStatsUpdate = on("statistics-update", (stats: any) => {
-      console.log("📈 Actualización de estadísticas:", stats);
-      // Aquí se podría actualizar un estado global de estadísticas
-    });
-
-    return () => {
-      unsubscribeDeviceData();
-      unsubscribeDeviceAlert();
-      unsubscribeStatsUpdate();
-    };
-  }, [connectionStatus.authenticated, on]);
+  }, [notifications]);
 
   // Polling de datos como fallback
   useEffect(() => {
@@ -144,14 +122,13 @@ export const useDeviceData = (options: UseDeviceDataOptions) => {
     loadDevices();
 
     const pollTimer = setInterval(() => {
-      if (!connectionStatus.connected) {
-        // Si no hay conexión WebSocket, usar polling
+      if (!isConnected) {
         loadDevices();
       }
     }, pollInterval);
 
     return () => clearInterval(pollTimer);
-  }, [loadDevices, connectionStatus.connected, pollInterval, autoConnect]);
+  }, [loadDevices, isConnected, pollInterval, autoConnect]);
 
   // Funciones de utilidad
   const getDeviceById = useCallback(
@@ -206,9 +183,11 @@ export const useDeviceData = (options: UseDeviceDataOptions) => {
 
   const sendCommand = useCallback(
     (deviceId: string, command: string) => {
-      sendDeviceCommand(deviceId, command);
+      if (socket && isConnected) {
+        sendMessage("device_command", { deviceId, command });
+      }
     },
-    [sendDeviceCommand]
+    [socket, isConnected, sendMessage]
   );
 
   const refreshDevices = useCallback(() => {
@@ -216,21 +195,17 @@ export const useDeviceData = (options: UseDeviceDataOptions) => {
   }, [loadDevices]);
 
   return {
-    // Estados
     devices,
     deviceData: Object.fromEntries(deviceData),
     alerts,
     loading,
     error,
-    connectionStatus,
-
-    // Funciones
+    isConnected,
     getDeviceById,
     getDeviceHistory,
     getLatestReading,
     getUnresolvedAlerts,
     sendCommand,
     refreshDevices,
-    connect,
   };
 };
