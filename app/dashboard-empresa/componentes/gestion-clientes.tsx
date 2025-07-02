@@ -68,7 +68,12 @@ import {
 } from "lucide-react";
 import { useClientes } from "@/lib/hooks/useApi";
 import { ICliente } from "@/lib/api/apiService";
-import { reportesService } from "@/lib/api/reportesService";
+import {
+  reportesService,
+  IConfigReporte,
+  IProgressCallback,
+} from "@/lib/api/services/reportesService";
+import { ReporteProgress } from "@/components/ui/reporte-progress";
 
 interface GestionClientesProps {
   reducida?: boolean;
@@ -375,6 +380,12 @@ export function GestionClientes({ reducida = false }: GestionClientesProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Estados para el sistema de reportes
+  const [isReporteModalOpen, setIsReporteModalOpen] = useState(false);
+  const [reporteConfig, setReporteConfig] = useState<IConfigReporte | null>(
+    null
+  );
+
   const { clientes, loading, error, obtenerClientes, eliminar } = useClientes();
   const { toast } = useToast();
 
@@ -438,32 +449,56 @@ export function GestionClientes({ reducida = false }: GestionClientesProps) {
     fetchClientes();
   };
 
-  // Manejar exportación de reportes
+  // Manejar exportación de reportes con progreso
   const handleExportar = async (formato: "excel" | "csv") => {
-    try {
-      const filtros = {
-        ...(filtroTipo !== "todos" && { tipoCliente: filtroTipo }),
-        ...(filtroCiudad !== "todos" && { ciudad: filtroCiudad }),
-        ...(searchTerm && { busqueda: searchTerm }),
-      };
+    const filtros = {
+      ...(filtroTipo !== "todos" && { tipoCliente: filtroTipo }),
+      ...(filtroCiudad !== "todos" && { ciudad: filtroCiudad }),
+      ...(searchTerm && { busqueda: searchTerm }),
+    };
 
-      await reportesService.generarReporteCompleto({
-        titulo: "Reporte de Clientes",
-        tipo: "clientes",
-        formato,
-        filtros,
-      });
+    const config: IConfigReporte = {
+      titulo: "Reporte de Clientes",
+      tipo: "clientes",
+      formato,
+      filtros,
+    };
+
+    // Vista previa de filtros
+    const vistaPrevia = reportesService.generarVistaPrevia(config);
+    const tiempoEstimado = reportesService.estimarTiempoGeneracion(config);
+
+    // Mostrar confirmación con vista previa
+    const confirmar = window.confirm(
+      `¿Generar reporte de clientes?\n\n` +
+        `Formato: ${formato.toUpperCase()}\n` +
+        `${vistaPrevia}\n` +
+        `Tiempo estimado: ${tiempoEstimado}\n\n` +
+        `¿Continuar?`
+    );
+
+    if (!confirmar) return;
+
+    // Configurar y abrir modal de progreso
+    setReporteConfig(config);
+    setIsReporteModalOpen(true);
+  };
+
+  // Función para generar el reporte (llamada desde el modal de progreso)
+  const generarReporte = async (
+    config: IConfigReporte,
+    onProgress: IProgressCallback
+  ) => {
+    try {
+      await reportesService.generarReporteCompleto(config, onProgress);
 
       toast({
         title: "Reporte generado",
-        description: `El reporte de clientes en formato ${formato.toUpperCase()} se ha descargado exitosamente.`,
+        description: `El reporte de clientes en formato ${config.formato.toUpperCase()} se ha descargado exitosamente.`,
       });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Error al generar el reporte. Inténtalo de nuevo.",
-        variant: "destructive",
-      });
+      console.error("Error generando reporte:", error);
+      throw error;
     }
   };
 
@@ -1077,6 +1112,14 @@ export function GestionClientes({ reducida = false }: GestionClientesProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Modal de progreso de reporte */}
+      <ReporteProgress
+        isOpen={isReporteModalOpen}
+        onClose={() => setIsReporteModalOpen(false)}
+        onGenerate={generarReporte}
+        config={reporteConfig}
+      />
     </div>
   );
 }

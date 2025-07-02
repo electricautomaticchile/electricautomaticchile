@@ -43,6 +43,8 @@ import {
   Cell,
 } from "recharts";
 import { apiService } from "@/lib/api/apiService";
+import { reportesService } from "@/lib/api/services/reportesService";
+import { toast } from "@/components/ui/use-toast";
 
 // Colores para los gráficos
 const COLORS = {
@@ -89,6 +91,18 @@ export function EstadisticasConsumo({
   const [periodoSeleccionado, setPeriodoSeleccionado] = useState("nov-2023");
   const [loading, setLoading] = useState(false);
   const [datosConsumo, setDatosConsumo] = useState<DatoConsumo[]>([]);
+  const [estadoExportacion, setEstadoExportacion] = useState<{
+    estado: "idle" | "generando" | "descargando" | "completado" | "error";
+    progreso: { step: string; percentage: number; message: string };
+    mostrarModal: boolean;
+  }>({
+    estado: "idle",
+    progreso: { step: "", percentage: 0, message: "" },
+    mostrarModal: false,
+  });
+  const [tipoExportacionActual, setTipoExportacionActual] = useState<
+    "mensual" | "diario" | "horario"
+  >("mensual");
   const [resumenEstadisticas, setResumenEstadisticas] =
     useState<EstadisticasResumen>({
       consumoMensual: 4520,
@@ -182,6 +196,88 @@ export function EstadisticasConsumo({
   useEffect(() => {
     cargarDatos(periodoSeleccionado);
   }, [periodoSeleccionado]);
+
+  // Funciones para manejar exportación
+  const handleExportarEstadisticas = async (
+    subtipo: "mensual" | "diario" | "horario",
+    formato: "excel" | "csv" = "excel"
+  ) => {
+    try {
+      setTipoExportacionActual(subtipo);
+      setEstadoExportacion({
+        estado: "generando",
+        progreso: {
+          step: "init",
+          percentage: 0,
+          message: "Iniciando exportación...",
+        },
+        mostrarModal: true,
+      });
+
+      const config = {
+        formato,
+        filtros: {
+          periodo: periodoSeleccionado,
+          subtipo,
+        },
+        titulo: `Estadísticas de Consumo ${subtipo.charAt(0).toUpperCase() + subtipo.slice(1)}`,
+      };
+
+      await reportesService.descargarReporteEstadisticas(
+        subtipo,
+        config,
+        (progreso) => {
+          setEstadoExportacion((prev) => ({
+            ...prev,
+            estado: "descargando",
+            progreso,
+          }));
+        }
+      );
+
+      setEstadoExportacion((prev) => ({
+        ...prev,
+        estado: "completado",
+        progreso: {
+          step: "complete",
+          percentage: 100,
+          message: "Estadísticas exportadas exitosamente",
+        },
+      }));
+
+      toast({
+        title: "✅ Exportación Exitosa",
+        description: `Las estadísticas ${subtipo} han sido descargadas correctamente.`,
+      });
+
+      // Cerrar modal después de 2 segundos
+      setTimeout(() => {
+        setEstadoExportacion((prev) => ({ ...prev, mostrarModal: false }));
+      }, 2000);
+    } catch (error) {
+      console.error("Error exportando estadísticas:", error);
+      setEstadoExportacion({
+        estado: "error",
+        progreso: {
+          step: "error",
+          percentage: 0,
+          message: `Error: ${error instanceof Error ? error.message : "Error desconocido"}`,
+        },
+        mostrarModal: true,
+      });
+
+      toast({
+        title: "❌ Error en Exportación",
+        description:
+          "No se pudo exportar las estadísticas. Inténtalo nuevamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const cerrarModalExportacion = () => {
+    setEstadoExportacion((prev) => ({ ...prev, mostrarModal: false }));
+  };
 
   // Componente personalizado para tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -295,14 +391,47 @@ export function EstadisticasConsumo({
             </SelectContent>
           </Select>
 
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-1"
-          >
-            <Download className="h-4 w-4" />
-            Exportar
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleExportarEstadisticas("mensual", "excel")}
+              disabled={
+                estadoExportacion.estado === "generando" ||
+                estadoExportacion.estado === "descargando"
+              }
+              className="flex items-center gap-1"
+            >
+              <Download className="h-4 w-4" />
+              Excel Mensual
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleExportarEstadisticas("diario", "excel")}
+              disabled={
+                estadoExportacion.estado === "generando" ||
+                estadoExportacion.estado === "descargando"
+              }
+              className="flex items-center gap-1"
+            >
+              <Download className="h-4 w-4" />
+              Excel Diario
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleExportarEstadisticas("horario", "excel")}
+              disabled={
+                estadoExportacion.estado === "generando" ||
+                estadoExportacion.estado === "descargando"
+              }
+              className="flex items-center gap-1"
+            >
+              <Download className="h-4 w-4" />
+              Excel Horario
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -631,6 +760,60 @@ export function EstadisticasConsumo({
           </div>
         </CardContent>
       </Card>
+
+      {/* Modal de progreso de exportación */}
+      {estadoExportacion.mostrarModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">
+              Exportando Estadísticas{" "}
+              {tipoExportacionActual.charAt(0).toUpperCase() +
+                tipoExportacionActual.slice(1)}
+            </h3>
+
+            <div className="space-y-4">
+              <div className="flex justify-between text-sm">
+                <span>{estadoExportacion.progreso.message}</span>
+                <span>{estadoExportacion.progreso.percentage}%</span>
+              </div>
+
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-orange-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${estadoExportacion.progreso.percentage}%` }}
+                />
+              </div>
+
+              {estadoExportacion.estado === "error" && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded">
+                  {estadoExportacion.progreso.message}
+                </div>
+              )}
+
+              {estadoExportacion.estado === "completado" && (
+                <div className="bg-green-50 border border-green-200 text-green-700 px-3 py-2 rounded">
+                  ✅ Estadísticas exportadas exitosamente
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={cerrarModalExportacion}
+                  disabled={
+                    estadoExportacion.estado === "generando" ||
+                    estadoExportacion.estado === "descargando"
+                  }
+                >
+                  {estadoExportacion.estado === "completado"
+                    ? "Cerrar"
+                    : "Cancelar"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
