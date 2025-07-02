@@ -1,920 +1,139 @@
-// Configuración del Backend API
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || "v1";
-const API_URL = `${API_BASE_URL}/api`;
+/**
+ * Archivo de retrocompatibilidad para apiService
+ *
+ * Este archivo mantiene la compatibilidad con el código existente
+ * mientras usa la nueva estructura modular de servicios.
+ *
+ * NOTA: Para nuevo código, se recomienda importar los servicios
+ * específicos desde lib/api/services
+ */
 
-// Log de configuración (solo en desarrollo)
-if (process.env.NODE_ENV === "development") {
-  console.log("🔗 API Configuration:", {
-    baseUrl: API_BASE_URL,
-    apiUrl: API_URL,
-    version: API_VERSION,
-  });
-}
+// Importar todos los servicios individuales
+import { authService } from "./services/authService";
+import { cotizacionesService } from "./services/cotizacionesService";
+import { clientesService } from "./services/clientesService";
+import { usuariosService } from "./services/usuariosService";
+import { dispositivosService } from "./services/dispositivosService";
+import { estadisticasService } from "./services/estadisticasService";
+import { leadMagnetService } from "./services/leadMagnetService";
+import { superusuariosService } from "./services/superusuariosService";
+import { empresasService } from "./services/empresasService";
 
-// Tipos para las respuestas de la API
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  error?: string;
-  errors?: string[];
-  pagination?: {
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    itemsPerPage: number;
-  };
-}
+// Re-exportar todos los tipos para mantener compatibilidad
+export * from "./types";
 
-// Tipos para Cotizaciones
-export interface ICotizacion {
-  _id: string;
-  numero?: string;
-  nombre: string;
-  email: string;
-  empresa?: string;
-  telefono?: string;
-  servicio:
-    | "cotizacion_reposicion"
-    | "cotizacion_monitoreo"
-    | "cotizacion_mantenimiento"
-    | "cotizacion_completa";
-  plazo?: "urgente" | "pronto" | "normal" | "planificacion";
-  mensaje: string;
-  archivoUrl?: string;
-  archivo?: string;
-  archivoTipo?: string;
-  estado:
-    | "pendiente"
-    | "en_revision"
-    | "cotizando"
-    | "cotizada"
-    | "aprobada"
-    | "rechazada"
-    | "convertida_cliente";
-  prioridad: "baja" | "media" | "alta" | "critica";
-  titulo?: string;
-  descripcion?: string;
-  items?: Array<{
-    descripcion: string;
-    cantidad: number;
-    precioUnitario: number;
-    subtotal: number;
-  }>;
-  subtotal?: number;
-  iva?: number;
-  total?: number;
-  validezDias?: number;
-  condicionesPago?: string;
-  clienteId?: string;
-  asignadoA?: string;
-  fechaCreacion: string;
-  fechaActualizacion?: string;
-  fechaCotizacion?: string;
-  fechaAprobacion?: string;
-  fechaConversion?: string;
-  notas?: string;
-}
+// Re-exportar utilidades
+export { TokenManager } from "./utils/tokenManager";
+export { API_URL, API_BASE_URL, API_VERSION } from "./utils/config";
 
-// Tipos para Clientes
-export interface ICliente {
-  _id: string;
-  nombre: string;
-  correo: string;
-  telefono?: string;
-  direccion?: string;
-  ciudad?: string;
-  rut?: string;
-  tipoCliente?: "particular" | "empresa";
-  empresa?: string;
-  numeroCliente?: string;
-  role?: string;
-  esActivo?: boolean;
-  activo?: boolean;
-  passwordTemporal?: string;
-  planSeleccionado?: string;
-  montoMensual?: number;
-  fechaRegistro?: string;
-  fechaActivacion?: string;
-  ultimoAcceso?: string;
-  notas?: string;
-}
-
-// Tipos para Usuarios
-export interface IUsuario {
-  _id: string;
-  nombre: string;
-  email: string;
-  numeroCliente?: string;
-  tipoUsuario: "admin" | "cliente" | "empresa";
-  role?: string;
-  activo: boolean;
-  fechaCreacion: string;
-  ultimoAcceso?: string;
-}
-
-// Tipos para Superusuarios
-export interface ISuperusuario {
-  _id: string;
-  nombre: string;
-  correo: string;
-  telefono?: string;
-  numeroCliente: string;
-  role: "superadmin";
-  activo: boolean;
-  fechaCreacion: string;
-  fechaActualizacion?: string;
-  ultimoAcceso?: string;
-  configuraciones?: {
-    notificaciones: boolean;
-    tema: "claro" | "oscuro";
-  };
-}
-
-export interface ICrearSuperusuario {
-  nombre: string;
-  correo: string;
-  password: string;
-  telefono?: string;
-  configuraciones?: {
-    notificaciones?: boolean;
-    tema?: "claro" | "oscuro";
-  };
-}
-
-// Tipos para Empresas
-export interface IEmpresa {
-  _id: string;
-  nombreEmpresa: string;
-  razonSocial: string;
-  rut: string;
-  correo: string;
-  telefono: string;
-  direccion: string;
-  ciudad: string;
-  region: string;
-  contactoPrincipal: {
-    nombre: string;
-    cargo: string;
-    telefono: string;
-    correo: string;
-  };
-  numeroCliente: string;
-  passwordTemporal: boolean;
-  estado: "activo" | "suspendido" | "inactivo";
-  fechaCreacion: Date;
-  fechaActualizacion?: Date;
-  ultimoAcceso?: Date;
-  fechaActivacion?: Date;
-  fechaSuspension?: Date;
-  motivoSuspension?: string;
-  configuraciones?: {
-    notificaciones: boolean;
-    tema: "claro" | "oscuro";
-    maxUsuarios: number;
-  };
-}
-
-export interface ICrearEmpresa {
-  nombreEmpresa: string;
-  razonSocial: string;
-  rut: string;
-  correo: string;
-  telefono: string;
-  direccion: string;
-  ciudad: string;
-  region: string;
-  contactoPrincipal: {
-    nombre: string;
-    cargo: string;
-    telefono: string;
-    correo: string;
-  };
-  configuraciones?: {
-    notificaciones?: boolean;
-    tema?: "claro" | "oscuro";
-    maxUsuarios?: number;
-  };
-}
-
-export interface IActualizarEmpresa {
-  nombreEmpresa?: string;
-  razonSocial?: string;
-  rut?: string;
-  correo?: string;
-  telefono?: string;
-  direccion?: string;
-  ciudad?: string;
-  region?: string;
-  contactoPrincipal?: {
-    nombre?: string;
-    cargo?: string;
-    telefono?: string;
-    correo?: string;
-  };
-  estado?: "activo" | "suspendido" | "inactivo";
-  motivoSuspension?: string;
-  passwordTemporal?: boolean;
-  configuraciones?: {
-    notificaciones?: boolean;
-    tema?: "claro" | "oscuro";
-    maxUsuarios?: number;
-  };
-}
-
-// Interfaz especializada para la respuesta de crear empresa
-export interface CrearEmpresaResponse {
-  success: boolean;
-  message?: string;
-  data: IEmpresa;
-  credenciales: Credenciales;
-  error?: string;
-  errors?: string[];
-}
-
-interface Credenciales {
-  numeroCliente: string;
-  correo: string;
-  password: string;
-  passwordTemporal: boolean;
-  mensaje: string;
-}
-
-// Interfaz especializada para resetear password de empresa
-export interface ResetearPasswordEmpresaResponse {
-  success: boolean;
-  message?: string;
-  data: IEmpresa;
-  nuevaPassword: string;
-  error?: string;
-  errors?: string[];
-}
-
-// Tipos para Auth
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
-export interface AuthResponse {
-  user: IUsuario;
-  token: string;
-  refreshToken: string;
-  requiereCambioPassword?: boolean;
-}
-
-// Clase para manejar el almacenamiento de tokens
-class TokenManager {
-  private static readonly TOKEN_KEY = "auth_token";
-  private static readonly REFRESH_TOKEN_KEY = "refresh_token";
-
-  static getToken(): string | null {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem(this.TOKEN_KEY);
-  }
-
-  static setToken(token: string): void {
-    if (typeof window === "undefined") return;
-    localStorage.setItem(this.TOKEN_KEY, token);
-
-    // También guardar en cookies para el middleware
-    const isProduction = window.location.protocol === "https:";
-    const cookieOptions = [
-      `${this.TOKEN_KEY}=${token}`,
-      "path=/",
-      `max-age=${24 * 60 * 60}`, // 24 horas
-      "samesite=strict",
-    ];
-
-    // Solo agregar 'secure' en producción (HTTPS)
-    if (isProduction) {
-      cookieOptions.push("secure");
-    }
-
-    document.cookie = cookieOptions.join("; ");
-    console.log(
-      "🍪 Token guardado en cookies:",
-      isProduction ? "con secure" : "sin secure"
-    );
-  }
-
-  static getRefreshToken(): string | null {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
-  }
-
-  static setRefreshToken(token: string): void {
-    if (typeof window === "undefined") return;
-    localStorage.setItem(this.REFRESH_TOKEN_KEY, token);
-
-    // También guardar en cookies para persistencia
-    const isProduction = window.location.protocol === "https:";
-    const cookieOptions = [
-      `${this.REFRESH_TOKEN_KEY}=${token}`,
-      "path=/",
-      `max-age=${7 * 24 * 60 * 60}`, // 7 días
-      "samesite=strict",
-    ];
-
-    // Solo agregar 'secure' en producción (HTTPS)
-    if (isProduction) {
-      cookieOptions.push("secure");
-    }
-
-    document.cookie = cookieOptions.join("; ");
-  }
-
-  static clearTokens(): void {
-    if (typeof window === "undefined") return;
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
-
-    // También limpiar cookies - asegurar que funcione tanto en dev como prod
-    const clearCookieOptions = [
-      "path=/",
-      "expires=Thu, 01 Jan 1970 00:00:00 GMT",
-      "samesite=strict",
-    ];
-
-    // Agregar secure si estamos en HTTPS
-    if (window.location.protocol === "https:") {
-      clearCookieOptions.push("secure");
-    }
-
-    document.cookie = `${this.TOKEN_KEY}=; ${clearCookieOptions.join("; ")}`;
-    document.cookie = `${this.REFRESH_TOKEN_KEY}=; ${clearCookieOptions.join("; ")}`;
-
-    console.log("🗑️ Tokens y cookies limpiados");
-  }
-}
-
-// Clase principal del servicio API
+// Clase ApiService que combina todos los servicios para mantener retrocompatibilidad
 class ApiService {
-  private async makeRequest<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {
-    const url = `${API_URL}${endpoint}`;
-    const token = TokenManager.getToken();
-
-    const defaultHeaders: HeadersInit = {
-      "Content-Type": "application/json",
-    };
-
-    if (token) {
-      defaultHeaders.Authorization = `Bearer ${token}`;
-    }
-
-    const config: RequestInit = {
-      ...options,
-      headers: {
-        ...defaultHeaders,
-        ...options.headers,
-      },
-    };
-
-    try {
-      const response = await fetch(url, config);
-      const data = await response.json();
-
-      if (!response.ok) {
-        // Si el token ha expirado, intentar renovarlo
-        if (response.status === 401 && token) {
-          try {
-            await this.refreshAuthToken();
-            // Reintentar la solicitud original con el nuevo token
-            const newToken = TokenManager.getToken();
-            if (newToken) {
-              config.headers = {
-                ...config.headers,
-                Authorization: `Bearer ${newToken}`,
-              };
-              const retryResponse = await fetch(url, config);
-              const retryData = await retryResponse.json();
-
-              if (retryResponse.ok) {
-                return retryData;
-              }
-            }
-          } catch (refreshError) {
-            // Si falla la renovación, limpiar tokens y redirigir al login
-            TokenManager.clearTokens();
-            if (typeof window !== "undefined") {
-              window.location.href = "/auth/login";
-            }
-          }
-        }
-
-        return {
-          success: false,
-          error: data.message || data.error || "Error en la solicitud",
-          errors: data.errors,
-        };
-      }
-
-      return data;
-    } catch (error) {
-      console.error("API Request Error:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Error de conexión",
-      };
-    }
-  }
-
   // =================== AUTENTICACIÓN ===================
-
-  async login(
-    credentials: LoginCredentials
-  ): Promise<ApiResponse<AuthResponse>> {
-    const response = await this.makeRequest<AuthResponse>("/auth/login", {
-      method: "POST",
-      body: JSON.stringify(credentials),
-    });
-
-    if (response.success && response.data) {
-      TokenManager.setToken(response.data.token);
-      TokenManager.setRefreshToken(response.data.refreshToken);
-    }
-
-    return response;
-  }
-
-  async logout(): Promise<ApiResponse> {
-    const response = await this.makeRequest("/auth/logout", {
-      method: "POST",
-    });
-
-    TokenManager.clearTokens();
-    return response;
-  }
-
-  async refreshAuthToken(): Promise<ApiResponse<{ token: string }>> {
-    const refreshToken = TokenManager.getRefreshToken();
-    if (!refreshToken) {
-      throw new Error("No refresh token available");
-    }
-
-    const response = await this.makeRequest<{ token: string }>(
-      "/auth/refresh-token",
-      {
-        method: "POST",
-        body: JSON.stringify({ refreshToken }),
-      }
-    );
-
-    if (response.success && response.data) {
-      TokenManager.setToken(response.data.token);
-    }
-
-    return response;
-  }
-
-  async getProfile(): Promise<ApiResponse<IUsuario>> {
-    return this.makeRequest<IUsuario>("/auth/me");
-  }
-
-  async cambiarPassword(
-    passwordActual: string,
-    passwordNueva: string
-  ): Promise<ApiResponse<{ passwordTemporal?: boolean }>> {
-    return this.makeRequest("/auth/cambiar-password", {
-      method: "POST",
-      body: JSON.stringify({ passwordActual, passwordNueva }),
-    });
-  }
-
-  async solicitarRecuperacion(
-    emailOrNumeroCliente: string
-  ): Promise<ApiResponse<any>> {
-    return this.makeRequest("/auth/solicitar-recuperacion", {
-      method: "POST",
-      body: JSON.stringify({ emailOrNumeroCliente }),
-    });
-  }
-
-  async restablecerPassword(
-    token: string,
-    nuevaPassword: string
-  ): Promise<ApiResponse<{ numeroCliente: string; tipoUsuario: string }>> {
-    return this.makeRequest("/auth/restablecer-password", {
-      method: "POST",
-      body: JSON.stringify({ token, nuevaPassword }),
-    });
-  }
+  login = authService.login.bind(authService);
+  logout = authService.logout.bind(authService);
+  getProfile = authService.getProfile.bind(authService);
+  cambiarPassword = authService.cambiarPassword.bind(authService);
+  solicitarRecuperacion = authService.solicitarRecuperacion.bind(authService);
+  restablecerPassword = authService.restablecerPassword.bind(authService);
 
   // =================== COTIZACIONES ===================
-
-  async enviarFormularioContacto(data: {
-    nombre: string;
-    email: string;
-    empresa?: string;
-    telefono?: string;
-    servicio: string;
-    plazo?: string;
-    mensaje: string;
-    archivoUrl?: string;
-    archivo?: string;
-    archivoTipo?: string;
-  }): Promise<ApiResponse<{ id: string; numero: string; estado: string }>> {
-    return this.makeRequest("/cotizaciones/contacto", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
-  }
-
-  async obtenerCotizaciones(params?: {
-    page?: number;
-    limit?: number;
-    estado?: string;
-    prioridad?: string;
-    servicio?: string;
-  }): Promise<ApiResponse<ICotizacion[]>> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          queryParams.append(key, value.toString());
-        }
-      });
-    }
-
-    const endpoint = queryParams.toString()
-      ? `/cotizaciones?${queryParams.toString()}`
-      : "/cotizaciones";
-
-    return this.makeRequest<ICotizacion[]>(endpoint);
-  }
-
-  async obtenerCotizacionesPendientes(): Promise<ApiResponse<ICotizacion[]>> {
-    return this.makeRequest<ICotizacion[]>("/cotizaciones/pendientes");
-  }
-
-  async obtenerEstadisticasCotizaciones(): Promise<ApiResponse<any>> {
-    return this.makeRequest("/cotizaciones/estadisticas");
-  }
-
-  async obtenerCotizacion(id: string): Promise<ApiResponse<ICotizacion>> {
-    return this.makeRequest<ICotizacion>(`/cotizaciones/${id}`);
-  }
-
-  async cambiarEstadoCotizacion(
-    id: string,
-    estado: string,
-    notas?: string
-  ): Promise<ApiResponse<ICotizacion>> {
-    return this.makeRequest<ICotizacion>(`/cotizaciones/${id}/estado`, {
-      method: "PUT",
-      body: JSON.stringify({ estado, notas }),
-    });
-  }
-
-  async agregarCotizacion(
-    id: string,
-    datosActualizacion: {
-      titulo: string;
-      descripcion?: string;
-      items: Array<{
-        descripcion: string;
-        cantidad: number;
-        precioUnitario: number;
-        subtotal: number;
-      }>;
-      subtotal: number;
-      iva: number;
-      total: number;
-      validezDias?: number;
-      condicionesPago?: string;
-    }
-  ): Promise<ApiResponse<ICotizacion>> {
-    return this.makeRequest<ICotizacion>(`/cotizaciones/${id}/cotizar`, {
-      method: "PUT",
-      body: JSON.stringify(datosActualizacion),
-    });
-  }
-
-  async convertirCotizacionACliente(
-    id: string,
-    datos: {
-      passwordTemporal?: string;
-      planSeleccionado?: string;
-      montoMensual?: number;
-    }
-  ): Promise<ApiResponse<any>> {
-    return this.makeRequest(`/cotizaciones/${id}/convertir-cliente`, {
-      method: "POST",
-      body: JSON.stringify(datos),
-    });
-  }
-
-  async eliminarCotizacion(id: string): Promise<ApiResponse> {
-    return this.makeRequest(`/cotizaciones/${id}`, {
-      method: "DELETE",
-    });
-  }
+  enviarFormularioContacto =
+    cotizacionesService.enviarFormularioContacto.bind(cotizacionesService);
+  obtenerCotizaciones =
+    cotizacionesService.obtenerCotizaciones.bind(cotizacionesService);
+  obtenerCotizacionesPendientes =
+    cotizacionesService.obtenerCotizacionesPendientes.bind(cotizacionesService);
+  obtenerEstadisticasCotizaciones =
+    cotizacionesService.obtenerEstadisticasCotizaciones.bind(
+      cotizacionesService
+    );
+  obtenerCotizacion =
+    cotizacionesService.obtenerCotizacion.bind(cotizacionesService);
+  cambiarEstadoCotizacion =
+    cotizacionesService.cambiarEstadoCotizacion.bind(cotizacionesService);
+  agregarCotizacion =
+    cotizacionesService.agregarCotizacion.bind(cotizacionesService);
+  convertirCotizacionACliente =
+    cotizacionesService.convertirCotizacionACliente.bind(cotizacionesService);
+  eliminarCotizacion =
+    cotizacionesService.eliminarCotizacion.bind(cotizacionesService);
 
   // =================== CLIENTES ===================
-
-  async obtenerClientes(params?: {
-    page?: number;
-    limit?: number;
-    tipoCliente?: string;
-    ciudad?: string;
-  }): Promise<ApiResponse<ICliente[]>> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          queryParams.append(key, value.toString());
-        }
-      });
-    }
-
-    const endpoint = queryParams.toString()
-      ? `/clientes?${queryParams.toString()}`
-      : "/clientes";
-
-    return this.makeRequest<ICliente[]>(endpoint);
-  }
-
-  async obtenerCliente(id: string): Promise<ApiResponse<ICliente>> {
-    return this.makeRequest<ICliente>(`/clientes/${id}`);
-  }
-
-  async crearCliente(datos: Partial<ICliente>): Promise<ApiResponse<ICliente>> {
-    return this.makeRequest<ICliente>("/clientes", {
-      method: "POST",
-      body: JSON.stringify(datos),
-    });
-  }
-
-  async actualizarCliente(
-    id: string,
-    datos: Partial<ICliente>
-  ): Promise<ApiResponse<ICliente>> {
-    return this.makeRequest<ICliente>(`/clientes/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(datos),
-    });
-  }
-
-  async eliminarCliente(id: string): Promise<ApiResponse> {
-    return this.makeRequest(`/clientes/${id}`, {
-      method: "DELETE",
-    });
-  }
+  obtenerClientes = clientesService.obtenerClientes.bind(clientesService);
+  obtenerCliente = clientesService.obtenerCliente.bind(clientesService);
+  crearCliente = clientesService.crearCliente.bind(clientesService);
+  actualizarCliente = clientesService.actualizarCliente.bind(clientesService);
+  eliminarCliente = clientesService.eliminarCliente.bind(clientesService);
 
   // =================== USUARIOS ===================
-
-  async obtenerUsuarios(): Promise<ApiResponse<IUsuario[]>> {
-    return this.makeRequest<IUsuario[]>("/usuarios");
-  }
-
-  async obtenerUsuario(id: string): Promise<ApiResponse<IUsuario>> {
-    return this.makeRequest<IUsuario>(`/usuarios/${id}`);
-  }
-
-  async crearUsuario(datos: Partial<IUsuario>): Promise<ApiResponse<IUsuario>> {
-    return this.makeRequest<IUsuario>("/usuarios", {
-      method: "POST",
-      body: JSON.stringify(datos),
-    });
-  }
-
-  async actualizarUsuario(
-    id: string,
-    datos: Partial<IUsuario>
-  ): Promise<ApiResponse<IUsuario>> {
-    return this.makeRequest<IUsuario>(`/usuarios/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(datos),
-    });
-  }
-
-  async eliminarUsuario(id: string): Promise<ApiResponse> {
-    return this.makeRequest(`/usuarios/${id}`, {
-      method: "DELETE",
-    });
-  }
+  obtenerUsuarios = usuariosService.obtenerUsuarios.bind(usuariosService);
+  obtenerUsuario = usuariosService.obtenerUsuario.bind(usuariosService);
+  crearUsuario = usuariosService.crearUsuario.bind(usuariosService);
+  actualizarUsuario = usuariosService.actualizarUsuario.bind(usuariosService);
+  eliminarUsuario = usuariosService.eliminarUsuario.bind(usuariosService);
 
   // =================== DISPOSITIVOS IoT ===================
+  obtenerDispositivos =
+    dispositivosService.obtenerDispositivos.bind(dispositivosService);
+  obtenerDispositivo =
+    dispositivosService.obtenerDispositivo.bind(dispositivosService);
+  crearDispositivo =
+    dispositivosService.crearDispositivo.bind(dispositivosService);
+  agregarLecturaDispositivo =
+    dispositivosService.agregarLecturaDispositivo.bind(dispositivosService);
 
-  async obtenerDispositivos(params?: {
-    cliente?: string;
-    estado?: string;
-    tipoDispositivo?: string;
-    page?: number;
-    limit?: number;
-    sort?: string;
-    order?: "asc" | "desc";
-  }): Promise<ApiResponse<any[]>> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          queryParams.append(key, value.toString());
-        }
-      });
-    }
+  // =================== ESTADÍSTICAS ===================
+  obtenerEstadisticasConsumoCliente =
+    estadisticasService.obtenerEstadisticasConsumoCliente.bind(
+      estadisticasService
+    );
+  obtenerEstadisticasGlobales =
+    estadisticasService.obtenerEstadisticasGlobales.bind(estadisticasService);
 
-    const endpoint = queryParams.toString()
-      ? `/dispositivos?${queryParams.toString()}`
-      : "/dispositivos";
-
-    return this.makeRequest<any[]>(endpoint);
-  }
-
-  async obtenerDispositivo(id: string): Promise<ApiResponse<any>> {
-    return this.makeRequest<any>(`/dispositivos/${id}`);
-  }
-
-  async crearDispositivo(datos: any): Promise<ApiResponse<any>> {
-    return this.makeRequest<any>("/dispositivos", {
-      method: "POST",
-      body: JSON.stringify(datos),
-    });
-  }
-
-  async agregarLecturaDispositivo(
-    id: string,
-    lecturas: any[]
-  ): Promise<ApiResponse<any>> {
-    return this.makeRequest<any>(`/dispositivos/${id}/lecturas`, {
-      method: "POST",
-      body: JSON.stringify({ lecturas }),
-    });
-  }
-
-  async obtenerEstadisticasConsumoCliente(
-    clienteId: string,
-    params?: {
-      periodo?: "mensual" | "diario" | "horario";
-      año?: number;
-      mes?: number;
-    }
-  ): Promise<ApiResponse<any>> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          queryParams.append(key, value.toString());
-        }
-      });
-    }
-
-    const endpoint = queryParams.toString()
-      ? `/estadisticas/consumo-electrico/${clienteId}?${queryParams.toString()}`
-      : `/estadisticas/consumo-electrico/${clienteId}`;
-
-    return this.makeRequest<any>(endpoint);
-  }
-
-  // =================== LEAD MAGNET (MIGRADO) ===================
-
-  async enviarLeadMagnet(datos: {
-    email: string;
-    nombre?: string;
-    empresa?: string;
-  }): Promise<ApiResponse<any>> {
-    return this.makeRequest<any>("/lead-magnet/enviar-pdf", {
-      method: "POST",
-      body: JSON.stringify(datos),
-    });
-  }
-
-  async obtenerEstadisticasLeads(): Promise<ApiResponse<any>> {
-    return this.makeRequest<any>("/lead-magnet/estadisticas");
-  }
-
-  // =================== ESTADÍSTICAS GLOBALES ===================
-
-  async obtenerEstadisticasGlobales(): Promise<ApiResponse<any>> {
-    return this.makeRequest<any>("/estadisticas/globales");
-  }
+  // =================== LEAD MAGNET ===================
+  enviarLeadMagnet = leadMagnetService.enviarLeadMagnet.bind(leadMagnetService);
+  obtenerEstadisticasLeads =
+    leadMagnetService.obtenerEstadisticasLeads.bind(leadMagnetService);
 
   // =================== SUPERUSUARIOS ===================
-
-  async obtenerSuperusuarios(): Promise<ApiResponse<ISuperusuario[]>> {
-    return this.makeRequest<ISuperusuario[]>("/superusuarios");
-  }
-
-  async crearSuperusuario(datos: ICrearSuperusuario): Promise<
-    ApiResponse<{
-      data: ISuperusuario;
-      credenciales: {
-        numeroCliente: string;
-        correo: string;
-        mensaje: string;
-      };
-    }>
-  > {
-    return this.makeRequest("/superusuarios", {
-      method: "POST",
-      body: JSON.stringify(datos),
-    });
-  }
-
-  async obtenerEstadisticasSuperusuarios(): Promise<
-    ApiResponse<{
-      total: number;
-      activos: number;
-      ultimos: ISuperusuario[];
-    }>
-  > {
-    return this.makeRequest("/superusuarios/estadisticas");
-  }
+  obtenerSuperusuarios =
+    superusuariosService.obtenerSuperusuarios.bind(superusuariosService);
+  crearSuperusuario =
+    superusuariosService.crearSuperusuario.bind(superusuariosService);
+  obtenerEstadisticasSuperusuarios =
+    superusuariosService.obtenerEstadisticasSuperusuarios.bind(
+      superusuariosService
+    );
 
   // =================== EMPRESAS ===================
-
-  async obtenerEmpresas(params?: {
-    page?: number;
-    limit?: number;
-    estado?: string;
-    ciudad?: string;
-    region?: string;
-    search?: string;
-  }): Promise<ApiResponse<IEmpresa[]>> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          queryParams.append(key, value.toString());
-        }
-      });
-    }
-
-    const endpoint = queryParams.toString()
-      ? `/empresas?${queryParams.toString()}`
-      : "/empresas";
-
-    return this.makeRequest<IEmpresa[]>(endpoint);
-  }
-
-  async obtenerEmpresa(id: string): Promise<ApiResponse<IEmpresa>> {
-    return this.makeRequest<IEmpresa>(`/empresas/${id}`);
-  }
-
-  async crearEmpresa(datos: ICrearEmpresa): Promise<CrearEmpresaResponse> {
-    return this.makeRequest("/empresas", {
-      method: "POST",
-      body: JSON.stringify(datos),
-    }) as Promise<CrearEmpresaResponse>;
-  }
-
-  async actualizarEmpresa(
-    id: string,
-    datos: IActualizarEmpresa
-  ): Promise<ApiResponse<IEmpresa>> {
-    return this.makeRequest<IEmpresa>(`/empresas/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(datos),
-    });
-  }
-
-  async eliminarEmpresa(id: string): Promise<ApiResponse> {
-    return this.makeRequest(`/empresas/${id}`, {
-      method: "DELETE",
-    });
-  }
-
-  async cambiarEstadoEmpresa(
-    id: string,
-    estado: "activo" | "suspendido" | "inactivo",
-    motivoSuspension?: string
-  ): Promise<ApiResponse<IEmpresa>> {
-    return this.makeRequest<IEmpresa>(`/empresas/${id}/cambiar-estado`, {
-      method: "PUT",
-      body: JSON.stringify({ estado, motivoSuspension }),
-    });
-  }
-
-  async resetearPasswordEmpresa(
-    id: string
-  ): Promise<ResetearPasswordEmpresaResponse> {
-    return this.makeRequest(`/empresas/${id}/resetear-password`, {
-      method: "POST",
-    }) as Promise<ResetearPasswordEmpresaResponse>;
-  }
-
-  async obtenerEstadisticasEmpresas(): Promise<
-    ApiResponse<{
-      totales: {
-        total: number;
-        activas: number;
-        suspendidas: number;
-        inactivas: number;
-      };
-      ultimas: IEmpresa[];
-      porRegion: { _id: string; count: number }[];
-    }>
-  > {
-    return this.makeRequest("/empresas/estadisticas");
-  }
+  obtenerEmpresas = empresasService.obtenerEmpresas.bind(empresasService);
+  obtenerEmpresa = empresasService.obtenerEmpresa.bind(empresasService);
+  crearEmpresa = empresasService.crearEmpresa.bind(empresasService);
+  actualizarEmpresa = empresasService.actualizarEmpresa.bind(empresasService);
+  eliminarEmpresa = empresasService.eliminarEmpresa.bind(empresasService);
+  cambiarEstadoEmpresa =
+    empresasService.cambiarEstadoEmpresa.bind(empresasService);
+  resetearPasswordEmpresa =
+    empresasService.resetearPasswordEmpresa.bind(empresasService);
+  obtenerEstadisticasEmpresas =
+    empresasService.obtenerEstadisticasEmpresas.bind(empresasService);
 }
 
-// Exportar instancia única del servicio
+// Exportar instancia única del servicio para retrocompatibilidad
 export const apiService = new ApiService();
 
 // Exportar también la clase para casos especiales
 export { ApiService };
+
+// Exportar servicios individuales para nuevo código
+export {
+  authService,
+  cotizacionesService,
+  clientesService,
+  usuariosService,
+  dispositivosService,
+  estadisticasService,
+  leadMagnetService,
+  superusuariosService,
+  empresasService,
+};
