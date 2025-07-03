@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { EmpresaRoute } from "@/components/auth/protected-route";
 import { CambioPasswordModal } from "@/components/ui/cambio-password-modal";
-import { EncabezadoEmpresa } from "./componentes/encabezado";
+import { EncabezadoEmpresa } from "./components/layout/header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -15,14 +15,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-// Importar componentes
-import { GestionClientes } from "./componentes/gestion-clientes";
-import { EstadisticasConsumo } from "./componentes/estadisticas-consumo";
-import { DispositivosActivos } from "./componentes/dispositivos-activos";
-import { AlertasSistema } from "./componentes/alertas-sistema";
-import { ConsumoSectorial } from "./componentes/consumo-sectorial";
-import { ControlArduino } from "./componentes/control-arduino";
-import { ConfiguracionEmpresa } from "./componentes/configuracion-empresa";
+// Importaciones actualizadas a la nueva estructura
+import { GestionClientes } from "./features/clientes";
+import { EstadisticasConsumo } from "./features/estadisticas";
+import { DispositivosActivos } from "./features/dispositivos";
+import { AlertasSistema } from "./features/alertas";
+import { ConsumoSectorial } from "./features/consumo";
+import { ControlArduino } from "./features/control";
+import { ConfiguracionEmpresa } from "./features/configuracion";
 
 import {
   Users,
@@ -39,6 +39,11 @@ import {
   Clock,
   X,
   Settings,
+  AlertTriangle,
+  TrendingUp as TrendingUpIcon,
+  BarChart3,
+  Router,
+  Building,
 } from "lucide-react";
 
 // Datos de resumen del dashboard

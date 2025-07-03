@@ -1,5 +1,5 @@
 import { EmpresaRoute } from "@/components/auth/protected-route";
-import { ConfiguracionEmpresa } from "../componentes/configuracion-empresa";
+import { ConfiguracionEmpresa } from "../features/configuracion";
 
 export default function ConfiguracionPage() {
   return (
