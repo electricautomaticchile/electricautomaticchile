@@ -25,7 +25,7 @@ export interface EstadoExportacion {
 export type TipoExportacion = "equipamiento" | "area" | "horario";
 
 export interface ConfiguracionExportacion {
-  formato: "excel" | "csv";
+  formato: "excel" | "csv" | "pdf";
   filtros: {
     periodo: string;
     subtipo: TipoExportacion;

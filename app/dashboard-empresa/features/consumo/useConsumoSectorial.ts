@@ -19,6 +19,7 @@ import {
   AREA_COLORS,
   HORARIO_COLORS,
 } from "./config";
+import { estadisticasService } from "@/lib/api/services/estadisticasService";
 
 export function useConsumoSectorial() {
   const [periodoSeleccionado, setPeriodoSeleccionado] = useState("nov-2023");
@@ -62,13 +63,23 @@ export function useConsumoSectorial() {
   const cargarDatos = useCallback(async (periodo: string) => {
     setLoading(true);
     try {
-      // Simular delay de API
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const empresaId = "1"; // TODO: obtener del contexto de usuario
+      const response = await estadisticasService.obtenerConsumoSectorial(
+        empresaId,
+        { periodo }
+      );
 
-      // Generar datos con variación
-      setDatosSectores(generarDatos(SECTORES_BASE, SECTOR_COLORS));
-      setDatosAreas(generarDatos(AREAS_BASE, AREA_COLORS));
-      setDatosFranjasHorarias(generarDatos(FRANJAS_BASE, HORARIO_COLORS));
+      if (response.success && response.data) {
+        const { equipamiento, area, horario } = response.data;
+        setDatosSectores(equipamiento || []);
+        setDatosAreas(area || []);
+        setDatosFranjasHorarias(horario || []);
+      } else {
+        // Fallback a simulación
+        setDatosSectores(generarDatos(SECTORES_BASE, SECTOR_COLORS));
+        setDatosAreas(generarDatos(AREAS_BASE, AREA_COLORS));
+        setDatosFranjasHorarias(generarDatos(FRANJAS_BASE, HORARIO_COLORS));
+      }
     } catch (error) {
       console.error("Error cargando datos de consumo sectorial:", error);
       toast({
@@ -89,7 +100,7 @@ export function useConsumoSectorial() {
   // Manejar exportación de reportes
   const handleExportarConsumoSectorial = async (
     subtipo: TipoExportacion,
-    formato: "excel" | "csv" = "excel"
+    formato: "excel" | "csv" | "pdf" = "excel"
   ) => {
     try {
       setTipoExportacionActual(subtipo);
@@ -112,17 +123,32 @@ export function useConsumoSectorial() {
         titulo: `Consumo Sectorial por ${subtipo.charAt(0).toUpperCase() + subtipo.slice(1)}`,
       };
 
-      await reportesService.descargarReporteConsumoSectorial(
-        subtipo,
-        config,
-        (progreso: { step: string; percentage: number; message: string }) => {
-          setEstadoExportacion((prev) => ({
-            ...prev,
-            estado: "descargando",
-            progreso,
-          }));
-        }
-      );
+      // Usar el método específico para PDF si corresponde
+      if (formato === "pdf") {
+        await reportesService.descargarReporteConsumoSectorialPDF(
+          subtipo,
+          config,
+          (progreso: { step: string; percentage: number; message: string }) => {
+            setEstadoExportacion((prev) => ({
+              ...prev,
+              estado: "descargando",
+              progreso,
+            }));
+          }
+        );
+      } else {
+        await reportesService.descargarReporteConsumoSectorial(
+          subtipo,
+          config,
+          (progreso: { step: string; percentage: number; message: string }) => {
+            setEstadoExportacion((prev) => ({
+              ...prev,
+              estado: "descargando",
+              progreso,
+            }));
+          }
+        );
+      }
 
       setEstadoExportacion((prev) => ({
         ...prev,
@@ -130,13 +156,13 @@ export function useConsumoSectorial() {
         progreso: {
           step: "complete",
           percentage: 100,
-          message: "Consumo sectorial exportado exitosamente",
+          message: `Consumo sectorial exportado exitosamente en formato ${formato.toUpperCase()}`,
         },
       }));
 
       toast({
         title: "✅ Exportación Exitosa",
-        description: `El consumo sectorial por ${subtipo} ha sido descargado correctamente.`,
+        description: `El consumo sectorial por ${subtipo} ha sido descargado correctamente en formato ${formato.toUpperCase()}.`,
       });
 
       // Cerrar modal después de 2 segundos

@@ -6,7 +6,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Download } from "lucide-react";
+import {
+  ReporteExportMenu,
+  FormatoExportacion,
+  TipoReporte,
+} from "@/components/ui/reporte-export-menu";
 import { PERIODOS_DISPONIBLES } from "./config";
 import { EstadoExportacion, TipoExportacion } from "./types";
 
@@ -14,7 +18,10 @@ interface ConsumoSectorialAccionesProps {
   periodoSeleccionado: string;
   onPeriodoChange: (periodo: string) => void;
   estadoExportacion: EstadoExportacion;
-  onExportar: (tipo: TipoExportacion, formato?: "excel" | "csv") => void;
+  onExportar: (
+    tipo: TipoExportacion,
+    formato?: "excel" | "csv" | "pdf"
+  ) => void;
 }
 
 export function ConsumoSectorialAcciones({
@@ -26,6 +33,33 @@ export function ConsumoSectorialAcciones({
   const isExporting =
     estadoExportacion.estado === "generando" ||
     estadoExportacion.estado === "descargando";
+
+  const opcionesExportacion = [
+    {
+      tipo: "equipamiento" as TipoReporte,
+      label: "Consumo por Equipamiento",
+      descripcion: "Análisis detallado por tipo de equipo",
+    },
+    {
+      tipo: "area" as TipoReporte,
+      label: "Consumo por Área",
+      descripcion: "Distribución de consumo por sectores",
+    },
+    {
+      tipo: "horario" as TipoReporte,
+      label: "Consumo por Horario",
+      descripcion: "Patrones de consumo a lo largo del día",
+    },
+  ];
+
+  const handleExportacion = (
+    tipo: TipoReporte,
+    formato: FormatoExportacion
+  ) => {
+    // Mapear TipoReporte a los tipos esperados por onExportar
+    const tipoMapeado = tipo as TipoExportacion;
+    onExportar(tipoMapeado, formato);
+  };
 
   return (
     <div className="flex items-center gap-3">
@@ -45,40 +79,13 @@ export function ConsumoSectorialAcciones({
         </SelectContent>
       </Select>
 
-      <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onExportar("equipamiento", "excel")}
-          disabled={isExporting}
-          className="flex items-center gap-1"
-        >
-          <Download className="h-4 w-4" />
-          Equipamiento
-        </Button>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onExportar("area", "excel")}
-          disabled={isExporting}
-          className="flex items-center gap-1"
-        >
-          <Download className="h-4 w-4" />
-          Área
-        </Button>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onExportar("horario", "excel")}
-          disabled={isExporting}
-          className="flex items-center gap-1"
-        >
-          <Download className="h-4 w-4" />
-          Horario
-        </Button>
-      </div>
+      <ReporteExportMenu
+        opciones={opcionesExportacion}
+        onExportar={handleExportacion}
+        isExporting={isExporting}
+        buttonText="Descargar Reporte"
+        className="min-w-[150px]"
+      />
     </div>
   );
 }
