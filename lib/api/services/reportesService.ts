@@ -1,37 +1,20 @@
+// Importar servicios modularizados
+import {
+  clientesReportService,
+  empresasReportService,
+  cotizacionesReportService,
+} from "../reportes/services";
+
 import { apiService } from "../apiService";
 
-export interface IFiltrosReporte {
-  // Filtros generales
-  formato?: "excel" | "csv";
-  fechaDesde?: string;
-  fechaHasta?: string;
+// Re-exportar tipos e interfaces desde el sistema modular
+export type {
+  IFiltrosReporte,
+  IConfigReporte,
+  IProgressCallback,
+} from "../reportes/types";
 
-  // Filtros específicos para clientes
-  empresaId?: string;
-  activo?: boolean;
-  tipoCliente?: string;
-  ciudad?: string;
-
-  // Filtros específicos para empresas
-  estado?: string;
-  region?: string;
-
-  // Filtros específicos para cotizaciones
-  servicio?: string;
-
-  // Filtros específicos para estadísticas y consumo
-  subtipo?: "mensual" | "diario" | "horario" | "equipamiento" | "area";
-  periodo?: string;
-}
-
-export interface IConfigReporte {
-  titulo: string;
-  tipo: "clientes" | "empresas" | "cotizaciones" | "dispositivos";
-  formato: "excel" | "csv";
-  filtros?: IFiltrosReporte;
-  empresaId?: string;
-}
-
+// Interfaces adicionales para compatibilidad
 export interface IReporteGenerado {
   _id: string;
   tipo: "clientes" | "empresas" | "cotizaciones" | "dispositivos";
@@ -100,348 +83,48 @@ export interface IEstadisticasReportes {
   };
 }
 
-export interface IProgressCallback {
-  (progress: { step: string; percentage: number; message: string }): void;
-}
-
+/**
+ * Servicio principal de reportes - Wrapper refactorizado
+ * Mantiene compatibilidad hacia atrás usando servicios modularizados
+ */
 class ReportesService {
-  // Descargar reporte de clientes con progress
-  async descargarReporteClientes(
-    config: IConfigReporte,
-    onProgress?: IProgressCallback
-  ): Promise<void> {
-    try {
-      console.log("📊 [HÍBRIDO] Descargando reporte de clientes:", config);
-
-      // Progress: Iniciando
-      onProgress?.({
-        step: "init",
-        percentage: 0,
-        message: "Iniciando generación de reporte...",
-      });
-
-      const params = new URLSearchParams();
-      if (config.formato) params.append("formato", config.formato);
-      if (config.empresaId) params.append("empresaId", config.empresaId);
-      if (config.filtros)
-        params.append("filtros", JSON.stringify(config.filtros));
-
-      const url = `/api/reportes/clientes?${params.toString()}`;
-
-      // Progress: Solicitando al servidor
-      onProgress?.({
-        step: "request",
-        percentage: 25,
-        message: "Solicitando datos al servidor...",
-      });
-
-      const nombreArchivo = `reporte_clientes_${new Date().toISOString().split("T")[0]}.${config.formato === "excel" ? "xlsx" : "csv"}`;
-
-      await this.descargarArchivoConProgress(url, nombreArchivo, onProgress);
-
-      // Progress: Completado
-      onProgress?.({
-        step: "complete",
-        percentage: 100,
-        message: "Reporte descargado exitosamente",
-      });
-    } catch (error) {
-      console.error(
-        "❌ [HÍBRIDO] Error descargando reporte de clientes:",
-        error
-      );
-
-      // Progress: Error
-      onProgress?.({
-        step: "error",
-        percentage: 0,
-        message: `Error: ${error instanceof Error ? error.message : "Error desconocido"}`,
-      });
-
-      throw new Error("Error al descargar reporte de clientes");
-    }
+  /**
+   * Descargar reporte de clientes - Delegado al servicio especializado
+   */
+  async descargarReporteClientes(config: any, onProgress?: any): Promise<void> {
+    return await clientesReportService.generarReporte(config, onProgress);
   }
 
-  // Descargar reporte de empresas
-  async descargarReporteEmpresas(
-    config: IConfigReporte,
-    onProgress?: IProgressCallback
-  ): Promise<void> {
-    try {
-      console.log("📊 [HÍBRIDO] Descargando reporte de empresas:", config);
-
-      onProgress?.({
-        step: "init",
-        percentage: 0,
-        message: "Iniciando generación de reporte de empresas...",
-      });
-
-      const params = new URLSearchParams();
-      if (config.formato) params.append("formato", config.formato);
-      if (config.filtros)
-        params.append("filtros", JSON.stringify(config.filtros));
-
-      const url = `/api/reportes/empresas?${params.toString()}`;
-
-      onProgress?.({
-        step: "request",
-        percentage: 25,
-        message: "Solicitando datos de empresas...",
-      });
-
-      const nombreArchivo = `reporte_empresas_${new Date().toISOString().split("T")[0]}.${config.formato === "excel" ? "xlsx" : "csv"}`;
-
-      await this.descargarArchivoConProgress(url, nombreArchivo, onProgress);
-
-      onProgress?.({
-        step: "complete",
-        percentage: 100,
-        message: "Reporte de empresas descargado exitosamente",
-      });
-    } catch (error) {
-      console.error(
-        "❌ [HÍBRIDO] Error descargando reporte de empresas:",
-        error
-      );
-
-      onProgress?.({
-        step: "error",
-        percentage: 0,
-        message: `Error: ${error instanceof Error ? error.message : "Error desconocido"}`,
-      });
-
-      throw new Error("Error al descargar reporte de empresas");
-    }
+  /**
+   * Descargar reporte de empresas - Delegado al servicio especializado
+   */
+  async descargarReporteEmpresas(config: any, onProgress?: any): Promise<void> {
+    return await empresasReportService.generarReporte(config, onProgress);
   }
 
-  // Descargar reporte de cotizaciones
+  /**
+   * Descargar reporte de cotizaciones - Delegado al servicio especializado
+   */
   async descargarReporteCotizaciones(
-    config: IConfigReporte,
-    onProgress?: IProgressCallback
+    config: any,
+    onProgress?: any
   ): Promise<void> {
-    try {
-      console.log("📊 [HÍBRIDO] Descargando reporte de cotizaciones:", config);
-
-      onProgress?.({
-        step: "init",
-        percentage: 0,
-        message: "Iniciando generación de reporte de cotizaciones...",
-      });
-
-      const params = new URLSearchParams();
-      if (config.formato) params.append("formato", config.formato);
-      if (config.filtros)
-        params.append("filtros", JSON.stringify(config.filtros));
-
-      const url = `/api/reportes/cotizaciones?${params.toString()}`;
-
-      onProgress?.({
-        step: "request",
-        percentage: 25,
-        message: "Solicitando datos de cotizaciones...",
-      });
-
-      const nombreArchivo = `reporte_cotizaciones_${new Date().toISOString().split("T")[0]}.${config.formato === "excel" ? "xlsx" : "csv"}`;
-
-      await this.descargarArchivoConProgress(url, nombreArchivo, onProgress);
-
-      onProgress?.({
-        step: "complete",
-        percentage: 100,
-        message: "Reporte de cotizaciones descargado exitosamente",
-      });
-    } catch (error) {
-      console.error(
-        "❌ [HÍBRIDO] Error descargando reporte de cotizaciones:",
-        error
-      );
-
-      onProgress?.({
-        step: "error",
-        percentage: 0,
-        message: `Error: ${error instanceof Error ? error.message : "Error desconocido"}`,
-      });
-
-      throw new Error("Error al descargar reporte de cotizaciones");
-    }
+    return await cotizacionesReportService.generarReporte(config, onProgress);
   }
 
-  // Método privado para manejar la descarga de archivos con progress
-  private async descargarArchivoConProgress(
-    url: string,
-    nombreArchivo: string,
-    onProgress?: IProgressCallback
-  ): Promise<void> {
-    try {
-      const token =
-        localStorage.getItem("token") ||
-        localStorage.getItem("auth_token") ||
-        document.cookie.replace(
-          /(?:(?:^|.*;\s*)token\s*=\s*([^;]*).*$)|^.*$/,
-          "$1"
-        );
-
-      // Progress: Conectando
-      onProgress?.({
-        step: "connecting",
-        percentage: 30,
-        message: "Conectando con el servidor...",
-      });
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api${url}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response
-          .json()
-          .catch(() => ({ message: "Error desconocido" }));
-        throw new Error(
-          errorData.message || `HTTP error! status: ${response.status}`
-        );
-      }
-
-      // Progress: Procesando respuesta
-      onProgress?.({
-        step: "processing",
-        percentage: 60,
-        message: "Procesando respuesta del servidor...",
-      });
-
-      // Extraer información adicional de headers
-      const totalRegistros = response.headers.get("X-Reporte-Registros");
-      const tiempoGeneracion = response.headers.get("X-Reporte-Tiempo");
-      const reporteId = response.headers.get("X-Reporte-ID");
-
-      console.log("📊 [HÍBRIDO] Información del reporte:", {
-        nombreArchivo,
-        totalRegistros,
-        tiempoGeneracion: tiempoGeneracion ? `${tiempoGeneracion}ms` : "N/A",
-        reporteId,
-        tamaño: response.headers.get("Content-Length"),
-      });
-
-      // Crear blob con la respuesta
-      const blob = await response.blob();
-
-      // Progress: Preparando descarga
-      onProgress?.({
-        step: "download",
-        percentage: 90,
-        message: "Preparando descarga...",
-      });
-
-      // Crear URL para descarga
-      const urlDescarga = window.URL.createObjectURL(blob);
-
-      // Crear elemento <a> temporal para descarga
-      const link = document.createElement("a");
-      link.href = urlDescarga;
-      link.download = nombreArchivo;
-      document.body.appendChild(link);
-      link.click();
-
-      // Limpiar
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(urlDescarga);
-
-      console.log("✅ [HÍBRIDO] Archivo descargado exitosamente:", {
-        nombreArchivo,
-        tamaño: `${(blob.size / 1024).toFixed(2)}KB`,
-        registros: totalRegistros,
-        tiempo: tiempoGeneracion ? `${tiempoGeneracion}ms` : "N/A",
-      });
-    } catch (error) {
-      console.error("❌ [HÍBRIDO] Error en descarga de archivo:", error);
-      throw error;
-    }
-  }
-
-  // Método privado legacy para compatibilidad
-  private async descargarArchivo(
-    url: string,
-    nombreArchivo: string
-  ): Promise<void> {
-    return this.descargarArchivoConProgress(url, nombreArchivo);
-  }
-
-  // Exportar datos locales a CSV (para cuando no hay backend)
+  /**
+   * Exportar datos locales a CSV - Usar utilidad desde el sistema modular
+   */
   exportarCSVLocal(datos: any[], columnas: any[], nombreArchivo: string): void {
-    try {
-      // Crear headers del CSV
-      const headers = columnas.map((col) => col.header || col.key);
-
-      // Crear filas de datos
-      const filas = datos.map((fila) => {
-        return columnas.map((col) => {
-          let valor = fila[col.key];
-
-          // Formatear según tipo
-          if (col.type === "date" && valor) {
-            valor = new Date(valor).toLocaleDateString("es-CL");
-          } else if (col.type === "currency" && typeof valor === "number") {
-            valor = new Intl.NumberFormat("es-CL", {
-              style: "currency",
-              currency: "CLP",
-            }).format(valor);
-          } else if (col.type === "number" && typeof valor === "number") {
-            valor = new Intl.NumberFormat("es-CL").format(valor);
-          }
-
-          // Escapar comillas y saltos de línea para CSV
-          if (typeof valor === "string") {
-            valor = valor.replace(/"/g, '""');
-            if (
-              valor.includes(",") ||
-              valor.includes("\n") ||
-              valor.includes('"')
-            ) {
-              valor = `"${valor}"`;
-            }
-          }
-
-          return valor || "";
-        });
-      });
-
-      // Construir contenido CSV
-      const csvContent = [
-        headers.join(","),
-        ...filas.map((fila) => fila.join(",")),
-      ].join("\n");
-
-      // Crear blob y descargar
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${nombreArchivo}_${new Date().toISOString().split("T")[0]}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      URL.revokeObjectURL(url);
-
-      console.log("✅ CSV local exportado:", nombreArchivo);
-    } catch (error) {
-      console.error("❌ Error exportando CSV local:", error);
-      throw new Error("Error al exportar CSV");
-    }
+    // Importar utilidad CSV desde el sistema modular
+    const { CSVUtils } = require("../reportes/utils/csvUtils");
+    return CSVUtils.exportarCSV(datos, columnas, nombreArchivo);
   }
 
-  // Generar reporte completo con configuración avanzada
-  async generarReporteCompleto(
-    config: IConfigReporte,
-    onProgress?: IProgressCallback
-  ): Promise<void> {
+  /**
+   * Generar reporte completo con configuración avanzada
+   */
+  async generarReporteCompleto(config: any, onProgress?: any): Promise<void> {
     try {
       switch (config.tipo) {
         case "clientes":
@@ -462,7 +145,9 @@ class ReportesService {
     }
   }
 
-  // Obtener historial de reportes del usuario
+  /**
+   * Obtener historial de reportes del usuario
+   */
   async obtenerHistorialReportes(
     page: number = 1,
     limit: number = 10,
@@ -502,36 +187,36 @@ class ReportesService {
       console.error("❌ Error obteniendo historial de reportes:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Error desconocido",
+        error: "Error al obtener historial de reportes",
       };
     }
   }
 
-  // Obtener estadísticas de reportes
+  /**
+   * Obtener estadísticas de reportes
+   */
   async obtenerEstadisticasReportes(diasAtras: number = 30): Promise<{
     success: boolean;
     data?: IEstadisticasReportes;
     error?: string;
   }> {
     try {
-      const params = new URLSearchParams();
-      params.append("diasAtras", diasAtras.toString());
-
       const response = await this.makeRequest<IEstadisticasReportes>(
-        `/reportes/estadisticas?${params.toString()}`
+        `/reportes/estadisticas?diasAtras=${diasAtras}`
       );
-
       return response;
     } catch (error) {
       console.error("❌ Error obteniendo estadísticas de reportes:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Error desconocido",
+        error: "Error al obtener estadísticas de reportes",
       };
     }
   }
 
-  // Método privado para hacer requests con token
+  /**
+   * Método privado para hacer requests al API
+   */
   private async makeRequest<T>(
     endpoint: string,
     options: RequestInit = {}
@@ -541,221 +226,190 @@ class ReportesService {
     error?: string;
   }> {
     try {
-      const API_URL =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-      const url = `${API_URL}/api${endpoint}`;
       const token =
-        localStorage.getItem("auth_token") || localStorage.getItem("token");
+        localStorage.getItem("token") ||
+        localStorage.getItem("auth_token") ||
+        document.cookie.replace(
+          /(?:(?:^|.*;\s*)token\s*=\s*([^;]*).*$)|^.*$/,
+          "$1"
+        );
 
-      const defaultHeaders: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-
-      if (token) {
-        defaultHeaders.Authorization = `Bearer ${token}`;
-      }
-
-      const config: RequestInit = {
-        ...options,
-        headers: {
-          ...defaultHeaders,
-          ...options.headers,
-        },
-      };
-
-      const response = await fetch(url, config);
-      const data = await response.json();
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api${endpoint}`,
+        {
+          ...options,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            ...options.headers,
+          },
+        }
+      );
 
       if (!response.ok) {
-        return {
-          success: false,
-          error: data.message || data.error || "Error en la solicitud",
-        };
+        const errorData = await response
+          .json()
+          .catch(() => ({ message: "Error desconocido" }));
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`
+        );
       }
 
-      return { success: true, data: data.data || data };
+      const data = await response.json();
+      return { success: true, data };
     } catch (error) {
-      console.error("API Request Error:", error);
+      console.error("❌ Error en makeRequest:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Error de conexión",
+        error: error instanceof Error ? error.message : "Error desconocido",
       };
     }
   }
 
-  // Generar vista previa de filtros aplicados
-  generarVistaPrevia(config: IConfigReporte): string {
-    const filtros = config.filtros || {};
-    const filtrosTexto: string[] = [];
+  /**
+   * Generar vista previa del reporte
+   */
+  generarVistaPrevia(config: any): string {
+    try {
+      let vistaPrevia: any;
 
-    if (filtros.tipoCliente) {
-      filtrosTexto.push(`Tipo: ${filtros.tipoCliente}`);
-    }
-    if (filtros.ciudad) {
-      filtrosTexto.push(`Ciudad: ${filtros.ciudad}`);
-    }
-    if (filtros.estado) {
-      filtrosTexto.push(`Estado: ${filtros.estado}`);
-    }
-    if (filtros.activo !== undefined) {
-      filtrosTexto.push(`Activo: ${filtros.activo ? "Sí" : "No"}`);
-    }
-    if (filtros.fechaDesde) {
-      filtrosTexto.push(
-        `Desde: ${new Date(filtros.fechaDesde).toLocaleDateString("es-CL")}`
-      );
-    }
-    if (filtros.fechaHasta) {
-      filtrosTexto.push(
-        `Hasta: ${new Date(filtros.fechaHasta).toLocaleDateString("es-CL")}`
-      );
-    }
+      switch (config.tipo) {
+        case "clientes":
+          vistaPrevia = clientesReportService.generarVistaPrevia(config);
+          break;
+        case "empresas":
+          vistaPrevia = empresasReportService.generarVistaPrevia(config);
+          break;
+        case "cotizaciones":
+          vistaPrevia = cotizacionesReportService.generarVistaPrevia(config);
+          break;
+        default:
+          return "Vista previa no disponible para este tipo de reporte.";
+      }
 
-    if (filtrosTexto.length === 0) {
-      return "Sin filtros aplicados - Se incluirán todos los registros";
-    }
+      // Convertir objeto a string para compatibilidad
+      if (typeof vistaPrevia === "object") {
+        return `📋 **${vistaPrevia.titulo}**\n\n${vistaPrevia.descripcion}\n\n**Registros estimados:** ${vistaPrevia.registrosEstimados}\n**Tamaño estimado:** ${vistaPrevia.tamañoEstimado}\n**Tiempo estimado:** ${vistaPrevia.tiempoEstimado}`;
+      }
 
-    return `Filtros aplicados: ${filtrosTexto.join(", ")}`;
+      return vistaPrevia;
+    } catch (error) {
+      console.error("Error generando vista previa:", error);
+      return "Error al generar vista previa del reporte.";
+    }
   }
 
-  // Estimar tiempo de generación basado en filtros
-  estimarTiempoGeneracion(config: IConfigReporte): string {
-    const filtros = config.filtros || {};
-    const cantidadFiltros = Object.keys(filtros).length;
+  /**
+   * Estimar tiempo de generación
+   */
+  estimarTiempoGeneracion(config: any): string {
+    try {
+      let estimacion: any;
 
-    // Estimación básica basada en tipo y formato
-    let tiempoBase = 2; // segundos base
+      switch (config.tipo) {
+        case "clientes":
+          estimacion = clientesReportService.estimarTiempo(config);
+          break;
+        case "empresas":
+          estimacion = empresasReportService.estimarTiempo(config);
+          break;
+        case "cotizaciones":
+          estimacion = cotizacionesReportService.estimarTiempo(config);
+          break;
+        default:
+          return "No se puede estimar el tiempo para este tipo de reporte.";
+      }
 
-    if (config.formato === "excel") {
-      tiempoBase += 1; // Excel toma más tiempo
+      return `${Math.round(estimacion.tiempoEstimado / 1000)} segundos`;
+    } catch (error) {
+      console.error("Error estimando tiempo:", error);
+      return "No se puede estimar el tiempo.";
     }
-
-    if (config.tipo === "cotizaciones") {
-      tiempoBase += 1; // Cotizaciones suelen tener más datos
-    }
-
-    // Ajustar por filtros (menos filtros = más datos = más tiempo)
-    if (cantidadFiltros === 0) {
-      tiempoBase += 3; // Sin filtros = todos los datos
-    } else if (cantidadFiltros < 3) {
-      tiempoBase += 1;
-    }
-
-    return `${tiempoBase}-${tiempoBase + 2} segundos`;
   }
 
-  // Generar reporte de estadísticas de consumo
+  /**
+   * Métodos legacy para compatibilidad hacia atrás
+   */
   async descargarReporteEstadisticas(
     subtipo: "mensual" | "diario" | "horario",
-    config: Omit<IConfigReporte, "tipo">,
-    onProgress?: IProgressCallback
+    config: any,
+    onProgress?: any
   ): Promise<void> {
+    console.warn(
+      "⚠️  Método legacy: descargarReporteEstadisticas - Considera usar el nuevo sistema modular"
+    );
+
     try {
-      console.log("📊 [HÍBRIDO] Descargando reporte de estadísticas:", {
-        subtipo,
-        config,
-      });
-
-      onProgress?.({
-        step: "init",
-        percentage: 0,
-        message: "Iniciando generación de reporte de estadísticas...",
-      });
-
       const params = new URLSearchParams();
       if (config.formato) params.append("formato", config.formato);
       if (config.filtros)
         params.append("filtros", JSON.stringify(config.filtros));
+      params.append("subtipo", subtipo);
 
-      const url = `/api/reportes/estadisticas/${subtipo}?${params.toString()}`;
+      const url = `/api/reportes/estadisticas?${params.toString()}`;
+      const nombreArchivo = `reporte_estadisticas_${subtipo}_${new Date().toISOString().split("T")[0]}.${config.formato === "excel" ? "xlsx" : "csv"}`;
 
-      onProgress?.({
-        step: "request",
-        percentage: 25,
-        message: `Solicitando datos de estadísticas ${subtipo}...`,
-      });
-
-      const nombreArchivo = `estadisticas_${subtipo}_${new Date().toISOString().split("T")[0]}.${config.formato === "excel" ? "xlsx" : "csv"}`;
-
-      await this.descargarArchivoConProgress(url, nombreArchivo, onProgress);
-
-      onProgress?.({
-        step: "complete",
-        percentage: 100,
-        message: "Reporte de estadísticas descargado exitosamente",
-      });
-    } catch (error) {
-      console.error(
-        "❌ [HÍBRIDO] Error descargando reporte de estadísticas:",
-        error
+      // Usar utilidad de descarga del sistema modular
+      const { DownloadUtils } = require("../reportes/utils/downloadUtils");
+      await DownloadUtils.descargarArchivoConProgress(
+        url,
+        nombreArchivo,
+        onProgress
       );
-
-      onProgress?.({
-        step: "error",
-        percentage: 0,
-        message: `Error: ${error instanceof Error ? error.message : "Error desconocido"}`,
-      });
-
+    } catch (error) {
+      console.error("❌ Error descargando reporte de estadísticas:", error);
       throw new Error("Error al descargar reporte de estadísticas");
     }
   }
 
-  // Descargar reporte de consumo sectorial
   async descargarReporteConsumoSectorial(
     subtipo: "equipamiento" | "area" | "horario",
-    config: Omit<IConfigReporte, "tipo">,
-    onProgress?: IProgressCallback
+    config: any,
+    onProgress?: any
   ): Promise<void> {
+    console.warn(
+      "⚠️  Método legacy: descargarReporteConsumoSectorial - Considera usar el nuevo sistema modular"
+    );
+
     try {
-      console.log("📊 [HÍBRIDO] Descargando reporte de consumo sectorial:", {
-        subtipo,
-        config,
-      });
-
-      onProgress?.({
-        step: "init",
-        percentage: 0,
-        message: "Iniciando generación de reporte de consumo sectorial...",
-      });
-
       const params = new URLSearchParams();
       if (config.formato) params.append("formato", config.formato);
       if (config.filtros)
         params.append("filtros", JSON.stringify(config.filtros));
+      params.append("subtipo", subtipo);
 
-      const url = `/api/reportes/consumo-sectorial/${subtipo}?${params.toString()}`;
+      const url = `/api/reportes/consumo-sectorial?${params.toString()}`;
+      const nombreArchivo = `reporte_consumo_${subtipo}_${new Date().toISOString().split("T")[0]}.${config.formato === "excel" ? "xlsx" : "csv"}`;
 
-      onProgress?.({
-        step: "request",
-        percentage: 25,
-        message: `Solicitando datos de consumo ${subtipo}...`,
-      });
-
-      const nombreArchivo = `consumo_${subtipo}_${new Date().toISOString().split("T")[0]}.${config.formato === "excel" ? "xlsx" : "csv"}`;
-
-      await this.descargarArchivoConProgress(url, nombreArchivo, onProgress);
-
-      onProgress?.({
-        step: "complete",
-        percentage: 100,
-        message: "Reporte de consumo sectorial descargado exitosamente",
-      });
+      // Usar utilidad de descarga del sistema modular
+      const { DownloadUtils } = require("../reportes/utils/downloadUtils");
+      await DownloadUtils.descargarArchivoConProgress(
+        url,
+        nombreArchivo,
+        onProgress
+      );
     } catch (error) {
       console.error(
-        "❌ [HÍBRIDO] Error descargando reporte de consumo sectorial:",
+        "❌ Error descargando reporte de consumo sectorial:",
         error
       );
-
-      onProgress?.({
-        step: "error",
-        percentage: 0,
-        message: `Error: ${error instanceof Error ? error.message : "Error desconocido"}`,
-      });
-
       throw new Error("Error al descargar reporte de consumo sectorial");
     }
   }
 }
 
-// Exportar instancia singleton
+// Instancia singleton del servicio principal
 export const reportesService = new ReportesService();
+
+// Exportar también la clase para casos especiales
+export { ReportesService };
+
+// Exportar servicios especializados para uso directo
+export {
+  clientesReportService,
+  empresasReportService,
+  cotizacionesReportService,
+};
+
+// Mantener compatibilidad hacia atrás
+export default reportesService;
