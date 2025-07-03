@@ -1,0 +1,1 @@
+export { RegistrosActividad } from './RegistrosActividad';

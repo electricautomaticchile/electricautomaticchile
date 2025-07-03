@@ -1,0 +1,1 @@
+export { EstadisticasGlobales } from './EstadisticasGlobales';

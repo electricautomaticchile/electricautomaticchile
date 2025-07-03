@@ -1,0 +1,1 @@
+export { CotizacionesDashboard } from './CotizacionesDashboard';
