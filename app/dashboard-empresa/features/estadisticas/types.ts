@@ -39,7 +39,7 @@ export interface EstadoExportacion {
 
 // Tipos de exportación
 export type TipoExportacion = "mensual" | "diario" | "horario";
-export type FormatoExportacion = "excel" | "csv";
+export type FormatoExportacion = "excel" | "csv" | "pdf";
 
 // Props para componentes hijos
 export interface EstadisticasStatsProps {

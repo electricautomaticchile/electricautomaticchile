@@ -6,22 +6,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Activity, RefreshCw, Settings } from "lucide-react";
 import {
-  Activity,
-  Download,
-  FileText,
-  FileSpreadsheet,
-  Calendar,
-  Settings,
-  RefreshCw,
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  ReporteExportMenu,
+  FormatoExportacion,
+  TipoReporte,
+} from "@/components/ui/reporte-export-menu";
 import { EstadisticasAccionesProps } from "./types";
 import { PERIODOS_DISPONIBLES } from "./config";
 
@@ -36,161 +26,105 @@ export function EstadisticasConsumoAcciones({
     estadoExportacion.estado === "generando" ||
     estadoExportacion.estado === "descargando";
 
+  const opcionesExportacion = [
+    {
+      tipo: "mensual" as TipoReporte,
+      label: "Datos Mensuales",
+      descripcion: "Consumo agregado por mes",
+    },
+    {
+      tipo: "diario" as TipoReporte,
+      label: "Datos Diarios",
+      descripcion: "Consumo detallado por día",
+    },
+    {
+      tipo: "horario" as TipoReporte,
+      label: "Datos Horarios",
+      descripcion: "Consumo detallado por hora",
+    },
+  ];
+
+  const handleExportacion = (
+    tipo: TipoReporte,
+    formato: FormatoExportacion
+  ) => {
+    // Mapear TipoReporte a los tipos esperados por onExportar
+    const tipoMapeado = tipo as "mensual" | "diario" | "horario";
+    onExportar(tipoMapeado, formato);
+  };
+
   return (
-    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-      {/* Título */}
-      <div>
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <Activity className="h-6 w-6 text-orange-600" />
-          Estadísticas de Consumo
-        </h2>
-        <p className="text-gray-500 mt-1">
-          Análisis detallado del consumo energético
-        </p>
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      {/* Información del período */}
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Activity className="h-5 w-5 text-blue-600" />
+          <span className="font-medium text-gray-900 dark:text-gray-100">
+            Estadísticas de Consumo
+          </span>
+        </div>
+
+        <Select
+          value={periodoSeleccionado}
+          onValueChange={onPeriodoChange}
+          disabled={loading || estaExportando}
+        >
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Seleccionar período" />
+          </SelectTrigger>
+          <SelectContent>
+            {PERIODOS_DISPONIBLES.map((periodo) => (
+              <SelectItem key={periodo.value} value={periodo.value}>
+                {periodo.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* Controles */}
-      <div className="flex flex-col sm:flex-row items-end gap-3">
-        {/* Selector de período */}
-        <div className="flex items-center gap-2">
-          <Calendar className="h-4 w-4 text-gray-500" />
-          <Select
-            value={periodoSeleccionado}
-            onValueChange={onPeriodoChange}
-            disabled={loading || estaExportando}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Seleccionar período" />
-            </SelectTrigger>
-            <SelectContent>
-              {PERIODOS_DISPONIBLES.filter((p) => p.activo).map((periodo) => (
-                <SelectItem key={periodo.value} value={periodo.value}>
-                  {periodo.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      {/* Controles de exportación y acciones */}
+      <div className="flex items-center gap-3">
+        {/* Nuevo componente unificado de exportación */}
+        <ReporteExportMenu
+          opciones={opcionesExportacion}
+          onExportar={handleExportacion}
+          isExporting={estaExportando}
+          disabled={loading}
+          buttonText="Exportar Estadísticas"
+          className="min-w-[160px]"
+        />
 
-        {/* Botones de exportación */}
-        <div className="flex items-center gap-2">
-          {/* Exportación Excel */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={loading || estaExportando}
-                className="flex items-center gap-2"
-              >
-                <FileSpreadsheet className="h-4 w-4" />
-                Excel
-                <span className="text-xs opacity-60">▼</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem
-                onClick={() => onExportar("mensual", "excel")}
-                disabled={estaExportando}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Datos Mensuales
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onExportar("diario", "excel")}
-                disabled={estaExportando}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Datos Diarios
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onExportar("horario", "excel")}
-                disabled={estaExportando}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Datos Horarios
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        {/* Botón de actualización */}
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={loading || estaExportando}
+          className="flex items-center gap-2"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Actualizar
+        </Button>
 
-          {/* Exportación CSV */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={loading || estaExportando}
-                className="flex items-center gap-2"
-              >
-                <FileText className="h-4 w-4" />
-                CSV
-                <span className="text-xs opacity-60">▼</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem
-                onClick={() => onExportar("mensual", "csv")}
-                disabled={estaExportando}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Datos Mensuales
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onExportar("diario", "csv")}
-                disabled={estaExportando}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Datos Diarios
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onExportar("horario", "csv")}
-                disabled={estaExportando}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Datos Horarios
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Botón de configuración */}
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={loading || estaExportando}
-            className="flex items-center gap-2"
-          >
-            <Settings className="h-4 w-4" />
-            Configurar
-          </Button>
-        </div>
+        {/* Botón de configuración */}
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={loading || estaExportando}
+          className="flex items-center gap-2"
+        >
+          <Settings className="h-4 w-4" />
+          Configurar
+        </Button>
       </div>
 
       {/* Indicador de estado de exportación */}
       {estaExportando && (
-        <div className="fixed top-4 right-4 z-50 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 shadow-lg">
-          <div className="flex items-center gap-3">
-            <RefreshCw className="h-4 w-4 animate-spin text-blue-600" />
-            <div>
-              <div className="font-medium text-blue-900 dark:text-blue-100">
-                {estadoExportacion.estado === "generando"
-                  ? "Generando reporte..."
-                  : "Descargando..."}
-              </div>
-              <div className="text-sm text-blue-700 dark:text-blue-300">
-                {estadoExportacion.progreso.message}
-              </div>
-              {estadoExportacion.progreso.percentage > 0 && (
-                <div className="w-48 bg-blue-200 dark:bg-blue-800 rounded-full h-1.5 mt-2">
-                  <div
-                    className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
-                    style={{
-                      width: `${estadoExportacion.progreso.percentage}%`,
-                    }}
-                  ></div>
-                </div>
-              )}
-            </div>
-          </div>
+        <div className="flex items-center gap-2 rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+          <span>{estadoExportacion.progreso?.message || "Exportando..."}</span>
+          <span className="ml-2 font-medium">
+            {estadoExportacion.progreso?.percentage || 0}%
+          </span>
         </div>
       )}
     </div>
