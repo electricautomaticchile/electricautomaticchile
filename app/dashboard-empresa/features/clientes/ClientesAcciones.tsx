@@ -9,23 +9,23 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   UserPlus,
-  Download,
   RefreshCw,
   MoreHorizontal,
-  FileSpreadsheet,
-  FileText,
   Import,
   Settings,
 } from "lucide-react";
+import { ReporteExportSimple } from "@/components/ui/reporte-export-menu";
 
 interface ClientesAccionesProps {
   onNuevoCliente: () => void;
   onRefresh: () => void;
   onExportarExcel: () => void;
   onExportarCSV: () => void;
+  onExportarPDF?: () => void;
   onImportar?: () => void;
   onConfiguracion?: () => void;
   isRefreshing?: boolean;
+  isExporting?: boolean;
   totalClientes: number;
   clientesFiltrados: number;
 }
@@ -35,9 +35,13 @@ export function ClientesAcciones({
   onRefresh,
   onExportarExcel,
   onExportarCSV,
+  onExportarPDF = () => {
+    console.log("PDF export not implemented for clients yet");
+  },
   onImportar,
   onConfiguracion,
   isRefreshing = false,
+  isExporting = false,
   totalClientes,
   clientesFiltrados,
 }: ClientesAccionesProps) {
@@ -82,33 +86,26 @@ export function ClientesAcciones({
           {isRefreshing ? "Actualizando..." : "Actualizar"}
         </Button>
 
-        {/* Dropdown de acciones adicionales */}
+        {/* Componente unificado de exportación */}
+        <ReporteExportSimple
+          onExportarExcel={onExportarExcel}
+          onExportarCSV={onExportarCSV}
+          onExportarPDF={onExportarPDF}
+          isExporting={isExporting}
+          disabled={isRefreshing}
+          className="min-w-[120px]"
+        />
+
+        {/* Dropdown de herramientas adicionales */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <MoreHorizontal className="h-4 w-4 mr-2" />
-              Más acciones
+              Herramientas
             </Button>
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="end" className="w-48">
-            {/* Sección de exportación */}
-            <div className="px-2 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-              Exportar
-            </div>
-
-            <DropdownMenuItem onClick={onExportarExcel}>
-              <FileSpreadsheet className="h-4 w-4 mr-2 text-green-600" />
-              Exportar a Excel
-            </DropdownMenuItem>
-
-            <DropdownMenuItem onClick={onExportarCSV}>
-              <FileText className="h-4 w-4 mr-2 text-blue-600" />
-              Exportar a CSV
-            </DropdownMenuItem>
-
-            <DropdownMenuSeparator />
-
             {/* Sección de herramientas */}
             <div className="px-2 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               Herramientas
