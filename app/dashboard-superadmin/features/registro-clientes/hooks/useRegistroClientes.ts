@@ -159,6 +159,8 @@ export function useRegistroClientes({
     setEstadosUI((prev) => ({ ...prev, confirmarDialogoAbierto: true }));
   }, [validacion.formularioValido, toast]);
 
+  // FUNCIÓN MOVIDA ANTES DE confirmarRegistro
+
   // Confirmar registro de cliente
   const confirmarRegistro = useCallback(async () => {
     try {
@@ -234,7 +236,33 @@ export function useRegistroClientes({
 
       // Auto-limpiar después de mostrar éxito
       setTimeout(() => {
-        reiniciarFormulario();
+        // Limpiar formulario usando setState directamente
+        setFormCliente({
+          numeroCliente: generarNumeroCliente(),
+          nombre: "",
+          correo: "",
+          telefono: "",
+          empresa: "",
+          rut: "",
+          direccion: "",
+          planSeleccionado: "",
+          montoMensual: 0,
+          notas: "",
+        });
+        setEstadosUI({
+          tabActivo: UI_CONFIG.tabs.default,
+          planAbierto: false,
+          planSeleccionado: "",
+          planesExpandidos: {},
+          confirmarDialogoAbierto: false,
+          passwordTemporal: "",
+        });
+        setEstadoRegistro({
+          creandoCliente: false,
+          exito: false,
+          copiado: false,
+          enviarCorreo: true,
+        });
         if (onComplete) onComplete();
       }, UI_CONFIG.timeouts.exitoMostrar);
     } catch (error) {
@@ -277,36 +305,6 @@ export function useRegistroClientes({
       setEstadoRegistro((prev) => ({ ...prev, copiado: false }));
     }, UI_CONFIG.timeouts.copiadoMostrar);
   }, [estadosUI.passwordTemporal, formCliente, toast]);
-
-  // Reiniciar formulario
-  const reiniciarFormulario = useCallback(() => {
-    setFormCliente({
-      numeroCliente: generarNumeroCliente(),
-      nombre: "",
-      correo: "",
-      telefono: "",
-      empresa: "",
-      rut: "",
-      direccion: "",
-      planSeleccionado: "",
-      montoMensual: 0,
-      notas: "",
-    });
-    setEstadosUI({
-      tabActivo: UI_CONFIG.tabs.default,
-      planAbierto: false,
-      planSeleccionado: "",
-      planesExpandidos: {},
-      confirmarDialogoAbierto: false,
-      passwordTemporal: "",
-    });
-    setEstadoRegistro({
-      creandoCliente: false,
-      exito: false,
-      copiado: false,
-      enviarCorreo: true,
-    });
-  }, []);
 
   // Actualizar cliente existente
   const actualizarCliente = useCallback((clienteActualizado: Cliente) => {
