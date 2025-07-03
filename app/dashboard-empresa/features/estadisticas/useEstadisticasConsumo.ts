@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "@/components/ui/use-toast";
-import { apiService } from "@/lib/api/apiService";
+import { estadisticasService } from "@/lib/api/services/estadisticasService";
 import { reportesService } from "@/lib/api/services/reportesService";
 import {
   DatoConsumo,
@@ -40,24 +40,21 @@ export function useEstadisticasConsumo() {
     try {
       setLoading(true);
 
-      // Simular delay de carga
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      const clienteId = "60d5ec49e03e8a2788d3d9d3"; // TODO: obtener del contexto de autenticación
+      const response =
+        await estadisticasService.obtenerEstadisticasConsumoCliente(clienteId, {
+          periodo: periodo as any,
+        });
 
-      const datosSimulados = generarDatosConsumo(periodo as TipoExportacion);
-      setDatosConsumo(datosSimulados);
-
-      // Actualizar estadísticas con algo de variación aleatoria
-      setResumenEstadisticas((prev) => ({
-        ...prev,
-        consumoMensual: Math.floor(Math.random() * 500) + 4300,
-        variacionMensual: (Math.random() - 0.5) * 10,
-        eficienciaEnergetica: Math.floor(Math.random() * 10) + 85,
-        costoMensual: Math.floor(Math.random() * 20000) + 150000,
-        pico: {
-          ...prev.pico,
-          valor: Math.floor(Math.random() * 50) + 200,
-        },
-      }));
+      if (response.success && response.data) {
+        const { datos, resumen } = response.data as any;
+        setDatosConsumo(datos as DatoConsumo[]);
+        setResumenEstadisticas(resumen as EstadisticasResumen);
+      } else {
+        const datosSimulados = generarDatosConsumo(periodo as TipoExportacion);
+        setDatosConsumo(datosSimulados);
+        setResumenEstadisticas(ESTADISTICAS_RESUMEN_DEFAULT);
+      }
     } catch (error) {
       console.error("Error cargando estadísticas:", error);
       toast({
@@ -98,17 +95,40 @@ export function useEstadisticasConsumo() {
           incluirResumen: true,
         };
 
-        await reportesService.descargarReporteEstadisticas(
-          tipo,
-          config,
-          (progreso: { step: string; percentage: number; message: string }) => {
-            setEstadoExportacion((prev) => ({
-              ...prev,
-              estado: "descargando",
-              progreso,
-            }));
-          }
-        );
+        // Usar el método específico para PDF si corresponde
+        if (formato === "pdf") {
+          await reportesService.descargarReporteEstadisticasPDF(
+            tipo,
+            config,
+            (progreso: {
+              step: string;
+              percentage: number;
+              message: string;
+            }) => {
+              setEstadoExportacion((prev) => ({
+                ...prev,
+                estado: "descargando",
+                progreso,
+              }));
+            }
+          );
+        } else {
+          await reportesService.descargarReporteEstadisticas(
+            tipo,
+            config,
+            (progreso: {
+              step: string;
+              percentage: number;
+              message: string;
+            }) => {
+              setEstadoExportacion((prev) => ({
+                ...prev,
+                estado: "descargando",
+                progreso,
+              }));
+            }
+          );
+        }
 
         setEstadoExportacion((prev) => ({
           ...prev,
@@ -116,13 +136,13 @@ export function useEstadisticasConsumo() {
           progreso: {
             step: "complete",
             percentage: 100,
-            message: "Estadísticas exportadas exitosamente",
+            message: `Estadísticas exportadas exitosamente en formato ${formato.toUpperCase()}`,
           },
         }));
 
         toast({
           title: "✅ Exportación Exitosa",
-          description: `Las estadísticas ${tipo} han sido descargadas correctamente.`,
+          description: `Las estadísticas ${tipo} han sido descargadas correctamente en formato ${formato.toUpperCase()}.`,
         });
 
         // Cerrar modal después de 2 segundos
