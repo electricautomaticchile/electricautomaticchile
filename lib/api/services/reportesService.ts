@@ -346,8 +346,14 @@ class ReportesService {
         params.append("filtros", JSON.stringify(config.filtros));
       params.append("subtipo", subtipo);
 
-      const url = `/api/reportes/estadisticas?${params.toString()}`;
-      const nombreArchivo = `reporte_estadisticas_${subtipo}_${new Date().toISOString().split("T")[0]}.${config.formato === "excel" ? "xlsx" : "csv"}`;
+      const url = `/api/reportes/estadisticas${config.formato === "pdf" ? `/${subtipo}/pdf` : ""}?${params.toString()}`;
+      const extension =
+        config.formato === "excel"
+          ? "xlsx"
+          : config.formato === "pdf"
+            ? "pdf"
+            : "csv";
+      const nombreArchivo = `reporte_estadisticas_${subtipo}_${new Date().toISOString().split("T")[0]}.${extension}`;
 
       // Usar utilidad de descarga del sistema modular
       const { DownloadUtils } = require("../reportes/utils/downloadUtils");
@@ -378,8 +384,14 @@ class ReportesService {
         params.append("filtros", JSON.stringify(config.filtros));
       params.append("subtipo", subtipo);
 
-      const url = `/api/reportes/consumo-sectorial?${params.toString()}`;
-      const nombreArchivo = `reporte_consumo_${subtipo}_${new Date().toISOString().split("T")[0]}.${config.formato === "excel" ? "xlsx" : "csv"}`;
+      const url = `/api/reportes/consumo-sectorial${config.formato === "pdf" ? "/pdf" : ""}?${params.toString()}`;
+      const extension =
+        config.formato === "excel"
+          ? "xlsx"
+          : config.formato === "pdf"
+            ? "pdf"
+            : "csv";
+      const nombreArchivo = `reporte_consumo_${subtipo}_${new Date().toISOString().split("T")[0]}.${extension}`;
 
       // Usar utilidad de descarga del sistema modular
       const { DownloadUtils } = require("../reportes/utils/downloadUtils");
@@ -394,6 +406,61 @@ class ReportesService {
         error
       );
       throw new Error("Error al descargar reporte de consumo sectorial");
+    }
+  }
+
+  async descargarReporteEstadisticasPDF(
+    subtipo: "mensual" | "diario" | "horario",
+    config: any,
+    onProgress?: any
+  ): Promise<void> {
+    try {
+      const params = new URLSearchParams();
+      if (config.filtros)
+        params.append("filtros", JSON.stringify(config.filtros));
+      params.append("subtipo", subtipo);
+
+      const url = `/api/reportes/estadisticas/${subtipo}/pdf?${params.toString()}`;
+      const nombreArchivo = `reporte_estadisticas_${subtipo}_${new Date().toISOString().split("T")[0]}.pdf`;
+
+      const { DownloadUtils } = require("../reportes/utils/downloadUtils");
+      await DownloadUtils.descargarArchivoConProgress(
+        url,
+        nombreArchivo,
+        onProgress
+      );
+    } catch (error) {
+      console.error("❌ Error descargando reporte PDF de estadísticas:", error);
+      throw new Error("Error al descargar reporte PDF de estadísticas");
+    }
+  }
+
+  async descargarReporteConsumoSectorialPDF(
+    subtipo: "equipamiento" | "area" | "horario",
+    config: any,
+    onProgress?: any
+  ): Promise<void> {
+    try {
+      const params = new URLSearchParams();
+      if (config.filtros)
+        params.append("filtros", JSON.stringify(config.filtros));
+      params.append("subtipo", subtipo);
+
+      const url = `/api/reportes/consumo-sectorial/${subtipo}/pdf?${params.toString()}`;
+      const nombreArchivo = `reporte_consumo_${subtipo}_${new Date().toISOString().split("T")[0]}.pdf`;
+
+      const { DownloadUtils } = require("../reportes/utils/downloadUtils");
+      await DownloadUtils.descargarArchivoConProgress(
+        url,
+        nombreArchivo,
+        onProgress
+      );
+    } catch (error) {
+      console.error(
+        "❌ Error descargando reporte PDF de consumo sectorial:",
+        error
+      );
+      throw new Error("Error al descargar reporte PDF de consumo sectorial");
     }
   }
 }

@@ -29,6 +29,24 @@ export class EstadisticasService extends BaseApiService {
   async obtenerEstadisticasGlobales(): Promise<ApiResponse<any>> {
     return this.makeRequest<any>("/estadisticas/globales");
   }
+
+  async obtenerConsumoSectorial(
+    empresaId: string,
+    filtros?: {
+      subtipo?: "equipamiento" | "area" | "horario";
+      periodo?: string;
+    }
+  ): Promise<ApiResponse<any>> {
+    const params = new URLSearchParams();
+    if (filtros?.subtipo) params.append("subtipo", filtros.subtipo);
+    if (filtros?.periodo) params.append("periodo", filtros.periodo);
+
+    const endpoint = `/reportes/consumo-sectorial${
+      filtros?.subtipo ? `/${filtros.subtipo}` : ""
+    }?empresaId=${empresaId}&${params.toString()}`;
+
+    return this.makeRequest<any>(endpoint);
+  }
 }
 
 // Exportar instancia única del servicio

@@ -47,6 +47,16 @@ export class DispositivosService extends BaseApiService {
       body: JSON.stringify({ lecturas }),
     });
   }
+
+  async controlarDispositivo(
+    id: string,
+    accion: "shutdown" | "restart" | "toggle" | "on" | "off"
+  ): Promise<ApiResponse<any>> {
+    return this.makeRequest<any>(`/dispositivos/${id}/control`, {
+      method: "POST",
+      body: JSON.stringify({ accion }),
+    });
+  }
 }
 
 // Exportar instancia única del servicio
