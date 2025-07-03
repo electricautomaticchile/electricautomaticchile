@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import {
@@ -58,20 +58,6 @@ export function ReporteProgress({
     ? Math.round((new Date().getTime() - progress.startTime.getTime()) / 1000)
     : 0;
 
-  // Resetear estado cuando se abre el modal
-  useEffect(() => {
-    if (isOpen && config) {
-      setProgress({
-        step: "init",
-        percentage: 0,
-        message: "Preparando generación...",
-        isComplete: false,
-        hasError: false,
-        startTime: new Date(),
-      });
-    }
-  }, [isOpen, config]);
-
   // Función para manejar el progreso
   const handleProgress: IProgressCallback = (progressData) => {
     setProgress((prev) => ({
@@ -88,7 +74,7 @@ export function ReporteProgress({
   };
 
   // Función para iniciar la generación
-  const iniciarGeneracion = async () => {
+  const iniciarGeneracion = useCallback(async () => {
     if (!config) return;
 
     setIsGenerating(true);
@@ -108,14 +94,28 @@ export function ReporteProgress({
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [config, onGenerate]);
+
+  // Resetear estado cuando se abre el modal
+  useEffect(() => {
+    if (isOpen && config) {
+      setProgress({
+        step: "init",
+        percentage: 0,
+        message: "Preparando generación...",
+        isComplete: false,
+        hasError: false,
+        startTime: new Date(),
+      });
+    }
+  }, [isOpen, config]);
 
   // Auto-iniciar cuando se abre el modal
   useEffect(() => {
     if (isOpen && config && !isGenerating && progress.step === "init") {
       iniciarGeneracion();
     }
-  }, [isOpen, config]);
+  }, [isOpen, config, iniciarGeneracion, isGenerating, progress.step]);
 
   const getStepIcon = () => {
     if (progress.hasError) return <XCircle className="h-6 w-6 text-red-500" />;
