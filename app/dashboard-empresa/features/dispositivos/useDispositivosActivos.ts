@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { useWebSocket } from "@/hooks/useWebSocket";
+// import { useWebSocket } from "@/hooks/useWebSocket";
 import { apiService } from "@/lib/api/apiService";
+import { dispositivosService } from "@/lib/api/services/dispositivosService";
 import {
   Dispositivo,
   ResumenDispositivos,
@@ -40,7 +41,7 @@ export function useDispositivosActivos() {
 
   // Hooks externos
   const { toast } = useToast();
-  const { isConnected, deviceData, sendMessage } = useWebSocket();
+  // const { isConnected, deviceData, sendMessage } = useWebSocket();
 
   // Calcular resumen de dispositivos
   const calcularResumen = useCallback(
@@ -99,17 +100,23 @@ export function useDispositivosActivos() {
   const cargarDispositivos = useCallback(async () => {
     setLoading(true);
     try {
-      // En un entorno real, estos datos vendrían del backend
-      // const datos = await apiService.getDispositivos();
+      // Llamar a la API real
+      const response = await apiService.obtenerDispositivos();
 
-      // Simulación de delay de red
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      if (response.success) {
+        const dispositivosBackend = response.data as unknown as Dispositivo[];
+        setDispositivos(dispositivosBackend);
 
-      const dispositivosSimulados = generarDispositivosSimulados();
-      setDispositivos(dispositivosSimulados);
+        const resumen = calcularResumen(dispositivosBackend);
+        setResumenDispositivos(resumen);
+      } else {
+        // Fallback a simulación si la API falla
+        const dispositivosSimulados = generarDispositivosSimulados();
+        setDispositivos(dispositivosSimulados);
 
-      const resumen = calcularResumen(dispositivosSimulados);
-      setResumenDispositivos(resumen);
+        const resumen = calcularResumen(dispositivosSimulados);
+        setResumenDispositivos(resumen);
+      }
     } catch (error) {
       console.error("Error cargando dispositivos:", error);
       toast({
@@ -150,12 +157,11 @@ export function useDispositivosActivos() {
     async (id: string, accion: string) => {
       try {
         // Enviar comando vía WebSocket si está conectado
-        if (isConnected) {
+        /* if (isConnected) { // COMENTADO
           sendMessage("device_control", { deviceId: id, action: accion });
-        } else {
-          // Simular envío de comando vía API REST
-          // await apiService.controlarDispositivo(id, accion);
-        }
+        } else { */
+        await dispositivosService.controlarDispositivo(id, accion as any);
+        // }
 
         toast({
           title: "✅ Comando Enviado",
@@ -190,7 +196,7 @@ export function useDispositivosActivos() {
         });
       }
     },
-    [isConnected, sendMessage, toast]
+    [toast]
   );
 
   // Actualizar filtros
@@ -238,8 +244,8 @@ export function useDispositivosActivos() {
     return () => clearInterval(interval);
   }, [cargarDispositivos]);
 
-  // Efecto para procesar datos de WebSocket
-  useEffect(() => {
+  // Efecto para procesar datos de WebSocket - COMENTADO
+  /* useEffect(() => {
     if (!deviceData) return;
 
     const data = deviceData as WebSocketDeviceData;
@@ -267,7 +273,7 @@ export function useDispositivosActivos() {
       setResumenDispositivos(resumen);
       return current;
     });
-  }, [deviceData, calcularResumen]);
+  }, [deviceData, calcularResumen]); */
 
   // Recalcular resumen cuando cambian los dispositivos
   useEffect(() => {
@@ -282,7 +288,7 @@ export function useDispositivosActivos() {
     dispositivosOriginales: dispositivos,
     resumenDispositivos,
     filtros,
-    isWebSocketConnected: isConnected,
+    isWebSocketConnected: false, // Valor estático
 
     // Acciones
     cargarDispositivos,
