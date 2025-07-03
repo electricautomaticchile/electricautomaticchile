@@ -96,4 +96,46 @@ export class BaseApiService {
 
     return response;
   }
+
+  // Métodos de conveniencia para HTTP
+  async get<T>(
+    endpoint: string,
+    options?: RequestInit
+  ): Promise<ApiResponse<T>> {
+    return this.makeRequest<T>(endpoint, { ...options, method: "GET" });
+  }
+
+  async post<T>(
+    endpoint: string,
+    body?: any,
+    options?: RequestInit
+  ): Promise<ApiResponse<T>> {
+    return this.makeRequest<T>(endpoint, {
+      ...options,
+      method: "POST",
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  }
+
+  async put<T>(
+    endpoint: string,
+    body?: any,
+    options?: RequestInit
+  ): Promise<ApiResponse<T>> {
+    return this.makeRequest<T>(endpoint, {
+      ...options,
+      method: "PUT",
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  }
+
+  async delete<T>(
+    endpoint: string,
+    options?: RequestInit
+  ): Promise<ApiResponse<T>> {
+    return this.makeRequest<T>(endpoint, { ...options, method: "DELETE" });
+  }
 }
+
+// Instancia por defecto para usar en los servicios
+export const baseService = new BaseApiService();

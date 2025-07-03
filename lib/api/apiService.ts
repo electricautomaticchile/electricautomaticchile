@@ -18,6 +18,8 @@ import { estadisticasService } from "./services/estadisticasService";
 import { leadMagnetService } from "./services/leadMagnetService";
 import { superusuariosService } from "./services/superusuariosService";
 import { empresasService } from "./services/empresasService";
+import { alertasService } from "./services/alertasService";
+import { arduinoService } from "./services/arduinoService";
 
 // Re-exportar todos los tipos para mantener compatibilidad
 export * from "./types";
@@ -117,6 +119,36 @@ class ApiService {
     empresasService.resetearPasswordEmpresa.bind(empresasService);
   obtenerEstadisticasEmpresas =
     empresasService.obtenerEstadisticasEmpresas.bind(empresasService);
+
+  // =================== ALERTAS ===================
+  obtenerAlertas = alertasService.obtenerAlertas.bind(alertasService);
+  obtenerAlertasActivas =
+    alertasService.obtenerAlertasActivas.bind(alertasService);
+  obtenerAlertasPorEmpresa =
+    alertasService.obtenerAlertasPorEmpresa.bind(alertasService);
+  obtenerResumenAlertas =
+    alertasService.obtenerResumenAlertas.bind(alertasService);
+  crearAlerta = alertasService.crearAlerta.bind(alertasService);
+  resolverAlerta = alertasService.resolverAlerta.bind(alertasService);
+  asignarAlerta = alertasService.asignarAlerta.bind(alertasService);
+  eliminarAlerta = alertasService.eliminarAlerta.bind(alertasService);
+  simularAlerta = alertasService.simularAlerta.bind(alertasService);
+  simularAlertasBatch = alertasService.simularAlertasBatch.bind(alertasService);
+
+  // =================== ARDUINO IoT ===================
+  obtenerEstadoArduino = arduinoService.obtenerEstado.bind(arduinoService);
+  conectarArduino = arduinoService.conectar.bind(arduinoService);
+  desconectarArduino = arduinoService.desconectar.bind(arduinoService);
+  enviarComandoArduino = arduinoService.enviarComando.bind(arduinoService);
+  obtenerEstadisticasArduino =
+    arduinoService.obtenerEstadisticas.bind(arduinoService);
+  exportarDatosArduino = arduinoService.exportarDatos.bind(arduinoService);
+  obtenerDispositivosArduino =
+    arduinoService.obtenerDispositivosEmpresa.bind(arduinoService);
+  registrarDispositivoArduino =
+    arduinoService.registrarDispositivo.bind(arduinoService);
+  configurarDispositivoArduino =
+    arduinoService.configurarDispositivo.bind(arduinoService);
 }
 
 // Exportar instancia única del servicio para retrocompatibilidad
@@ -136,4 +168,6 @@ export {
   leadMagnetService,
   superusuariosService,
   empresasService,
+  alertasService,
+  arduinoService,
 };
