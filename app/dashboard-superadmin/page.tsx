@@ -1,18 +1,19 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { Toaster } from "@/components/ui/toaster";
 import { SuperAdminRoute } from "@/components/auth/protected-route";
 import { CambioPasswordModal } from "@/components/ui/cambio-password-modal";
-import { BarrasNavegacion } from "./componentes/barras-navegacion";
-import { NavegacionMovil } from "./componentes/navegacion-movil";
-import { Encabezado } from "./componentes/encabezado";
-import GestionEmpresas from "./componentes/gestion-empresas";
-import { EstadisticasGlobales } from "./componentes/estadisticas-globales";
-import { Notificaciones } from "./componentes/notificaciones";
-import { Mensajeria } from "./componentes/mensajeria";
-import { Configuracion } from "./componentes/configuracion";
-import { RegistrosActividad } from "./componentes/registros-actividad";
-import { FacturacionGlobal } from "./componentes/facturacion-global";
-import { CotizacionesDashboard } from "./componentes/cotizaciones-dashboard";
+import { BarrasNavegacion } from "./components/layout/navigation";
+import { NavegacionMovil } from "./components/layout/mobile-navigation";
+import { Encabezado } from "./components/layout/header";
+import GestionEmpresas from "./features/gestion-empresas";
+import { EstadisticasGlobales } from "./features/estadisticas-globales";
+import { Notificaciones } from "./features/notificaciones";
+import { Mensajeria } from "./features/mensajeria";
+import { Configuracion } from "./features/configuracion";
+import { RegistrosActividad } from "./features/registros-actividad";
+import { FacturacionGlobal } from "./features/facturacion";
+import { CotizacionesDashboard } from "./features/cotizaciones-dashboard";
 import {
   Card,
   CardHeader,
