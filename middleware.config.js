@@ -44,4 +44,4 @@ module.exports = {
       maxTotalSize: 20971520
     }
   }
-}; 
+};
