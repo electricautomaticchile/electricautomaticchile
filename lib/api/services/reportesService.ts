@@ -83,6 +83,33 @@ export interface IEstadisticasReportes {
   };
 }
 
+import { DownloadUtils } from "../reportes/utils/downloadUtils";
+
+// TODO: Refactorizar este servicio para que use baseService y maneje la autenticación correctamente.
+// Las siguientes líneas están comentadas temporalmente debido a problemas con la importación de tipos.
+
+// class ReportesService {
+//   async generarReporte(
+//     params: any // GenerarReporteParams
+//   ): Promise<any> { // ApiResponse<Reporte>
+//     return baseService.post<any>("/reportes/generar", params);
+//   }
+
+//   async getEstadoReporte(id: string): Promise<any> { // ApiResponse<EstadoReporte>
+//     return baseService.get<any>(`/reportes/${id}/estado`);
+//   }
+
+//   async getReportesGenerados(
+//     tipoReporte?: string
+//   ): Promise<any> { // ApiResponse<Reporte[]>
+//     const endpoint = tipoReporte
+//       ? `/reportes?tipo=${tipoReporte}`
+//       : "/reportes";
+//     return baseService.get<any[]>(endpoint);
+//   }
+// }
+// export const reportesService = new ReportesService();
+
 /**
  * Servicio principal de reportes - Wrapper refactorizado
  * Mantiene compatibilidad hacia atrás usando servicios modularizados
@@ -462,6 +489,12 @@ class ReportesService {
       );
       throw new Error("Error al descargar reporte PDF de consumo sectorial");
     }
+  }
+
+  async descargarReporte(id: string): Promise<void> {
+    const url = `/reportes/${id}/descargar`;
+    // DownloadUtils ya maneja la autenticación con el token
+    await DownloadUtils.descargarArchivoConProgress(url, `reporte-${id}.pdf`);
   }
 }
 
