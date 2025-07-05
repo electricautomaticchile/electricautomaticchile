@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { API_URL } from "@/lib/api/utils/config";
 
 // Tipos de documentos
 export type TipoDocumento =
@@ -167,10 +168,10 @@ export function useDocumentos() {
       const detenerProgreso = simularProgreso(setProgreso);
 
       try {
-        const response = await fetch("/api/documentos", {
+        const response = await fetch(`${API_URL}/documentos/upload`, {
           method: "POST",
           headers: {
-            // No establecer Content-Type para FormData, fetch lo hace automáticamente
+            // No establecer Content-Type para FormData
             ...headersAdicionales,
           },
           body: formData,

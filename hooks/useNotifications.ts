@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from "react";
-import { useWebSocket } from "./useWebSocket";
 
 export interface Notification {
   id: string;
@@ -28,7 +27,6 @@ interface UseNotificationsReturn {
 
 export const useNotifications = (): UseNotificationsReturn => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const { notifications: wsNotifications } = useWebSocket();
 
   // Generar ID único para notificaciones
   const generateId = () => {
@@ -95,29 +93,7 @@ export const useNotifications = (): UseNotificationsReturn => {
   // Calcular cantidad de no leídas
   const unreadCount = notifications.filter((notif) => !notif.leida).length;
 
-  // Procesar notificaciones de WebSocket
-  useEffect(() => {
-    wsNotifications.forEach((wsNotif) => {
-      const exists = notifications.some(
-        (notif) =>
-          notif.mensaje === wsNotif.mensaje &&
-          notif.dispositivo === wsNotif.dispositivo &&
-          notif.fecha ===
-            new Date(wsNotif.timestamp).toLocaleDateString("es-CL")
-      );
-
-      if (!exists) {
-        addNotification({
-          tipo: wsNotif.tipo,
-          mensaje: wsNotif.mensaje,
-          ubicacion: wsNotif.ubicacion,
-          dispositivo: wsNotif.dispositivo,
-          importante:
-            wsNotif.tipo === "error" || wsNotif.tipo === "advertencia",
-        });
-      }
-    });
-  }, [wsNotifications, notifications, addNotification]);
+  // WebSocket removido temporalmente - las notificaciones se manejarán por polling o manualmente
 
   // Agregar algunas notificaciones de ejemplo al inicializar
   useEffect(() => {

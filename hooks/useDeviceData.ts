@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useWebSocket } from "./useWebSocket";
+
 import { apiService } from "@/lib/api/apiService";
 
 interface DeviceData {
@@ -40,13 +40,12 @@ export const useDeviceData = (options: UseDeviceDataOptions) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const {
-    socket,
-    isConnected,
-    deviceData: webSocketDeviceData,
-    notifications,
-    sendMessage,
-  } = useWebSocket();
+  // WebSocket removido temporalmente
+  const isConnected = false;
+  const webSocketDeviceData = null;
+  const notifications: any[] = [];
+  const socket = null;
+  const sendMessage = (..._args: any[]) => {};
 
   // Cargar dispositivos iniciales
   const loadDevices = useCallback(async () => {
@@ -70,25 +69,25 @@ export const useDeviceData = (options: UseDeviceDataOptions) => {
     }
   }, [clienteId]);
 
-  // Procesar datos del WebSocket cuando lleguen
-  useEffect(() => {
-    if (webSocketDeviceData && webSocketDeviceData.dispositivoId) {
-      const deviceId = webSocketDeviceData.dispositivoId;
-      const newDeviceData: DeviceData = {
-        deviceId,
-        timestamp: webSocketDeviceData.timestamp || new Date().toISOString(),
-        lecturas: webSocketDeviceData.data || []
-      };
+  // WebSocket removido - este código se reactivará cuando se implemente el sistema IoT
+  // useEffect(() => {
+  //   if (webSocketDeviceData && webSocketDeviceData.dispositivoId) {
+  //     const deviceId = webSocketDeviceData.dispositivoId;
+  //     const newDeviceData: DeviceData = {
+  //       deviceId,
+  //       timestamp: webSocketDeviceData.timestamp || new Date().toISOString(),
+  //       lecturas: webSocketDeviceData.data || [],
+  //     };
 
-      setDeviceData((prev) => {
-        const newMap = new Map(prev);
-        const deviceHistory = newMap.get(deviceId) || [];
-        const updatedHistory = [...deviceHistory, newDeviceData].slice(-100);
-        newMap.set(deviceId, updatedHistory);
-        return newMap;
-      });
-    }
-  }, [webSocketDeviceData]);
+  //     setDeviceData((prev) => {
+  //       const newMap = new Map(prev);
+  //       const deviceHistory = newMap.get(deviceId) || [];
+  //       const updatedHistory = [...deviceHistory, newDeviceData].slice(-100);
+  //       newMap.set(deviceId, updatedHistory);
+  //       return newMap;
+  //     });
+  //   }
+  // }, [webSocketDeviceData]);
 
   // Convertir notificaciones del WebSocket a alertas
   useEffect(() => {
@@ -99,12 +98,13 @@ export const useDeviceData = (options: UseDeviceDataOptions) => {
           timestamp: notification.timestamp,
           tipoAlerta: notification.tipo,
           mensaje: notification.mensaje,
-          esResuelta: false
+          esResuelta: false,
         };
 
         setAlerts((prev) => {
           const exists = prev.some(
-            (a) => a.deviceId === alert.deviceId && a.timestamp === alert.timestamp
+            (a) =>
+              a.deviceId === alert.deviceId && a.timestamp === alert.timestamp
           );
           if (!exists) {
             return [alert, ...prev].slice(0, 50);
