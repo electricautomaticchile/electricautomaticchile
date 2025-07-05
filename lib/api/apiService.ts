@@ -19,7 +19,7 @@ import { leadMagnetService } from "./services/leadMagnetService";
 import { superusuariosService } from "./services/superusuariosService";
 import { empresasService } from "./services/empresasService";
 import { alertasService } from "./services/alertasService";
-import { arduinoService } from "./services/arduinoService";
+// import { arduinoService } from "./services/arduinoService"; // Temporalmente deshabilitado
 
 // Re-exportar todos los tipos para mantener compatibilidad
 export * from "./types";
@@ -136,19 +136,20 @@ class ApiService {
   simularAlertasBatch = alertasService.simularAlertasBatch.bind(alertasService);
 
   // =================== ARDUINO IoT ===================
-  obtenerEstadoArduino = arduinoService.obtenerEstado.bind(arduinoService);
-  conectarArduino = arduinoService.conectar.bind(arduinoService);
-  desconectarArduino = arduinoService.desconectar.bind(arduinoService);
-  enviarComandoArduino = arduinoService.enviarComando.bind(arduinoService);
-  obtenerEstadisticasArduino =
-    arduinoService.obtenerEstadisticas.bind(arduinoService);
-  exportarDatosArduino = arduinoService.exportarDatos.bind(arduinoService);
-  obtenerDispositivosArduino =
-    arduinoService.obtenerDispositivosEmpresa.bind(arduinoService);
-  registrarDispositivoArduino =
-    arduinoService.registrarDispositivo.bind(arduinoService);
-  configurarDispositivoArduino =
-    arduinoService.configurarDispositivo.bind(arduinoService);
+  // Temporalmente deshabilitado hasta implementar Arduino
+  // obtenerEstadoArduino = arduinoService.obtenerEstado.bind(arduinoService);
+  // conectarArduino = arduinoService.conectar.bind(arduinoService);
+  // desconectarArduino = arduinoService.desconectar.bind(arduinoService);
+  // enviarComandoArduino = arduinoService.enviarComando.bind(arduinoService);
+  // obtenerEstadisticasArduino =
+  //   arduinoService.obtenerEstadisticas.bind(arduinoService);
+  // exportarDatosArduino = arduinoService.exportarDatos.bind(arduinoService);
+  // obtenerDispositivosArduino =
+  //   arduinoService.obtenerDispositivosEmpresa.bind(arduinoService);
+  // registrarDispositivoArduino =
+  //   arduinoService.registrarDispositivo.bind(arduinoService);
+  // configurarDispositivoArduino =
+  //   arduinoService.configurarDispositivo.bind(arduinoService);
 }
 
 // Exportar instancia única del servicio para retrocompatibilidad
@@ -169,5 +170,5 @@ export {
   superusuariosService,
   empresasService,
   alertasService,
-  arduinoService,
+  // arduinoService, // Temporalmente deshabilitado
 };
