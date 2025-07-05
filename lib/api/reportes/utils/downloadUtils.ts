@@ -32,6 +32,9 @@ export class DownloadUtils {
         },
       });
 
+      if (response.status === 204) {
+        throw new Error("Sin datos");
+      }
       if (!response.ok) {
         const errorData = await response
           .json()
