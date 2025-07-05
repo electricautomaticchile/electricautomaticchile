@@ -36,7 +36,6 @@ import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useApi";
 import { useNotifications } from "@/hooks/useNotifications";
-import { useWebSocket } from "@/hooks/useWebSocket";
 
 interface EncabezadoEmpresaProps {
   onCambiarPassword?: () => void;
@@ -56,7 +55,8 @@ export function EncabezadoEmpresa({
 
   const { notifications, unreadCount, markAsRead, markAllAsRead } =
     useNotifications();
-  const { isConnected } = useWebSocket();
+  // WebSocket removido temporalmente
+  const isConnected = false;
 
   useEffect(() => {
     setMounted(true);
