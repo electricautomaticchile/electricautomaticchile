@@ -1,17 +1,25 @@
-import { apiService } from "../apiService";
+import { baseService } from "../utils/baseService";
+import { ApiResponse } from "../types";
+import { API_BASE_URL } from "../utils/config";
+import { TokenManager } from "../utils/tokenManager";
 
 export interface IConfiguracion {
-  _id?: string;
-  clave: string;
-  valor: any;
-  categoria: string;
-  descripcion?: string;
-  esPublica: boolean;
-  editablePorEmpresa: boolean;
-  tipo: "general" | "empresa" | "sistema";
-  empresaId?: string;
-  fechaCreacion?: Date;
-  fechaActualizacion?: Date;
+  id: string;
+  empresaId: string;
+  notificaciones: {
+    emails: string[];
+    enviarResumenDiario: boolean;
+  };
+  umbrales: {
+    consumoMaximo: number;
+    desconexionAutomatica: boolean;
+  };
+  logoUrl?: string;
+  coloresTema?: {
+    primario: string;
+    secundario: string;
+  };
+  tipo?: "general" | "empresa" | "sistema";
 }
 
 export interface IConfiguracionRequest {
@@ -22,6 +30,14 @@ export interface IConfiguracionRequest {
   esPublica?: boolean;
   editablePorEmpresa?: boolean;
   tipo?: "general" | "empresa" | "sistema";
+}
+
+// Interfaz para el servicio de configuración
+interface ConfigurationData {
+  // Define aquí los campos de la configuración
+  id: string;
+  nombreEmpresa: string;
+  // ... otros campos
 }
 
 class ConfiguracionService {
@@ -143,6 +159,55 @@ class ConfiguracionService {
       return {
         exitosasCount: 0,
         errores: [error instanceof Error ? error.message : "Error desconocido"],
+      };
+    }
+  }
+
+  async getConfiguration(
+    empresaId: string
+  ): Promise<ApiResponse<IConfiguracion>> {
+    return baseService.get(`/configuracion/${empresaId}`);
+  }
+
+  async updateConfiguration(
+    empresaId: string,
+    data: Partial<IConfiguracion>
+  ): Promise<ApiResponse<IConfiguracion>> {
+    return baseService.put(`/configuracion/${empresaId}`, data);
+  }
+
+  async uploadLogo(
+    empresaId: string,
+    logo: File
+  ): Promise<ApiResponse<{ url: string }>> {
+    const formData = new FormData();
+    formData.append("logo", logo);
+
+    const endpoint = `/configuracion/${empresaId}/logo`;
+    const url = `${API_BASE_URL}/api${endpoint}`;
+
+    try {
+      const token = TokenManager.getToken();
+      const headers: HeadersInit = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(url, {
+        method: "POST",
+        body: formData,
+        headers,
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        return { success: false, error: data.message || "Error al subir logo" };
+      }
+      return data;
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Error de conexión",
       };
     }
   }
