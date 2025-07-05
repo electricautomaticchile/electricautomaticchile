@@ -377,15 +377,15 @@ export function ConsumoElectrico({
                 {periodoSeleccionado === "mensual"
                   ? `Mensual ${añoSeleccionado}`
                   : periodoSeleccionado === "diario"
-                  ? `Diario ${mesSeleccionado} ${añoSeleccionado}`
-                  : "Por Hora"}
+                    ? `Diario ${mesSeleccionado} ${añoSeleccionado}`
+                    : "Por Hora"}
               </CardTitle>
               <CardDescription>
                 {periodoSeleccionado === "mensual"
                   ? "Consumo y costos por mes"
                   : periodoSeleccionado === "diario"
-                  ? "Consumo por día de la semana"
-                  : "Patrón típico de consumo en 24 horas"}
+                    ? "Consumo por día de la semana"
+                    : "Patrón típico de consumo en 24 horas"}
               </CardDescription>
             </CardHeader>
             <CardContent>

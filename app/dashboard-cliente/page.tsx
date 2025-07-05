@@ -10,6 +10,8 @@ import { PagosFacturas } from "./componentes/pagos-facturas";
 import { HistorialConsumo } from "./componentes/historial-consumo";
 import { SoporteUsuario } from "./componentes/soporte-usuario";
 import { PerfilUsuario } from "./componentes/perfil-usuario";
+import HeaderCliente from "./components/layout/header";
+import NavigationCliente from "./components/layout/navigation";
 
 /**
  * Dashboard para Clientes Finales (Usuarios de las Empresas)
@@ -206,24 +208,16 @@ export default function DashboardCliente() {
   };
 
   return (
-    <ClienteRoute>
-      <div className="grid min-h-screen w-full overflow-hidden lg:grid-cols-[280px_1fr]">
-        <BarraNavegacionLateral />
-        <div className="flex flex-col">
-          <Encabezado onCambiarPassword={() => setMostrarModalPassword(true)} />
-          <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
-            <div className="mb-4">
-              <h1 className="text-3xl font-bold text-orange-600">
-                Mi Panel de Control
-              </h1>
-              <p className="text-gray-500 dark:text-gray-400">
-                Bienvenido a su portal de administración eléctrica
-              </p>
-            </div>
-
-            {renderizarComponenteActivo()}
-          </main>
-        </div>
+    <div className="flex h-screen flex-col">
+      <HeaderCliente />
+      <div className="flex flex-1 overflow-hidden">
+        <NavigationCliente />
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
+          <h2 className="mb-4 text-xl font-semibold text-slate-700">
+            Bienvenido al panel de cliente
+          </h2>
+          {renderizarComponenteActivo()}
+        </main>
       </div>
 
       {/* Modal de cambio de contraseña */}
@@ -233,6 +227,6 @@ export default function DashboardCliente() {
         onSuccess={handlePasswordChangeSuccess}
         mostrarAdvertencia={requiereCambioPassword}
       />
-    </ClienteRoute>
+    </div>
   );
 }

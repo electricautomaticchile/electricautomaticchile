@@ -1,11 +1,32 @@
 "use client";
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from '@/components/ui/button';
-import { format, subMonths } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { Clock, BarChart, Download, FilterX, LineChart, ChevronDown, Calendar, Info } from 'lucide-react';
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { format, subMonths } from "date-fns";
+import { es } from "date-fns/locale";
+import {
+  Clock,
+  BarChart,
+  Download,
+  FilterX,
+  LineChart,
+  ChevronDown,
+  Calendar,
+  Info,
+} from "lucide-react";
 import {
   Bar,
   BarChart as BarChartRecharts,
@@ -16,7 +37,7 @@ import {
   ResponsiveContainer,
   Tooltip,
   XAxis,
-  YAxis
+  YAxis,
 } from "recharts";
 
 interface DatoConsumo {
@@ -29,22 +50,23 @@ interface DatoConsumo {
 const generarDatosHistoricos = (meses: number): DatoConsumo[] => {
   const datos: DatoConsumo[] = [];
   const hoy = new Date();
-  
+
   for (let i = meses - 1; i >= 0; i--) {
     const fecha = subMonths(hoy, i);
     // Simulamos variaciones estacionales (más consumo en invierno)
     const baseConsumo = 230 + Math.random() * 50;
-    const factorEstacional = fecha.getMonth() >= 5 && fecha.getMonth() <= 8 ? 1.3 : 1;
+    const factorEstacional =
+      fecha.getMonth() >= 5 && fecha.getMonth() <= 8 ? 1.3 : 1;
     const consumo = baseConsumo * factorEstacional;
     const costo = consumo * 185; // 185 pesos chilenos por kWh
 
     datos.push({
-      fecha: format(fecha, 'MM/yyyy'),
+      fecha: format(fecha, "MM/yyyy"),
       consumo: Number(consumo.toFixed(1)),
-      costo: Math.round(costo)
+      costo: Math.round(costo),
     });
   }
-  
+
   return datos;
 };
 
@@ -57,27 +79,27 @@ const generarDatosDetallados = () => {
   const diasMes = 30;
   const fechaBase = new Date();
   fechaBase.setDate(1); // Primer día del mes
-  
+
   const baseConsumo = 7.5; // Consumo base diario
-  
+
   for (let i = 0; i < diasMes; i++) {
     const fecha = new Date(fechaBase);
     fecha.setDate(fechaBase.getDate() + i);
-    
+
     // Simulamos patrones semanales (más consumo en fin de semana)
     const diaSemana = fecha.getDay(); // 0-6 (domingo-sábado)
     const esFinSemana = diaSemana === 0 || diaSemana === 6;
-    const factorDia = esFinSemana ? 1.2 : 1 + (Math.random() * 0.3);
-    
+    const factorDia = esFinSemana ? 1.2 : 1 + Math.random() * 0.3;
+
     const consumo = baseConsumo * factorDia;
-    
+
     datos.push({
-      fecha: format(fecha, 'dd/MM'),
+      fecha: format(fecha, "dd/MM"),
       consumo: Number(consumo.toFixed(1)),
-      costo: Math.round(consumo * 185)
+      costo: Math.round(consumo * 185),
     });
   }
-  
+
   return datos;
 };
 
@@ -87,22 +109,23 @@ const datosDetallados = generarDatosDetallados();
 const generarDatosHistoricosFijos = (meses: number): DatoConsumo[] => {
   const datos: DatoConsumo[] = [];
   const hoy = new Date();
-  
+
   for (let i = meses - 1; i >= 0; i--) {
     const fecha = subMonths(hoy, i);
     // Usamos valores fijos para SSR
     const baseConsumo = 230 + 25; // Valor medio fijo en lugar de aleatorio
-    const factorEstacional = fecha.getMonth() >= 5 && fecha.getMonth() <= 8 ? 1.3 : 1;
+    const factorEstacional =
+      fecha.getMonth() >= 5 && fecha.getMonth() <= 8 ? 1.3 : 1;
     const consumo = baseConsumo * factorEstacional;
     const costo = consumo * 185;
 
     datos.push({
-      fecha: format(fecha, 'MM/yyyy'),
+      fecha: format(fecha, "MM/yyyy"),
       consumo: Number(consumo.toFixed(1)),
-      costo: Math.round(costo)
+      costo: Math.round(costo),
     });
   }
-  
+
   return datos;
 };
 
@@ -112,27 +135,27 @@ const generarDatosDetalladosFijos = () => {
   const diasMes = 30;
   const fechaBase = new Date();
   fechaBase.setDate(1);
-  
+
   const baseConsumo = 7.5;
-  
+
   for (let i = 0; i < diasMes; i++) {
     const fecha = new Date(fechaBase);
     fecha.setDate(fechaBase.getDate() + i);
-    
+
     const diaSemana = fecha.getDay();
     const esFinSemana = diaSemana === 0 || diaSemana === 6;
     // Usamos valor fijo para SSR
     const factorDia = esFinSemana ? 1.2 : 1.15; // Valor fijo en lugar de aleatorio
-    
+
     const consumo = baseConsumo * factorDia;
-    
+
     datos.push({
-      fecha: format(fecha, 'dd/MM'),
+      fecha: format(fecha, "dd/MM"),
       consumo: Number(consumo.toFixed(1)),
-      costo: Math.round(consumo * 185)
+      costo: Math.round(consumo * 185),
     });
   }
-  
+
   return datos;
 };
 
@@ -141,43 +164,57 @@ interface HistorialConsumoProps {
 }
 
 export function HistorialConsumo({ reducida = false }: HistorialConsumoProps) {
-  const [periodoSeleccionado, setPeriodoSeleccionado] = useState('12');
-  const [tipoGrafico, setTipoGrafico] = useState<'linea' | 'barra'>('linea');
-  const [datosMostrados, setDatosMostrados] = useState<'consumo' | 'costo'>('consumo');
-  
+  const [periodoSeleccionado, setPeriodoSeleccionado] = useState("12");
+  const [tipoGrafico, setTipoGrafico] = useState<"linea" | "barra">("linea");
+  const [datosMostrados, setDatosMostrados] = useState<"consumo" | "costo">(
+    "consumo"
+  );
+
   // Estado para datos que se cargarán en el cliente
-  const [datosHistoricos, setDatosHistoricos] = useState(generarDatosHistoricosFijos(12));
-  const [datosDetallados, setDatosDetallados] = useState(generarDatosDetalladosFijos());
+  const [datosHistoricos, setDatosHistoricos] = useState(
+    generarDatosHistoricosFijos(12)
+  );
+  const [datosDetallados, setDatosDetallados] = useState(
+    generarDatosDetalladosFijos()
+  );
   const [cargando, setCargando] = useState(false);
 
   // Estas variables se calculan a partir de los datos que ahora están en el estado
-  const consumoTotal = datosHistoricos.reduce((total, dato) => total + dato.consumo, 0);
+  const consumoTotal = datosHistoricos.reduce(
+    (total, dato) => total + dato.consumo,
+    0
+  );
   const consumoPromedio = consumoTotal / datosHistoricos.length;
-  const consumoMaximo = Math.max(...datosHistoricos.map(dato => dato.consumo));
-  const costoTotal = datosHistoricos.reduce((total, dato) => total + dato.costo, 0);
+  const consumoMaximo = Math.max(
+    ...datosHistoricos.map((dato) => dato.consumo)
+  );
+  const costoTotal = datosHistoricos.reduce(
+    (total, dato) => total + dato.costo,
+    0
+  );
 
   const formatoMoneda = (valor: number) => {
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP'
+    return new Intl.NumberFormat("es-CL", {
+      style: "currency",
+      currency: "CLP",
     }).format(valor);
   };
-  
+
   // Generar datos aleatorios solo en el cliente después del montaje
   useEffect(() => {
     // Indicar que estamos cargando
     setCargando(true);
-    
+
     // Usar setTimeout para asegurar que esto ocurra después del renderizado inicial
     const timer = setTimeout(() => {
       setDatosHistoricos(generarDatosHistoricos(12));
       setDatosDetallados(generarDatosDetallados());
       setCargando(false);
     }, 0);
-    
+
     return () => clearTimeout(timer);
   }, []);
-  
+
   // Para la versión reducida del componente
   if (reducida) {
     return (
@@ -187,9 +224,7 @@ export function HistorialConsumo({ reducida = false }: HistorialConsumoProps) {
             <Clock className="h-5 w-5 text-orange-600" />
             Historial de Consumo
           </CardTitle>
-          <CardDescription>
-            Consumo de energía en el tiempo
-          </CardDescription>
+          <CardDescription>Consumo de energía en el tiempo</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="h-[180px] mt-2">
@@ -199,48 +234,54 @@ export function HistorialConsumo({ reducida = false }: HistorialConsumoProps) {
                 margin={{ top: 5, right: 10, left: 0, bottom: 15 }}
               >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis 
-                  dataKey="fecha" 
+                <XAxis
+                  dataKey="fecha"
                   axisLine={false}
                   tickLine={false}
                   tick={{ fontSize: 12 }}
                 />
-                <YAxis 
+                <YAxis
                   axisLine={false}
                   tickLine={false}
                   width={30}
                   tick={{ fontSize: 12 }}
                   tickFormatter={(value) => `${value}`}
                 />
-                <Tooltip 
-                  formatter={(value: number) => [`${value} kWh`, 'Consumo']}
+                <Tooltip
+                  formatter={(value: number) => [`${value} kWh`, "Consumo"]}
                   labelFormatter={(label) => `Período: ${label}`}
                   contentStyle={{
-                    backgroundColor: 'white',
-                    borderRadius: '8px',
-                    border: '1px solid #e2e8f0',
-                    fontSize: '12px'
+                    backgroundColor: "white",
+                    borderRadius: "8px",
+                    border: "1px solid #e2e8f0",
+                    fontSize: "12px",
                   }}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="consumo" 
-                  stroke="#f97316" 
-                  strokeWidth={2} 
+                <Line
+                  type="monotone"
+                  dataKey="consumo"
+                  stroke="#f97316"
+                  strokeWidth={2}
                   dot={true}
                   activeDot={{ r: 6 }}
                 />
               </LineChartRecharts>
             </ResponsiveContainer>
           </div>
-          
+
           <div className="flex justify-between items-center mt-4 text-sm">
             <div>
-              <span className="block text-gray-500 dark:text-gray-400">Consumo Promedio</span>
-              <span className="font-medium">{consumoPromedio.toFixed(1)} kWh/mes</span>
+              <span className="block text-gray-500 dark:text-gray-400">
+                Consumo Promedio
+              </span>
+              <span className="font-medium">
+                {consumoPromedio.toFixed(1)} kWh/mes
+              </span>
             </div>
             <div>
-              <span className="block text-gray-500 dark:text-gray-400">Consumo Total</span>
+              <span className="block text-gray-500 dark:text-gray-400">
+                Consumo Total
+              </span>
               <span className="font-medium">{consumoTotal.toFixed(1)} kWh</span>
             </div>
           </div>
@@ -261,22 +302,26 @@ export function HistorialConsumo({ reducida = false }: HistorialConsumoProps) {
             Análisis de su consumo eléctrico a lo largo del tiempo
           </p>
         </div>
-        
+
         <div className="flex gap-2">
-          <Button 
-            variant={tipoGrafico === 'linea' ? 'default' : 'outline'} 
+          <Button
+            variant={tipoGrafico === "linea" ? "default" : "outline"}
             size="sm"
-            onClick={() => setTipoGrafico('linea')}
-            className={tipoGrafico === 'linea' ? 'bg-orange-600 hover:bg-orange-700' : ''}
+            onClick={() => setTipoGrafico("linea")}
+            className={
+              tipoGrafico === "linea" ? "bg-orange-600 hover:bg-orange-700" : ""
+            }
           >
             <LineChart className="h-4 w-4 mr-1" />
             Línea
           </Button>
-          <Button 
-            variant={tipoGrafico === 'barra' ? 'default' : 'outline'} 
+          <Button
+            variant={tipoGrafico === "barra" ? "default" : "outline"}
             size="sm"
-            onClick={() => setTipoGrafico('barra')}
-            className={tipoGrafico === 'barra' ? 'bg-orange-600 hover:bg-orange-700' : ''}
+            onClick={() => setTipoGrafico("barra")}
+            className={
+              tipoGrafico === "barra" ? "bg-orange-600 hover:bg-orange-700" : ""
+            }
           >
             <BarChart className="h-4 w-4 mr-1" />
             Barras
@@ -293,9 +338,12 @@ export function HistorialConsumo({ reducida = false }: HistorialConsumoProps) {
                 Evolución de su consumo eléctrico
               </CardDescription>
             </div>
-            
+
             <div className="flex gap-3">
-              <Select value={periodoSeleccionado} onValueChange={setPeriodoSeleccionado}>
+              <Select
+                value={periodoSeleccionado}
+                onValueChange={setPeriodoSeleccionado}
+              >
                 <SelectTrigger className="w-[140px]">
                   <Calendar className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Período" />
@@ -306,8 +354,13 @@ export function HistorialConsumo({ reducida = false }: HistorialConsumoProps) {
                   <SelectItem value="12">Último año</SelectItem>
                 </SelectContent>
               </Select>
-              
-              <Select value={datosMostrados} onValueChange={(v) => setDatosMostrados(v as 'consumo' | 'costo')}>
+
+              <Select
+                value={datosMostrados}
+                onValueChange={(v) =>
+                  setDatosMostrados(v as "consumo" | "costo")
+                }
+              >
                 <SelectTrigger className="w-[140px]">
                   <FilterX className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Datos" />
@@ -317,7 +370,7 @@ export function HistorialConsumo({ reducida = false }: HistorialConsumoProps) {
                   <SelectItem value="costo">Costo ($)</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <Button variant="outline" size="icon">
                 <Download className="h-4 w-4" />
               </Button>
@@ -327,38 +380,41 @@ export function HistorialConsumo({ reducida = false }: HistorialConsumoProps) {
         <CardContent>
           <div className="h-96">
             <ResponsiveContainer width="100%" height="100%">
-              {tipoGrafico === 'linea' ? (
+              {tipoGrafico === "linea" ? (
                 <LineChartRecharts
                   data={datosHistoricos.slice(-parseInt(periodoSeleccionado))}
                   margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="fecha" 
+                  <XAxis dataKey="fecha" tickLine={false} />
+                  <YAxis
                     tickLine={false}
-                  />
-                  <YAxis 
-                    tickLine={false}
-                    tickFormatter={(value) => 
-                      datosMostrados === 'consumo' 
+                    tickFormatter={(value) =>
+                      datosMostrados === "consumo"
                         ? `${value}`
                         : `${value / 1000}K`
                     }
                   />
-                  <Tooltip 
+                  <Tooltip
                     formatter={(value: number) => [
-                      datosMostrados === 'consumo' ? `${value} kWh` : formatoMoneda(value),
-                      datosMostrados === 'consumo' ? 'Consumo' : 'Costo'
+                      datosMostrados === "consumo"
+                        ? `${value} kWh`
+                        : formatoMoneda(value),
+                      datosMostrados === "consumo" ? "Consumo" : "Costo",
                     ]}
                     labelFormatter={(label) => `Período: ${label}`}
                   />
                   <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey={datosMostrados} 
-                    name={datosMostrados === 'consumo' ? 'Consumo (kWh)' : 'Costo ($)'} 
-                    stroke="#f97316" 
-                    strokeWidth={2} 
+                  <Line
+                    type="monotone"
+                    dataKey={datosMostrados}
+                    name={
+                      datosMostrados === "consumo"
+                        ? "Consumo (kWh)"
+                        : "Costo ($)"
+                    }
+                    stroke="#f97316"
+                    strokeWidth={2}
                     activeDot={{ r: 8 }}
                   />
                 </LineChartRecharts>
@@ -368,30 +424,33 @@ export function HistorialConsumo({ reducida = false }: HistorialConsumoProps) {
                   margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis 
-                    dataKey="fecha" 
+                  <XAxis dataKey="fecha" tickLine={false} />
+                  <YAxis
                     tickLine={false}
-                  />
-                  <YAxis 
-                    tickLine={false}
-                    tickFormatter={(value) => 
-                      datosMostrados === 'consumo' 
+                    tickFormatter={(value) =>
+                      datosMostrados === "consumo"
                         ? `${value}`
                         : `${value / 1000}K`
                     }
                   />
-                  <Tooltip 
+                  <Tooltip
                     formatter={(value: number) => [
-                      datosMostrados === 'consumo' ? `${value} kWh` : formatoMoneda(value),
-                      datosMostrados === 'consumo' ? 'Consumo' : 'Costo'
+                      datosMostrados === "consumo"
+                        ? `${value} kWh`
+                        : formatoMoneda(value),
+                      datosMostrados === "consumo" ? "Consumo" : "Costo",
                     ]}
                     labelFormatter={(label) => `Período: ${label}`}
                   />
                   <Legend />
-                  <Bar 
-                    dataKey={datosMostrados} 
-                    name={datosMostrados === 'consumo' ? 'Consumo (kWh)' : 'Costo ($)'} 
-                    fill="#f97316" 
+                  <Bar
+                    dataKey={datosMostrados}
+                    name={
+                      datosMostrados === "consumo"
+                        ? "Consumo (kWh)"
+                        : "Costo ($)"
+                    }
+                    fill="#f97316"
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChartRecharts>
@@ -400,7 +459,7 @@ export function HistorialConsumo({ reducida = false }: HistorialConsumoProps) {
           </div>
         </CardContent>
       </Card>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <Card>
           <CardContent className="p-6">
@@ -409,8 +468,12 @@ export function HistorialConsumo({ reducida = false }: HistorialConsumoProps) {
                 <BarChart className="h-6 w-6 text-orange-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Consumo Total</p>
-                <h3 className="text-2xl font-bold">{consumoTotal.toFixed(1)} kWh</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Consumo Total
+                </p>
+                <h3 className="text-2xl font-bold">
+                  {consumoTotal.toFixed(1)} kWh
+                </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   Último año
                 </p>
@@ -418,7 +481,7 @@ export function HistorialConsumo({ reducida = false }: HistorialConsumoProps) {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
@@ -426,8 +489,12 @@ export function HistorialConsumo({ reducida = false }: HistorialConsumoProps) {
                 <Clock className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Consumo Promedio</p>
-                <h3 className="text-2xl font-bold">{consumoPromedio.toFixed(1)} kWh</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Consumo Promedio
+                </p>
+                <h3 className="text-2xl font-bold">
+                  {consumoPromedio.toFixed(1)} kWh
+                </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   Por mes
                 </p>
@@ -435,7 +502,7 @@ export function HistorialConsumo({ reducida = false }: HistorialConsumoProps) {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
@@ -443,8 +510,12 @@ export function HistorialConsumo({ reducida = false }: HistorialConsumoProps) {
                 <Clock className="h-6 w-6 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Costo Total</p>
-                <h3 className="text-2xl font-bold">{formatoMoneda(costoTotal)}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Costo Total
+                </p>
+                <h3 className="text-2xl font-bold">
+                  {formatoMoneda(costoTotal)}
+                </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   Último año
                 </p>
@@ -453,7 +524,7 @@ export function HistorialConsumo({ reducida = false }: HistorialConsumoProps) {
           </CardContent>
         </Card>
       </div>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Consumo Detallado</CardTitle>
@@ -469,37 +540,45 @@ export function HistorialConsumo({ reducida = false }: HistorialConsumoProps) {
                 margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
               >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis 
-                  dataKey="fecha" 
-                  tickLine={false}
-                />
-                <YAxis 
-                  tickLine={false}
-                />
-                <Tooltip 
-                  formatter={(value: number) => [`${value} kWh`, 'Consumo']}
+                <XAxis dataKey="fecha" tickLine={false} />
+                <YAxis tickLine={false} />
+                <Tooltip
+                  formatter={(value: number) => [`${value} kWh`, "Consumo"]}
                   labelFormatter={(label) => `Día: ${label}`}
                 />
-                <Bar 
-                  dataKey="consumo" 
-                  name="Consumo (kWh)" 
-                  fill="#3b82f6" 
+                <Bar
+                  dataKey="consumo"
+                  name="Consumo (kWh)"
+                  fill="#3b82f6"
                   radius={[4, 4, 0, 0]}
                 />
               </BarChartRecharts>
             </ResponsiveContainer>
           </div>
-          
+
           <div className="mt-4 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50">
             <div className="flex items-start gap-3">
               <Info className="h-5 w-5 text-blue-600 mt-0.5" />
               <div>
-                <p className="font-medium text-blue-800 dark:text-blue-300">Consejos para reducir su consumo</p>
+                <p className="font-medium text-blue-800 dark:text-blue-300">
+                  Consejos para reducir su consumo
+                </p>
                 <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-300 space-y-1 mt-1">
-                  <li>Los días con mayor consumo son generalmente los fines de semana</li>
-                  <li>Intente usar electrodomésticos de alta eficiencia energética</li>
-                  <li>Apague los dispositivos cuando no los utilice, evitando el modo standby</li>
-                  <li>Considere usar iluminación LED que consume hasta un 80% menos</li>
+                  <li>
+                    Los días con mayor consumo son generalmente los fines de
+                    semana
+                  </li>
+                  <li>
+                    Intente usar electrodomésticos de alta eficiencia energética
+                  </li>
+                  <li>
+                    Apague los dispositivos cuando no los utilice, evitando el
+                    modo standby
+                  </li>
+                  <li>
+                    Considere usar iluminación LED que consume hasta un 80%
+                    menos
+                  </li>
                 </ul>
               </div>
             </div>
@@ -508,4 +587,4 @@ export function HistorialConsumo({ reducida = false }: HistorialConsumoProps) {
       </Card>
     </div>
   );
-} 
+}
