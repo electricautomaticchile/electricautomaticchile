@@ -1,5 +1,5 @@
 // Importar el extend-expect de Testing Library
-import '@testing-library/jest-dom';
+import "@testing-library/jest-dom";
 
 // Configuración global para los tests
 global.ResizeObserver = jest.fn().mockImplementation(() => ({
@@ -9,7 +9,7 @@ global.ResizeObserver = jest.fn().mockImplementation(() => ({
 }));
 
 // Mock para window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: jest.fn().mockImplementation((query) => ({
     matches: false,
@@ -32,4 +32,4 @@ afterEach(() => {
 });
 
 // Aumentar el timeout para tests que lo necesiten
-jest.setTimeout(30000); 
+jest.setTimeout(30000);
