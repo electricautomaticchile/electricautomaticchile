@@ -12,9 +12,9 @@ const HeaderCliente: React.FC = () => {
       <div className="flex items-center gap-4 text-white">
         {user && (
           <>
-            <span className="hidden text-sm sm:inline">
-              #{user.numeroCliente}
-            </span>
+          <span className="hidden text-sm sm:inline">
+            #{user.numeroCliente}
+          </span>
             <div className="flex items-center gap-3">
               <ProfileImageManager
                 userId={user._id || user.id}
