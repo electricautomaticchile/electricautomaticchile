@@ -102,6 +102,8 @@ class ApiService {
     superusuariosService.obtenerSuperusuarios.bind(superusuariosService);
   crearSuperusuario =
     superusuariosService.crearSuperusuario.bind(superusuariosService);
+  actualizarSuperusuario =
+    superusuariosService.actualizarSuperusuario.bind(superusuariosService);
   obtenerEstadisticasSuperusuarios =
     superusuariosService.obtenerEstadisticasSuperusuarios.bind(
       superusuariosService
