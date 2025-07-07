@@ -15,6 +15,11 @@ export class BaseApiService {
       "Content-Type": "application/json",
     };
 
+    // Si vamos a enviar FormData, no debemos establecer Content-Type (deja que el browser añada boundary)
+    if (options.body instanceof FormData) {
+      delete defaultHeaders["Content-Type"];
+    }
+
     if (token) {
       defaultHeaders.Authorization = `Bearer ${token}`;
     }
@@ -113,7 +118,12 @@ export class BaseApiService {
     return this.makeRequest<T>(endpoint, {
       ...options,
       method: "POST",
-      body: body ? JSON.stringify(body) : undefined,
+      body:
+        body instanceof FormData
+          ? body
+          : body
+            ? JSON.stringify(body)
+            : undefined,
     });
   }
 
