@@ -8,6 +8,7 @@ export { estadisticasService } from "./estadisticasService";
 export { leadMagnetService } from "./leadMagnetService";
 export { superusuariosService } from "./superusuariosService";
 export { empresasService } from "./empresasService";
+export { default as ImagenPerfilService } from "./imagenPerfilService";
 
 // Re-exportar todos los tipos
 export * from "../types";

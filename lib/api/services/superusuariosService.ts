@@ -31,6 +31,16 @@ export class SuperusuariosService extends BaseApiService {
   > {
     return this.makeRequest("/superusuarios/estadisticas");
   }
+
+  async actualizarSuperusuario(
+    id: string,
+    datos: Partial<ISuperusuario>
+  ): Promise<ApiResponse<ISuperusuario>> {
+    return this.makeRequest<ISuperusuario>(`/superusuarios/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(datos),
+    });
+  }
 }
 
 // Exportar instancia única del servicio
