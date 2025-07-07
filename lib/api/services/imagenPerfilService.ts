@@ -29,10 +29,10 @@ export class ImagenPerfilService {
       const formData = new FormData();
       formData.append("image", file);
 
-      const response = await baseService.post(
-        `${this.baseURL}/upload-image`,
-        formData
-      );
+      const response = await baseService.post<{
+        imageUrl: string;
+        fileName: string;
+      }>(`${this.baseURL}/upload-image`, formData);
 
       return {
         success: true,
@@ -55,7 +55,8 @@ export class ImagenPerfilService {
     data: IUpdateProfileImageRequest
   ): Promise<IImagenPerfilResponse> {
     try {
-      const response = await baseService.post(
+      // Cast a any para evitar error de tipo
+      const response: any = await baseService.post(
         `${this.baseURL}/update-profile-image`,
         data
       );
@@ -84,7 +85,8 @@ export class ImagenPerfilService {
     userId: string
   ): Promise<IImagenPerfilResponse> {
     try {
-      const response = await baseService.get(
+      // Cast a any para evitar error de tipo
+      const response: any = await baseService.get(
         `${this.baseURL}/profile-image/${tipoUsuario}/${userId}`
       );
 
@@ -110,7 +112,8 @@ export class ImagenPerfilService {
     userId: string
   ): Promise<IImagenPerfilResponse> {
     try {
-      const response = await baseService.delete(
+      // Cast a any para evitar error de tipo
+      const response: any = await baseService.delete(
         `${this.baseURL}/profile-image/${tipoUsuario}/${userId}`
       );
 
