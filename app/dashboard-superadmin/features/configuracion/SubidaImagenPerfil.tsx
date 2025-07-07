@@ -5,17 +5,20 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { Upload, X } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import { ProfileImageManager } from "@/components/ui/profile-image-manager";
 
 interface SubidaImagenPerfilProps {
   profileImage: string | null;
   nombreUsuario: string;
   onImageChange: (imageUrl: string | null) => void;
+  userId: string;
 }
 
 export function SubidaImagenPerfil({
   profileImage,
   nombreUsuario,
   onImageChange,
+  userId,
 }: SubidaImagenPerfilProps) {
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -82,57 +85,19 @@ export function SubidaImagenPerfil({
   };
 
   return (
-    <div className="space-y-4">
-      <Label>Foto de Perfil</Label>
-
-      <div className="flex flex-col items-center gap-6 md:flex-row">
-        <div className="relative">
-          <Avatar className="h-24 w-24 border-2 border-gray-200 dark:border-gray-700">
-            <AvatarImage src={profileImage || "/avatars/admin.jpg"} />
-            <AvatarFallback className="text-xl">
-              {nombreUsuario?.charAt(0) || "A"}
-            </AvatarFallback>
-          </Avatar>
-
-          {profileImage && (
-            <Button
-              variant="destructive"
-              size="icon"
-              className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
-              onClick={removeProfileImage}
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          )}
-        </div>
-
-        <div className="space-y-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Sube una foto de perfil. Se recomienda una imagen cuadrada de al
-            menos 250x250 píxeles.
-          </p>
-
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              onClick={triggerFileInput}
-              disabled={uploadingImage}
-              className="flex items-center gap-2"
-            >
-              <Upload className="h-4 w-4" />
-              {uploadingImage ? "Subiendo..." : "Cambiar Foto"}
-            </Button>
-
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept="image/*"
-              onChange={handleImageUpload}
-            />
-          </div>
-        </div>
-      </div>
+    <div className="space-y-2">
+      <Label htmlFor="foto-perfil" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+        Foto de Perfil
+      </Label>
+      <ProfileImageManager
+        userId={userId}
+        tipoUsuario="superadmin"
+        currentImageUrl={profileImage || undefined}
+        userName={nombreUsuario}
+        size="md"
+        showEditButton={true}
+        onImageUpdate={onImageChange}
+      />
     </div>
   );
 }

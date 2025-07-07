@@ -29,6 +29,7 @@ import { useSocket } from "@/lib/hooks/useSocket";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { useAuth } from "@/lib/hooks/useApi";
+import { ProfileImageManager } from "@/components/ui/profile-image-manager";
 
 interface EncabezadoProps {
   tipoUsuario: "superadmin" | "admin" | "cliente";
@@ -254,21 +255,37 @@ export function Encabezado({
           {/* Perfil de usuario */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative rounded-full"
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="/avatars/admin.jpg" alt="Admin" />
-                  <AvatarFallback>
-                    {user?.nombre?.charAt(0) || "SA"}
-                  </AvatarFallback>
-                </Avatar>
+              <Button variant="ghost" className="relative rounded-full p-1">
+                <ProfileImageManager
+                  userId={user?._id || user?.id || ""}
+                  tipoUsuario="superadmin"
+                  userName={user?.nombre || "Superadmin"}
+                  size="sm"
+                  showEditButton={false}
+                  className="h-8 w-8"
+                />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Mi cuenta</DropdownMenuLabel>
+              <DropdownMenuLabel>
+                <div className="flex items-center space-x-3">
+                  <ProfileImageManager
+                    userId={user?._id || user?.id || ""}
+                    tipoUsuario="superadmin"
+                    userName={user?.nombre || "Superadmin"}
+                    size="md"
+                    showEditButton={true}
+                  />
+                  <div className="flex flex-col space-y-1 flex-1">
+                    <p className="text-sm font-medium leading-none">
+                      {user?.nombre || "Superadmin"}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user?.email || user?.correo || "admin@electricauto.cl"}
+                    </p>
+                  </div>
+                </div>
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
               {onCambiarPassword && (
                 <DropdownMenuItem onClick={onCambiarPassword}>

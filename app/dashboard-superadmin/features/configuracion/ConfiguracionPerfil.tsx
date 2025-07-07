@@ -75,11 +75,16 @@ export function ConfiguracionPerfil({
     setGuardandoPerfil(true);
 
     try {
-      // Los superadministradores están en la colección de Clientes
-      const response = await apiService.actualizarCliente(user?._id || "", {
-        nombre: perfilSuperadmin.nombre,
-        correo: perfilSuperadmin.email, // Mapear email a correo para el backend
-      });
+      const response = await apiService.actualizarSuperusuario(
+        user?._id || "",
+        {
+          nombre: perfilSuperadmin.nombre,
+          correo: perfilSuperadmin.email,
+          ...(profileImage ? { imagenPerfil: profileImage } : {}),
+        }
+      );
+
+      console.log("[FRONT] Respuesta actualizarSuperusuario", response);
 
       if (response.success) {
         toast({
@@ -198,6 +203,7 @@ export function ConfiguracionPerfil({
               <SubidaImagenPerfil
                 profileImage={profileImage}
                 nombreUsuario={perfilSuperadmin.nombre}
+                userId={user?._id || ""}
                 onImageChange={setProfileImage}
               />
 

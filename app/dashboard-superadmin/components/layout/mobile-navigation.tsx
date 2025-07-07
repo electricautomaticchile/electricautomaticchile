@@ -20,6 +20,7 @@ import { useSocket } from "@/lib/hooks/useSocket";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/hooks/useApi";
 import { Logo } from "@/components/logo";
+import { ProfileImageManager } from "@/components/ui/profile-image-manager";
 
 interface NavegacionMovilProps {
   onCambioComponente: (nombreComponente: string | null) => void;
@@ -200,12 +201,14 @@ export function NavegacionMovil({ onCambioComponente }: NavegacionMovilProps) {
           {/* Footer del menú */}
           <div className="border-t border-gray-200 dark:border-gray-800 p-4">
             <div className="flex items-center gap-3 rounded-lg px-3 py-2">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src="/avatars/admin.jpg" alt="Admin" />
-                <AvatarFallback className="bg-orange-500 text-white">
-                  {user?.nombre?.charAt(0) || "A"}
-                </AvatarFallback>
-              </Avatar>
+              <ProfileImageManager
+                userId={user?._id || user?.id || ""}
+                tipoUsuario="superadmin"
+                userName={user?.nombre || "Superadmin"}
+                size="sm"
+                showEditButton={false}
+                className="h-10 w-10"
+              />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                   {user?.numeroCliente || "-------"}
