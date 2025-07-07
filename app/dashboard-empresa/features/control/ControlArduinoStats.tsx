@@ -2,19 +2,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Download, BarChart3, Power, Clock, TrendingUp } from "lucide-react";
-import { ControlArduinoStatsProps } from './types';
-import { STATS_CONFIG, EXPORT_OPTIONS, FORMATTERS } from './config';
-import { StatsIcon, ExportIcon } from './ControlArduinoIconos';
+import { ControlArduinoStatsProps } from "./types";
+import { STATS_CONFIG, EXPORT_OPTIONS, FORMATTERS } from "./config";
+import { StatsIcon, ExportIcon } from "./ControlArduinoIconos";
 
 export function ControlArduinoStats({
   stats,
   status,
   loading = false,
-  onExportData
+  onExportData,
 }: ControlArduinoStatsProps) {
-
   const formatStatValue = (key: string, value: number) => {
-    const config = STATS_CONFIG.find(s => s.key === key);
+    const config = STATS_CONFIG.find((s) => s.key === key);
     if (config?.formatter) {
       return config.formatter(value);
     }
@@ -22,11 +21,11 @@ export function ControlArduinoStats({
   };
 
   const getStatSuffix = (key: string) => {
-    const config = STATS_CONFIG.find(s => s.key === key);
+    const config = STATS_CONFIG.find((s) => s.key === key);
     return config?.suffix || "";
   };
 
-  if (loading) {
+  if (loading && stats.total_commands === 0) {
     return (
       <div className="space-y-6">
         <Card className="animate-pulse">
@@ -98,7 +97,8 @@ export function ControlArduinoStats({
               </span>
             </div>
             <p className="text-2xl font-bold text-orange-600">
-              {formatStatValue('avg_duration', stats.avg_duration)}{getStatSuffix('avg_duration')}
+              {formatStatValue("avg_duration", stats.avg_duration)}
+              {getStatSuffix("avg_duration")}
             </p>
             <p className="text-xs text-orange-700 dark:text-orange-300 mt-1">
               Por sesión
@@ -116,7 +116,11 @@ export function ControlArduinoStats({
               </span>
             </div>
             <p className="text-2xl font-bold text-purple-600">
-              {formatStatValue('efficiency_percentage', stats.efficiency_percentage)}{getStatSuffix('efficiency_percentage')}
+              {formatStatValue(
+                "efficiency_percentage",
+                stats.efficiency_percentage
+              )}
+              {getStatSuffix("efficiency_percentage")}
             </p>
             <p className="text-xs text-purple-700 dark:text-purple-300 mt-1">
               Del sistema
@@ -139,14 +143,18 @@ export function ControlArduinoStats({
             <div className="space-y-4">
               <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
                 <span className="text-sm font-medium">Comandos Totales:</span>
-                <span className="text-lg font-bold text-blue-600">{stats.total_commands}</span>
+                <span className="text-lg font-bold text-blue-600">
+                  {stats.total_commands}
+                </span>
               </div>
-              
+
               <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
                 <span className="text-sm font-medium">Comandos ON:</span>
-                <span className="text-lg font-bold text-green-600">{stats.on_commands}</span>
+                <span className="text-lg font-bold text-green-600">
+                  {stats.on_commands}
+                </span>
               </div>
-              
+
               <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
                 <span className="text-sm font-medium">Comandos OFF:</span>
                 <span className="text-lg font-bold text-red-600">
@@ -163,14 +171,14 @@ export function ControlArduinoStats({
                   {FORMATTERS.duration(stats.total_duration)}
                 </span>
               </div>
-              
+
               <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
                 <span className="text-sm font-medium">Promedio/Comando:</span>
                 <span className="text-lg font-bold text-orange-600">
                   {FORMATTERS.duration(stats.avg_duration)}
                 </span>
               </div>
-              
+
               <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
                 <span className="text-sm font-medium">Eficiencia:</span>
                 <span className="text-lg font-bold text-purple-600">
@@ -189,7 +197,9 @@ export function ControlArduinoStats({
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
               <div
                 className="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${Math.min(100, Math.max(0, stats.efficiency_percentage))}%` }}
+                style={{
+                  width: `${Math.min(100, Math.max(0, stats.efficiency_percentage))}%`,
+                }}
               ></div>
             </div>
           </div>
@@ -212,9 +222,10 @@ export function ControlArduinoStats({
         <CardContent>
           <div className="space-y-4">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Descargue los datos históricos del Arduino en diferentes formatos y períodos.
+              Descargue los datos históricos del Arduino en diferentes formatos
+              y períodos.
             </p>
-            
+
             <div className="flex flex-wrap gap-2">
               {EXPORT_OPTIONS.map((option, index) => (
                 <Button
@@ -255,7 +266,9 @@ export function ControlArduinoStatsReducido({ stats }: { stats: any }) {
         </div>
       </div>
       <div className="bg-green-50 dark:bg-green-900/20 p-2 rounded-lg text-center">
-        <div className="text-xs text-gray-500 dark:text-gray-400">Eficiencia</div>
+        <div className="text-xs text-gray-500 dark:text-gray-400">
+          Eficiencia
+        </div>
         <div className="text-lg font-bold text-green-600">
           {FORMATTERS.percentage(stats.efficiency_percentage)}
         </div>

@@ -2,21 +2,20 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Power, Wifi, WifiOff } from "lucide-react";
-import { ControlArduinoReducidoProps } from './types';
-import { 
+import { ControlArduinoReducidoProps } from "./types";
+import {
   StatusIcon,
   LedStatusBadge,
-  ConnectionStatusBadge 
-} from './ControlArduinoIconos';
-import { FORMATTERS, STATUS_COLORS } from './config';
+  ConnectionStatusBadge,
+} from "./ControlArduinoIconos";
+import { FORMATTERS, STATUS_COLORS } from "./config";
 
 export function ControlArduinoReducido({
   status,
   stats,
   loading,
-  onControlLed
+  onControlLed,
 }: ControlArduinoReducidoProps) {
-  
   return (
     <Card className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20">
       <CardContent className="p-4">
@@ -35,13 +34,17 @@ export function ControlArduinoReducido({
           {/* Métricas compactas */}
           <div className="grid grid-cols-2 gap-2">
             <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg text-center border border-blue-200 dark:border-blue-800">
-              <div className="text-xs text-gray-500 dark:text-gray-400">Comandos</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                Comandos
+              </div>
               <div className="text-lg font-bold text-blue-600">
                 {stats.total_commands}
               </div>
             </div>
             <div className="bg-green-50 dark:bg-green-900/20 p-2 rounded-lg text-center border border-green-200 dark:border-green-800">
-              <div className="text-xs text-gray-500 dark:text-gray-400">Eficiencia</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                Eficiencia
+              </div>
               <div className="text-lg font-bold text-green-600">
                 {FORMATTERS.percentage(stats.efficiency_percentage)}
               </div>
@@ -79,11 +82,11 @@ export function ControlArduinoReducido({
           )}
 
           {/* Indicador de actividad */}
-          {status.recent_messages.length > 0 && (
+          {(status.recent_messages?.length ?? 0) > 0 && (
             <div className="flex items-center justify-center gap-1 text-xs">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-gray-500 dark:text-gray-400">
-                {status.recent_messages.length} mensajes
+                {status.recent_messages?.length ?? 0} mensajes
               </span>
             </div>
           )}
@@ -98,7 +101,7 @@ export function ControlArduinoMini({
   status,
   stats,
   loading,
-  onControlLed
+  onControlLed,
 }: ControlArduinoReducidoProps) {
   return (
     <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 space-y-3">
@@ -108,7 +111,7 @@ export function ControlArduinoMini({
           <StatusIcon connected={status.connected} size="h-3 w-3" />
           <span className="text-xs font-medium">Arduino</span>
         </div>
-        <Badge 
+        <Badge
           variant={status.led_status === "ENCENDIDO" ? "default" : "secondary"}
           className="text-xs py-0 px-1"
         >
@@ -120,7 +123,9 @@ export function ControlArduinoMini({
       <div className="grid grid-cols-2 gap-1 text-center">
         <div>
           <div className="text-xs text-gray-500">Cmds</div>
-          <div className="text-sm font-bold text-blue-600">{stats.total_commands}</div>
+          <div className="text-sm font-bold text-blue-600">
+            {stats.total_commands}
+          </div>
         </div>
         <div>
           <div className="text-xs text-gray-500">Efic</div>
@@ -158,7 +163,7 @@ export function ControlArduinoMini({
 export function ControlArduinoInline({
   status,
   onControlLed,
-  loading
+  loading,
 }: {
   status: any;
   onControlLed: (action: string) => Promise<void>;
@@ -167,7 +172,7 @@ export function ControlArduinoInline({
   return (
     <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-900 rounded-lg">
       <StatusIcon connected={status.connected} size="h-4 w-4" />
-      
+
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium truncate">Arduino LED</div>
         <div className="text-xs text-gray-500 dark:text-gray-400">
@@ -194,7 +199,7 @@ export function ControlArduinoInline({
 export function ControlArduinoEsencial({
   status,
   onControlLed,
-  loading
+  loading,
 }: {
   status: any;
   onControlLed: (action: string) => Promise<void>;
@@ -203,12 +208,14 @@ export function ControlArduinoEsencial({
   return (
     <div className="flex items-center justify-between p-2 border border-gray-200 dark:border-gray-700 rounded">
       <div className="flex items-center gap-2">
-        <div className={`w-3 h-3 rounded-full ${
-          status.connected ? 'bg-green-500' : 'bg-red-500'
-        }`}></div>
+        <div
+          className={`w-3 h-3 rounded-full ${
+            status.connected ? "bg-green-500" : "bg-red-500"
+          }`}
+        ></div>
         <span className="text-sm">LED {status.led_status}</span>
       </div>
-      
+
       <Button
         size="sm"
         onClick={() => onControlLed("toggle")}
@@ -226,7 +233,13 @@ export function ControlArduinoEstadoSolo({ status }: { status: any }) {
   return (
     <div className="flex items-center gap-2 text-sm">
       <StatusIcon connected={status.connected} size="h-4 w-4" />
-      <span className={status.connected ? STATUS_COLORS.connected.text : STATUS_COLORS.disconnected.text}>
+      <span
+        className={
+          status.connected
+            ? STATUS_COLORS.connected.text
+            : STATUS_COLORS.disconnected.text
+        }
+      >
         {status.connected ? "Conectado" : "Desconectado"}
       </span>
       <span className="text-gray-500">•</span>

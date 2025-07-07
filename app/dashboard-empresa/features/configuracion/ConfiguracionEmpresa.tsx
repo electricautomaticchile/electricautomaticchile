@@ -2,15 +2,25 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Building2, Bell, RefreshCw, Save } from "lucide-react";
+import { Building2, Bell, RefreshCw, Save, User } from "lucide-react";
 import { ConfiguracionEmpresaProps } from "./types";
 import { useConfiguracionEmpresa } from "./hooks/useConfiguracionEmpresa";
 import { ConfiguracionEstados } from "./ConfiguracionEstados";
 import { ConfiguracionForm } from "./ConfiguracionForm";
 import { ConfiguracionContacto } from "./ConfiguracionContacto";
 import { ConfiguracionNotificaciones } from "./ConfiguracionNotificaciones";
+import { ProfileImageManager } from "@/components/ui/profile-image-manager";
+import { useAuth } from "@/lib/hooks/useApi";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export function ConfiguracionEmpresa({ className }: ConfiguracionEmpresaProps) {
+  const { user } = useAuth();
   const {
     datosEmpresa,
     configuracionNotificaciones,
@@ -72,10 +82,14 @@ export function ConfiguracionEmpresa({ className }: ConfiguracionEmpresaProps) {
 
       {/* Contenido principal con tabs */}
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
             Datos Generales
+          </TabsTrigger>
+          <TabsTrigger value="perfil" className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Perfil
           </TabsTrigger>
           <TabsTrigger
             value="notificaciones"
@@ -124,6 +138,39 @@ export function ConfiguracionEmpresa({ className }: ConfiguracionEmpresaProps) {
               )}
             </Button>
           </div>
+        </TabsContent>
+
+        {/* Tab de Perfil */}
+        <TabsContent value="perfil" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5 text-orange-600" />
+                Imagen de Perfil
+              </CardTitle>
+              <CardDescription>
+                Personaliza la imagen de perfil de tu empresa
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col items-center space-y-6">
+                <ProfileImageManager
+                  userId={user?._id || user?.id || ""}
+                  tipoUsuario="empresa"
+                  userName={datosEmpresa.nombreEmpresa || "Empresa"}
+                  size="xl"
+                  showUploadArea={true}
+                  className="w-full max-w-md"
+                />
+                <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                  <p>
+                    La imagen de perfil aparecerá en el header del dashboard
+                  </p>
+                  <p>y en las comunicaciones de tu empresa.</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Tab de Notificaciones */}

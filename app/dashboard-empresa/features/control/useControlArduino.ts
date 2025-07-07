@@ -408,7 +408,7 @@ export function useControlArduino(config: UseControlArduinoConfig = {}) {
   // Estado combinado para facilitar el uso
   const isConnected = status.connected;
   const isLoading = Object.values(loading).some(Boolean);
-  const hasRecentActivity = status.recent_messages.length > 0;
+  const hasRecentActivity = (status.recent_messages ?? []).length > 0;
   const ledStatus = status.led_status;
 
   return {

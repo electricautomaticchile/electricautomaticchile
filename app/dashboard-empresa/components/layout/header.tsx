@@ -36,6 +36,7 @@ import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useApi";
 import { useNotifications } from "@/hooks/useNotifications";
+import { ProfileImageManager } from "@/components/ui/profile-image-manager";
 
 interface EncabezadoEmpresaProps {
   onCambiarPassword?: () => void;
@@ -301,12 +302,14 @@ export function EncabezadoEmpresa({
                 variant="ghost"
                 className="flex items-center gap-2 h-auto px-2 py-1"
               >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="/avatars/empresa.jpg" alt="Empresa" />
-                  <AvatarFallback className="bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300">
-                    {nombreEmpresa.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <ProfileImageManager
+                  userId={user?._id || user?.id || ""}
+                  tipoUsuario="empresa"
+                  userName={nombreEmpresa}
+                  size="sm"
+                  showEditButton={false}
+                  className="h-8 w-8"
+                />
                 <div className="hidden md:flex flex-col items-start">
                   <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {nombreEmpresa.length > 20
@@ -321,16 +324,25 @@ export function EncabezadoEmpresa({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-60">
               <DropdownMenuLabel>
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {nombreEmpresa}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {emailEmpresa}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    Cliente: {numeroCliente}
-                  </p>
+                <div className="flex items-center space-x-3">
+                  <ProfileImageManager
+                    userId={user?._id || user?.id || ""}
+                    tipoUsuario="empresa"
+                    userName={nombreEmpresa}
+                    size="md"
+                    showEditButton={true}
+                  />
+                  <div className="flex flex-col space-y-1 flex-1">
+                    <p className="text-sm font-medium leading-none">
+                      {nombreEmpresa}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {emailEmpresa}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      Cliente: {numeroCliente}
+                    </p>
+                  </div>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
