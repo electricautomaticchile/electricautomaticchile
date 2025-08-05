@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/hooks/useApi";
+import { useApi } from "@/lib/hooks/useApi";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ShieldAlert } from "lucide-react";
@@ -22,13 +22,13 @@ export function ProtectedRoute({
   redirectTo = "/auth/login",
   requireAuth = true,
 }: ProtectedRouteProps) {
-  const { user, isAuthenticated, loading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useApi();
   const router = useRouter();
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (loading) return;
+    if (isLoading) return;
 
     // Si no requiere autenticación, permitir acceso
     if (!requireAuth) {
@@ -49,7 +49,7 @@ export function ProtectedRoute({
     // Verificar roles si se especificaron
     if (allowedRoles.length > 0) {
       const hasValidRole = allowedRoles.some(
-        (role) => user.role === role || user.tipoUsuario === role
+        (role) => user.role === role || (user as any).tipoUsuario === role
       );
 
       if (!hasValidRole) {
@@ -67,8 +67,10 @@ export function ProtectedRoute({
 
     // Verificar tipos de usuario si se especificaron
     if (allowedUserTypes.length > 0) {
+      // Usar type o tipoUsuario para compatibilidad
+      const userType = user.type || (user as any).tipoUsuario;
       const hasValidType = allowedUserTypes.some(
-        (type) => user.tipoUsuario === type || user.role === type
+        (type) => userType === type || user.role === type
       );
 
       if (!hasValidType) {
@@ -78,9 +80,7 @@ export function ProtectedRoute({
           )}`
         );
         console.log(
-          `🚫 Acceso denegado - Tipo: ${
-            user.tipoUsuario
-          }, Requerido: ${allowedUserTypes.join(", ")}`
+          `🚫 Acceso denegado - Tipo: ${userType}, Requerido: ${allowedUserTypes.join(", ")}`
         );
         return;
       }
@@ -90,12 +90,12 @@ export function ProtectedRoute({
     setIsAuthorized(true);
     setAuthError(null);
     console.log("✅ Usuario autorizado:", {
-      nombre: user.nombre,
+      nombre: (user as any).nombre,
       role: user.role,
-      tipoUsuario: user.tipoUsuario,
+      tipoUsuario: (user as any).tipoUsuario,
     });
   }, [
-    loading,
+    isLoading,
     isAuthenticated,
     user,
     allowedRoles,
@@ -106,7 +106,7 @@ export function ProtectedRoute({
   ]);
 
   // Mostrar loading mientras se verifica
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center space-y-4">
@@ -170,7 +170,7 @@ export function withAuth<P extends object>(
 export function SuperAdminRoute({ children }: { children: React.ReactNode }) {
   return (
     <ProtectedRoute
-      allowedUserTypes={["admin"]}
+      allowedUserTypes={["admin", "superadmin"]}
       allowedRoles={["admin", "superadmin"]}
     >
       {children}

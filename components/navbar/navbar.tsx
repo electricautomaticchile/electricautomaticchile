@@ -19,11 +19,11 @@ import {
 } from "@/components/ui/navigation-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
-import { useAuth } from "@/lib/hooks/useApi";
+import { useApi } from "@/lib/hooks/useApi";
 import { useEffect, useState } from "react";
 
 export default function Component() {
-  const { data: session, logout, isAuthenticated, user } = useAuth();
+  const { logout, isAuthenticated, user } = useApi();
   const [scrolled, setScrolled] = useState(false);
 
   // Efecto para detectar scroll
@@ -50,17 +50,25 @@ export default function Component() {
   const getDashboardUrl = () => {
     if (!user) return "/auth/login";
 
-    const userRole = user.role || user.tipoUsuario;
+    // Obtener tipo y rol con fallbacks para compatibilidad
+    const userRole = user.role;
+    const userType = user.type || (user as any).tipoUsuario;
 
-    switch (userRole) {
-      case "admin":
-      case "superadmin":
-        return "/dashboard-superadmin";
-      case "empresa":
-        return "/dashboard-empresa";
-      case "cliente":
-      default:
-        return "/dashboard-cliente";
+    // Lógica mejorada para determinar el dashboard
+    if (
+      userRole === "admin" ||
+      userRole === "superadmin" ||
+      userType === "admin" ||
+      userType === "superadmin"
+    ) {
+      return "/dashboard-superadmin";
+    } else if (userRole === "cliente" || userType === "cliente") {
+      return "/dashboard-cliente";
+    } else if (userRole === "empresa" || userType === "empresa") {
+      return "/dashboard-empresa";
+    } else {
+      // Default fallback
+      return "/dashboard-cliente";
     }
   };
 

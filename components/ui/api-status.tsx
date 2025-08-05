@@ -1,6 +1,6 @@
 "use client";
 
-import { useApiConfig } from "@/lib/hooks/useApi";
+import { useApi } from "@/lib/hooks/useApi";
 import { Badge } from "./badge";
 import { Button } from "./button";
 import { RefreshCw, Wifi, WifiOff } from "lucide-react";
@@ -14,7 +14,21 @@ export function ApiStatus({
   showDetails = false,
   className = "",
 }: ApiStatusProps) {
-  const { config, checkConnection } = useApiConfig();
+  const { isAuthenticated } = useApi();
+
+  // Mock config for now
+  const config = {
+    status: isAuthenticated ? "connected" : "disconnected",
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000",
+    version: "2.0.0",
+    isConnected: isAuthenticated,
+    isProduction: process.env.NODE_ENV === "production",
+  };
+
+  const checkConnection = () => {
+    // Mock function for now
+    console.log("Checking connection...");
+  };
 
   const handleRefreshConnection = () => {
     checkConnection();
@@ -55,7 +69,21 @@ export function ApiStatus({
 
 // Componente más completo para dashboards
 export function ApiStatusPanel() {
-  const { config, checkConnection } = useApiConfig();
+  const { isAuthenticated } = useApi();
+
+  // Mock config for now
+  const config = {
+    status: isAuthenticated ? "connected" : "disconnected",
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000",
+    version: "2.0.0",
+    isConnected: isAuthenticated,
+    isProduction: process.env.NODE_ENV === "production",
+  };
+
+  const checkConnection = () => {
+    // Mock function for now
+    console.log("Checking connection...");
+  };
 
   return (
     <div className="rounded-lg border p-4">
