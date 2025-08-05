@@ -122,13 +122,17 @@ const LoginContent = () => {
         }
 
         // Redirigir según el tipo de usuario (login normal)
-        const tipoUsuario = response.data.user.tipoUsuario;
+        // Obtener tipo de usuario y rol, con fallbacks para compatibilidad
+        const tipoUsuario =
+          response.data.user.type || (response.data.user as any).tipoUsuario;
         const role = response.data.user.role;
 
         console.log("🎯 Datos del usuario para redirección:", {
           tipoUsuario,
           role,
-          nombre: response.data.user.nombre,
+          nombre: response.data.user.name || (response.data.user as any).nombre,
+          fullUserData: response.data.user,
+          responseData: response.data,
         });
 
         let redirectPath = "/dashboard-empresa"; // default
@@ -137,7 +141,8 @@ const LoginContent = () => {
         if (
           role === "admin" ||
           role === "superadmin" ||
-          tipoUsuario === "admin"
+          tipoUsuario === "admin" ||
+          tipoUsuario === "superadmin"
         ) {
           redirectPath = "/dashboard-superadmin";
           console.log("👑 Usuario administrador detectado");
@@ -161,30 +166,16 @@ const LoginContent = () => {
           localStorage.setItem("user", JSON.stringify(response.data.user));
         }
 
-        // Redirección INMEDIATA - sin setTimeout
-        console.log("🚀 Ejecutando redirección inmediata...");
+        // Redirección INMEDIATA usando window.location para mayor confiabilidad
+        console.log(
+          "🚀 Ejecutando redirección inmediata con window.location..."
+        );
 
-        try {
-          // Esperar un momento para que las cookies se establezcan
-          await new Promise((resolve) => setTimeout(resolve, 100));
-
-          await router.push(targetUrl);
-          console.log("✅ Router.push ejecutado");
-
-          // Verificar después de 1 segundo si la redirección funcionó
-          setTimeout(() => {
-            if (window.location.pathname.includes("/auth/login")) {
-              console.log(
-                "⚠️ Redirección no funcionó, usando window.location como fallback"
-              );
-              window.location.href = targetUrl;
-            }
-          }, 1000);
-        } catch (routerError) {
-          console.error("❌ Error con router.push:", routerError);
-          // Fallback inmediato con window.location
+        // Usar window.location.href directamente para garantizar la redirección
+        setTimeout(() => {
+          console.log("🔄 Redirigiendo a:", targetUrl);
           window.location.href = targetUrl;
-        }
+        }, 500); // Dar tiempo para que se guarden los datos
       } else {
         console.error("❌ Error en respuesta:", response);
         setError(
