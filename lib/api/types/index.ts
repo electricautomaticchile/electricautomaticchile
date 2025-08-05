@@ -87,17 +87,17 @@ export interface ICliente {
   notas?: string;
 }
 
+import { UserRole, UserType } from "@/types/user";
+
 // Tipos para Usuarios
 export interface IUsuario {
-  _id: string;
-  nombre: string;
+  id: string;
+  name: string;
   email: string;
-  numeroCliente?: string;
-  tipoUsuario: "admin" | "cliente" | "empresa";
-  role?: string;
-  activo: boolean;
-  fechaCreacion: string;
-  ultimoAcceso?: string;
+  role: UserRole;
+  type: UserType;
+  isActive: boolean;
+  lastLogin?: Date;
 }
 
 // Tipos para Superusuarios
