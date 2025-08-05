@@ -12,14 +12,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/lib/hooks/useApi";
+import { useApi } from "@/lib/hooks/useApi";
 
 interface EncabezadoProps {
   onCambiarPassword?: () => void;
 }
 
 export default function Encabezado({ onCambiarPassword }: EncabezadoProps) {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated } = useApi();
   const [notificacionesCount] = useState(2);
 
   const handleLogout = async () => {
@@ -59,7 +59,9 @@ export default function Encabezado({ onCambiarPassword }: EncabezadoProps) {
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                   <User className="h-4 w-4 text-blue-600" />
                 </div>
-                <span className="font-medium">{user?.nombre || "Cliente"}</span>
+                <span className="font-medium">
+                  {user?.name || (user as any)?.nombre || "Cliente"}
+                </span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">

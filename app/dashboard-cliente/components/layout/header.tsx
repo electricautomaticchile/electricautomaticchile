@@ -1,10 +1,10 @@
 import React from "react";
-import { useAuth } from "@/lib/hooks/useApi";
+import { useApi } from "@/lib/hooks/useApi";
 import { LogOut, User } from "lucide-react";
 import { ProfileImageManager } from "@/components/ui/profile-image-manager";
 
 const HeaderCliente: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout } = useApi();
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between bg-orange-500 px-4 py-3 shadow-md">
@@ -12,20 +12,20 @@ const HeaderCliente: React.FC = () => {
       <div className="flex items-center gap-4 text-white">
         {user && (
           <>
-          <span className="hidden text-sm sm:inline">
-            #{user.numeroCliente}
-          </span>
+            <span className="hidden text-sm sm:inline">
+              #{(user as any).numeroCliente}
+            </span>
             <div className="flex items-center gap-3">
               <ProfileImageManager
-                userId={user._id || user.id}
+                userId={(user as any)._id || user.id}
                 tipoUsuario="cliente"
-                userName={user.nombre || "Cliente"}
+                userName={user.name || "Cliente"}
                 size="sm"
                 showEditButton={true}
                 className="border-2 border-white/20"
               />
               <span className="hidden sm:inline text-sm font-medium">
-                {user.nombre}
+                {user.name}
               </span>
             </div>
           </>

@@ -87,7 +87,7 @@ export function PerfilUsuario({ datos }: PerfilUsuarioProps) {
       // Usar el número de cliente como ID para la actualización
       const response = await apiService.actualizarUsuario(
         datos.numeroCliente,
-        datosActualizacion
+        datosActualizacion as any
       );
 
       if (response.success) {

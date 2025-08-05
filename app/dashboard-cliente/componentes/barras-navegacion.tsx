@@ -17,7 +17,7 @@ import {
   X,
   User,
 } from "lucide-react";
-import { useAuth } from "@/lib/hooks/useApi";
+import { useApi } from "@/lib/hooks/useApi";
 import { Logo } from "@/components/logo";
 
 const menuItems = [
@@ -55,7 +55,7 @@ const menuItems = [
 
 export function BarraNavegacionLateral() {
   const pathname = usePathname();
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated } = useApi();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -146,11 +146,11 @@ export function BarraNavegacionLateral() {
                   <div className="flex items-center gap-2 mb-1">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     <span className="text-sm font-medium text-gray-900">
-                      {user?.nombre || "Cliente"}
+                      {user?.name || "Cliente"}
                     </span>
                   </div>
                   <p className="text-xs text-gray-500">
-                    {user?.numeroCliente && `Cliente #${user.numeroCliente}`}
+                    {user?.id && `Cliente #${user.id}`}
                   </p>
                 </div>
 
