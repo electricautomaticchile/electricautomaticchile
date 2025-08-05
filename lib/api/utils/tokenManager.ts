@@ -27,10 +27,7 @@ export class TokenManager {
     }
 
     document.cookie = cookieOptions.join("; ");
-    console.log(
-      "🍪 Token guardado en cookies:",
-      isProduction ? "con secure" : "sin secure"
-    );
+    // Token guardado en cookies (sin logging en producción)
   }
 
   static getRefreshToken(): string | null {
@@ -79,6 +76,6 @@ export class TokenManager {
     document.cookie = `${this.TOKEN_KEY}=; ${clearCookieOptions.join("; ")}`;
     document.cookie = `${this.REFRESH_TOKEN_KEY}=; ${clearCookieOptions.join("; ")}`;
 
-    console.log("🗑️ Tokens y cookies limpiados");
+    // Tokens y cookies limpiados
   }
 }
