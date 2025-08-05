@@ -14,6 +14,7 @@ import { Configuracion } from "./features/configuracion";
 import { RegistrosActividad } from "./features/registros-actividad";
 import { FacturacionGlobal } from "./features/facturacion";
 import { CotizacionesDashboard } from "./features/cotizaciones-dashboard";
+import { IoTControl } from "./features/iot-control";
 import {
   Card,
   CardHeader,
@@ -140,6 +141,8 @@ export default function DashboardSuperadmin() {
         return <FacturacionGlobal />;
       case "cotizaciones":
         return <CotizacionesDashboard />;
+      case "iot-control":
+        return <IoTControl />;
       default:
         // Vista por defecto: dashboard general
         return (
@@ -156,6 +159,14 @@ export default function DashboardSuperadmin() {
               <CotizacionesDashboard
                 reducida={true}
                 onVerTodas={() => setComponenteActivo("cotizaciones")}
+              />
+            </div>
+
+            {/* IoT Control Global */}
+            <div className="w-full">
+              <IoTControl
+                reducida={true}
+                onVerMas={() => setComponenteActivo("iot-control")}
               />
             </div>
 

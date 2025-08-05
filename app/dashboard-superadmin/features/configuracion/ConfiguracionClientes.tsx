@@ -58,8 +58,13 @@ export function ConfiguracionClientes() {
       const response = await apiService.obtenerClientes();
 
       if (response.success && response.data) {
-        console.log("✅ Clientes cargados:", response.data.length);
-        setClientes(response.data);
+        // Asegurar que response.data sea un array
+        const clientesArray = Array.isArray(response.data)
+          ? response.data
+          : (response.data as any).clientes || [];
+
+        console.log("✅ Clientes cargados:", clientesArray.length);
+        setClientes(clientesArray);
       } else {
         console.error("❌ Error al cargar clientes:", response.error);
         toast({
@@ -152,6 +157,12 @@ export function ConfiguracionClientes() {
 
   // Filtrar clientes basado en búsqueda y estado
   const clientesFiltrados = useMemo(() => {
+    // Asegurar que clientes sea un array antes de filtrar
+    if (!Array.isArray(clientes)) {
+      console.warn("⚠️ clientes no es un array:", clientes);
+      return [];
+    }
+
     return clientes.filter((cliente) => {
       const coincideBusqueda =
         !busquedaCliente ||

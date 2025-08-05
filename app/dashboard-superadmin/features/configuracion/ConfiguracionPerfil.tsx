@@ -13,8 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import { useApi } from "@/lib/hooks/useApi";
 import { apiService } from "@/lib/api/apiService";
-import { useAuth } from "@/lib/hooks/useApi";
 import { SubidaImagenPerfil } from "./SubidaImagenPerfil";
 
 interface ConfiguracionPerfilProps {
@@ -26,7 +26,7 @@ export function ConfiguracionPerfil({
   profileImage,
   setProfileImage,
 }: ConfiguracionPerfilProps) {
-  const { user } = useAuth();
+  const { user } = useApi();
 
   // Estados para el perfil del superadmin
   const [perfilSuperadmin, setPerfilSuperadmin] = useState({
@@ -47,14 +47,14 @@ export function ConfiguracionPerfil({
       if (response.success && response.data) {
         console.log("📋 Perfil cargado desde API:", response.data);
         setPerfilSuperadmin({
-          nombre: response.data.nombre || "",
+          nombre: (response.data as any).nombre || "",
           email: response.data.email || "",
         });
       } else {
         console.error("Error cargando perfil:", response.error);
         // Si no se puede cargar desde la API, usar datos del hook useAuth como fallback
         setPerfilSuperadmin({
-          nombre: user?.nombre || "Administrador",
+          nombre: (user as any)?.nombre || "Administrador",
           email: user?.email || "admin@electricauto.cl",
         });
       }
@@ -62,7 +62,7 @@ export function ConfiguracionPerfil({
       console.error("Error al cargar perfil:", error);
       // Fallback en caso de error
       setPerfilSuperadmin({
-        nombre: user?.nombre || "Administrador",
+        nombre: (user as any)?.nombre || "Administrador",
         email: user?.email || "admin@electricauto.cl",
       });
     } finally {
@@ -76,7 +76,7 @@ export function ConfiguracionPerfil({
 
     try {
       const response = await apiService.actualizarSuperusuario(
-        user?._id || "",
+        (user as any)?._id || "",
         {
           nombre: perfilSuperadmin.nombre,
           correo: perfilSuperadmin.email,
@@ -173,7 +173,7 @@ export function ConfiguracionPerfil({
                   <Input
                     id="user-client-number"
                     readOnly
-                    value={user?.numeroCliente || "-------"}
+                    value={(user as any)?.numeroCliente || "-------"}
                     className="bg-gray-50 dark:bg-slate-900"
                   />
                   <p className="text-xs text-gray-500">
@@ -203,7 +203,7 @@ export function ConfiguracionPerfil({
               <SubidaImagenPerfil
                 profileImage={profileImage}
                 nombreUsuario={perfilSuperadmin.nombre}
-                userId={user?._id || ""}
+                userId={(user as any)?._id || ""}
                 onImageChange={setProfileImage}
               />
 

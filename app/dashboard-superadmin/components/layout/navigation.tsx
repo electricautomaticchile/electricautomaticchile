@@ -13,11 +13,12 @@ import {
   DollarSign,
   FileSpreadsheet,
   MessageSquare,
+  Activity,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSocket } from "@/lib/hooks/useSocket";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/lib/hooks/useApi";
+import { useApi } from "@/lib/hooks/useApi";
 import { Logo } from "@/components/logo";
 
 interface BarrasNavegacionProps {
@@ -29,7 +30,7 @@ export function BarrasNavegacion({
 }: BarrasNavegacionProps) {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const { unreadNotificationsCount, unreadMessagesCount } = useSocket();
-  const { user } = useAuth();
+  const { user } = useApi();
 
   const alternarMenu = () => {
     setMenuAbierto(!menuAbierto);
@@ -107,6 +108,14 @@ export function BarrasNavegacion({
               texto="Estadísticas Globales"
               onClick={() => {
                 onCambioComponente("estadisticas-globales");
+                cerrarMenuMovil();
+              }}
+            />
+            <BotonNavegacion
+              icono={<Activity className="h-4 w-4" />}
+              texto="Control IoT"
+              onClick={() => {
+                onCambioComponente("iot-control");
                 cerrarMenuMovil();
               }}
             />

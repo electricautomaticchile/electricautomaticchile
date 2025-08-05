@@ -28,7 +28,7 @@ import { useRouter } from "next/navigation";
 import { useSocket } from "@/lib/hooks/useSocket";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { useAuth } from "@/lib/hooks/useApi";
+import { useApi } from "@/lib/hooks/useApi";
 import { ProfileImageManager } from "@/components/ui/profile-image-manager";
 
 interface EncabezadoProps {
@@ -54,7 +54,10 @@ export function Encabezado({
     connected,
   } = useSocket();
 
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated } = useApi();
+  // Asegurar compatibilidad con diferentes formatos de respuesta
+  const userType = user?.type || (user as any)?.tipoUsuario;
+  const userRole = user?.role || (user as any)?.tipoUsuario;
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -97,13 +100,16 @@ export function Encabezado({
         <div className="flex items-center gap-4">
           {/* Menú móvil */}
           {menuMovil}
-          {tipoUsuario === "superadmin" && (
+          {(tipoUsuario === "superadmin" ||
+            userType === "superadmin" ||
+            userRole === "superadmin") && (
             <div className="inline-flex items-center rounded-md bg-orange-50 px-2 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20 dark:bg-orange-900/20 dark:text-orange-300">
               <span className="mr-1">Superadministrador</span>
               {connected && user && (
                 <span className="inline-flex items-center text-green-600 dark:text-green-400 text-xs">
                   <span className="h-1.5 w-1.5 rounded-full bg-green-500 mr-1"></span>
-                  Usuario conectado con Superadministrador {user.numeroCliente}
+                  Usuario conectado con Superadministrador{" "}
+                  {(user as any)?.numeroCliente}
                 </span>
               )}
             </div>
@@ -112,8 +118,8 @@ export function Encabezado({
           {/* Información del administrador */}
           <div className="hidden md:flex flex-col ml-4">
             <div className="font-medium text-sm">
-              {user?.numeroCliente || "-------"} -{" "}
-              {user?.email || "admin@electricauto.cl"}
+              {(user as any)?.numeroCliente || "-------"} -{" "}
+              {user?.email || (user as any)?.correo || "admin@electricauto.cl"}
             </div>
           </div>
         </div>
@@ -257,9 +263,9 @@ export function Encabezado({
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative rounded-full p-1">
                 <ProfileImageManager
-                  userId={user?._id || user?.id || ""}
-                  tipoUsuario="superadmin"
-                  userName={user?.nombre || "Superadmin"}
+                  userId={(user as any)?._id || user?.id || ""}
+                  tipoUsuario={userType || userRole || "superadmin"}
+                  userName={(user as any)?.nombre || user?.name || "Superadmin"}
                   size="sm"
                   showEditButton={false}
                   className="h-8 w-8"
@@ -270,18 +276,22 @@ export function Encabezado({
               <DropdownMenuLabel>
                 <div className="flex items-center space-x-3">
                   <ProfileImageManager
-                    userId={user?._id || user?.id || ""}
-                    tipoUsuario="superadmin"
-                    userName={user?.nombre || "Superadmin"}
+                    userId={(user as any)?._id || user?.id || ""}
+                    tipoUsuario={userType || userRole || "superadmin"}
+                    userName={
+                      (user as any)?.nombre || user?.name || "Superadmin"
+                    }
                     size="md"
                     showEditButton={true}
                   />
                   <div className="flex flex-col space-y-1 flex-1">
                     <p className="text-sm font-medium leading-none">
-                      {user?.nombre || "Superadmin"}
+                      {(user as any)?.nombre || user?.name || "Superadmin"}
                     </p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      {user?.email || user?.correo || "admin@electricauto.cl"}
+                      {user?.email ||
+                        (user as any)?.correo ||
+                        "admin@electricauto.cl"}
                     </p>
                   </div>
                 </div>

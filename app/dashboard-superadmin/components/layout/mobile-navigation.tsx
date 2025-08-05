@@ -18,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useSocket } from "@/lib/hooks/useSocket";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/lib/hooks/useApi";
+import { useApi } from "@/lib/hooks/useApi";
 import { Logo } from "@/components/logo";
 import { ProfileImageManager } from "@/components/ui/profile-image-manager";
 
@@ -29,7 +29,7 @@ interface NavegacionMovilProps {
 export function NavegacionMovil({ onCambioComponente }: NavegacionMovilProps) {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const { unreadNotificationsCount, unreadMessagesCount } = useSocket();
-  const { user } = useAuth();
+  const { user } = useApi();
 
   const alternarMenu = () => {
     setMenuAbierto(!menuAbierto);
@@ -202,16 +202,16 @@ export function NavegacionMovil({ onCambioComponente }: NavegacionMovilProps) {
           <div className="border-t border-gray-200 dark:border-gray-800 p-4">
             <div className="flex items-center gap-3 rounded-lg px-3 py-2">
               <ProfileImageManager
-                userId={user?._id || user?.id || ""}
+                userId={(user as any)?._id || user?.id || ""}
                 tipoUsuario="superadmin"
-                userName={user?.nombre || "Superadmin"}
+                userName={(user as any)?.nombre || "Superadmin"}
                 size="sm"
                 showEditButton={false}
                 className="h-10 w-10"
               />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                  {user?.numeroCliente || "-------"}
+                  {(user as any)?.numeroCliente || "-------"}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                   electricautomaticchile@gmail.com
