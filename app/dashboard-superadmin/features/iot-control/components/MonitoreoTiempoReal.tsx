@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -40,14 +40,7 @@ export function MonitoreoTiempoReal() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useApi();
 
-  useEffect(() => {
-    loadGlobalStats();
-    // Actualizar cada 30 segundos
-    const interval = setInterval(loadGlobalStats, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const loadGlobalStats = async () => {
+  const loadGlobalStats = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch("/api/admin/dispositivos/global-stats", {
@@ -68,7 +61,14 @@ export function MonitoreoTiempoReal() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    loadGlobalStats();
+    // Actualizar cada 30 segundos
+    const interval = setInterval(loadGlobalStats, 30000);
+    return () => clearInterval(interval);
+  }, [loadGlobalStats]);
 
   if (loading && !stats) {
     return (
