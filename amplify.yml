@@ -30,6 +30,6 @@ backend:
 build:
   env:
     variables:
-      NODE_VERSION: "20"
+      NODE_VERSION: "22"
       NPM_VERSION: "10"
       AMPLIFY_MONOREPO_APP_ROOT: "."
