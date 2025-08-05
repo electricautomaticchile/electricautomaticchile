@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -75,23 +75,7 @@ export function ProfileImageManager({
 
   const currentSize = sizeConfig[size];
 
-  // Cargar imagen actual al montar el componente
-  useEffect(() => {
-    if (!currentImageUrl) {
-      loadCurrentImage();
-    }
-  }, [userId, tipoUsuario, currentImageUrl]);
-
-  // Limpiar URLs de preview al desmontar
-  useEffect(() => {
-    return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-      }
-    };
-  }, [previewUrl]);
-
-  const loadCurrentImage = async () => {
+  const loadCurrentImage = useCallback(async () => {
     if (!userId || !tipoUsuario) return;
 
     setIsLoading(true);
@@ -108,7 +92,23 @@ export function ProfileImageManager({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId, tipoUsuario]);
+
+  // Cargar imagen actual al montar el componente
+  useEffect(() => {
+    if (!currentImageUrl) {
+      loadCurrentImage();
+    }
+  }, [userId, tipoUsuario, currentImageUrl, loadCurrentImage]);
+
+  // Limpiar URLs de preview al desmontar
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const handleFileSelect = (file: File) => {
     // Validar archivo
