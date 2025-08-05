@@ -24,6 +24,13 @@ export function useEstadisticasConsumo() {
   const [resumenEstadisticas, setResumenEstadisticas] =
     useState<EstadisticasResumen>(ESTADISTICAS_RESUMEN_DEFAULT);
 
+  // Log de debugging para verificar inicialización
+  console.log("useEstadisticasConsumo: estado inicializado", {
+    loading,
+    resumenEstadisticasDefined: !!resumenEstadisticas,
+    resumenEstadisticasConsumoMensual: resumenEstadisticas?.consumoMensual,
+  });
+
   const [estadoExportacion, setEstadoExportacion] = useState<EstadoExportacion>(
     {
       estado: "idle",
@@ -38,6 +45,9 @@ export function useEstadisticasConsumo() {
   // Cargar datos de consumo
   const cargarDatos = useCallback(async (periodo: string) => {
     try {
+      console.log("useEstadisticasConsumo: iniciando carga de datos", {
+        periodo,
+      });
       setLoading(true);
 
       const clienteId = "60d5ec49e03e8a2788d3d9d3"; // TODO: obtener del contexto de autenticación
@@ -51,6 +61,7 @@ export function useEstadisticasConsumo() {
         setDatosConsumo(datos as DatoConsumo[]);
         setResumenEstadisticas(resumen as EstadisticasResumen);
       } else {
+        console.log("useEstadisticasConsumo: usando datos simulados");
         const datosSimulados = generarDatosConsumo(periodo as TipoExportacion);
         setDatosConsumo(datosSimulados);
         setResumenEstadisticas(ESTADISTICAS_RESUMEN_DEFAULT);

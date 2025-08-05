@@ -10,7 +10,7 @@ import { ConfiguracionForm } from "./ConfiguracionForm";
 import { ConfiguracionContacto } from "./ConfiguracionContacto";
 import { ConfiguracionNotificaciones } from "./ConfiguracionNotificaciones";
 import { ProfileImageManager } from "@/components/ui/profile-image-manager";
-import { useAuth } from "@/lib/hooks/useApi";
+import { useApi } from "@/lib/hooks/useApi";
 import {
   Card,
   CardContent,
@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/card";
 
 export function ConfiguracionEmpresa({ className }: ConfiguracionEmpresaProps) {
-  const { user } = useAuth();
+  const { user } = useApi();
   const {
     datosEmpresa,
     configuracionNotificaciones,
@@ -155,8 +155,13 @@ export function ConfiguracionEmpresa({ className }: ConfiguracionEmpresaProps) {
             <CardContent>
               <div className="flex flex-col items-center space-y-6">
                 <ProfileImageManager
-                  userId={user?._id || user?.id || ""}
-                  tipoUsuario="empresa"
+                  userId={(user as any)?._id || user?.id || ""}
+                  tipoUsuario={
+                    user?.type ||
+                    user?.role ||
+                    (user as any)?.tipoUsuario ||
+                    "empresa"
+                  }
                   userName={datosEmpresa.nombreEmpresa || "Empresa"}
                   size="xl"
                   showUploadArea={true}

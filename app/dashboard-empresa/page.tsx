@@ -23,6 +23,7 @@ import { AlertasSistema } from "./features/alertas";
 import { ConsumoSectorial } from "./features/consumo";
 import { ControlArduino } from "./features/control";
 import { ConfiguracionEmpresa } from "./features/configuracion";
+import { DispositivosIoT } from "./features/dispositivos-iot";
 
 import {
   Users,
@@ -248,6 +249,13 @@ export default function DashboardEmpresa() {
                 >
                   <Zap className="h-4 w-4" />
                   Arduino
+                </TabsTrigger>
+                <TabsTrigger
+                  value="dispositivos-iot"
+                  className="flex items-center gap-2 h-10"
+                >
+                  <Router className="h-4 w-4" />
+                  Dispositivos IoT
                 </TabsTrigger>
                 <TabsTrigger
                   value="configuracion"
@@ -488,6 +496,21 @@ export default function DashboardEmpresa() {
                     <ControlArduino reducida={true} />
                   </CardContent>
                 </Card>
+
+                <Card>
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-lg font-bold flex items-center gap-2">
+                      <Router className="h-5 w-5 text-orange-600" />
+                      Dispositivos IoT
+                    </CardTitle>
+                    <CardDescription>
+                      Estado de dispositivos de clientes asignados
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <DispositivosIoT reducida={true} />
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
 
@@ -518,6 +541,10 @@ export default function DashboardEmpresa() {
 
             <TabsContent value="configuracion">
               <ConfiguracionEmpresa />
+            </TabsContent>
+
+            <TabsContent value="dispositivos-iot">
+              <DispositivosIoT />
             </TabsContent>
           </Tabs>
         </main>

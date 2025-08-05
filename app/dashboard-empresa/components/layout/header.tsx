@@ -34,7 +34,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/hooks/useApi";
+import { useApi } from "@/lib/hooks/useApi";
 import { useNotifications } from "@/hooks/useNotifications";
 import { ProfileImageManager } from "@/components/ui/profile-image-manager";
 
@@ -49,7 +49,7 @@ export function EncabezadoEmpresa({
   onToggleMobileMenu,
   isMobileMenuOpen = false,
 }: EncabezadoEmpresaProps) {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated } = useApi();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -68,10 +68,18 @@ export function EncabezadoEmpresa({
     router.push("/auth/login");
   };
 
-  // Obtener nombre de la empresa o valor por defecto
-  const nombreEmpresa = user?.nombreEmpresa || user?.nombre || "Mi Empresa";
-  const numeroCliente = user?.numeroCliente || "------";
-  const emailEmpresa = user?.correo || user?.email || "empresa@ejemplo.com";
+  // Obtener nombre de la empresa o valor por defecto con compatibilidad
+  const nombreEmpresa =
+    (user as any)?.nombreEmpresa ||
+    user?.name ||
+    (user as any)?.nombre ||
+    "Mi Empresa";
+  const numeroCliente = (user as any)?.numeroCliente || "------";
+  const emailEmpresa =
+    (user as any)?.correo || user?.email || "empresa@ejemplo.com";
+  // Asegurar compatibilidad con diferentes formatos de respuesta
+  const userType = user?.type || (user as any)?.tipoUsuario || "empresa";
+  const userRole = user?.role || "empresa";
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-background px-4 md:px-6">
@@ -303,8 +311,8 @@ export function EncabezadoEmpresa({
                 className="flex items-center gap-2 h-auto px-2 py-1"
               >
                 <ProfileImageManager
-                  userId={user?._id || user?.id || ""}
-                  tipoUsuario="empresa"
+                  userId={(user as any)?._id || user?.id || ""}
+                  tipoUsuario={userType || userRole || "empresa"}
                   userName={nombreEmpresa}
                   size="sm"
                   showEditButton={false}
@@ -326,8 +334,8 @@ export function EncabezadoEmpresa({
               <DropdownMenuLabel>
                 <div className="flex items-center space-x-3">
                   <ProfileImageManager
-                    userId={user?._id || user?.id || ""}
-                    tipoUsuario="empresa"
+                    userId={(user as any)?._id || user?.id || ""}
+                    tipoUsuario={userType || userRole || "empresa"}
                     userName={nombreEmpresa}
                     size="md"
                     showEditButton={true}
