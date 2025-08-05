@@ -272,11 +272,11 @@ export function useApi() {
 
   const logout = useCallback(async (): Promise<void> => {
     return authManager.logout();
-  }, []);
+  }, [authManager]);
 
   const refreshAuth = useCallback(async (): Promise<void> => {
     return authManager.initializeAuth();
-  }, []);
+  }, [authManager]);
 
   return {
     // Estado de autenticación
