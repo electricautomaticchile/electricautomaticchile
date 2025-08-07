@@ -3,7 +3,7 @@ frontend:
   phases:
     preBuild:
       commands:
-        - echo "Installing dependencies..."
+        - npm install
         - npm ci --silent
     build:
       commands:
