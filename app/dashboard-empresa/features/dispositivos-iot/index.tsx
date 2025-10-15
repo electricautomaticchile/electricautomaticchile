@@ -17,7 +17,10 @@ import {
   BarChart3,
   CheckCircle,
   XCircle,
+  Thermometer,
 } from "lucide-react";
+import { VisualizacionSensores } from "./VisualizacionSensores";
+import { EstadoDispositivosRealTime } from "./EstadoDispositivosRealTime";
 
 interface DispositivosIoTProps {
   reducida?: boolean;
@@ -118,6 +121,10 @@ export function DispositivosIoT({
             <Activity className="h-4 w-4" />
             Estado Dispositivos
           </TabsTrigger>
+          <TabsTrigger value="sensores" className="flex items-center gap-2 h-10">
+            <Thermometer className="h-4 w-4" />
+            Sensores
+          </TabsTrigger>
           <TabsTrigger value="control" className="flex items-center gap-2 h-10">
             <Zap className="h-4 w-4" />
             Control Básico
@@ -147,9 +154,21 @@ export function DispositivosIoT({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">
-                Componente de estado de dispositivos para empresa (implementar)
-              </p>
+              <EstadoDispositivosRealTime />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="sensores">
+          <Card>
+            <CardHeader>
+              <CardTitle>Sensores en Tiempo Real</CardTitle>
+              <CardDescription>
+                Monitoreo de temperatura, humedad, presión y luz
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <VisualizacionSensores />
             </CardContent>
           </Card>
         </TabsContent>

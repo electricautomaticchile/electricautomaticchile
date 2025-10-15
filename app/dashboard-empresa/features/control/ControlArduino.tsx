@@ -1,9 +1,10 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Zap, Activity, BarChart3 } from "lucide-react";
+import { Zap, Activity, BarChart3, Wifi } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { ControlArduinoProps } from './types';
-import { useControlArduino } from './useControlArduino';
+import { useControlArduinoWebSocket } from './useControlArduinoWebSocket';
 import { ControlArduinoHeader } from './ControlArduinoAcciones';
 import { ControlArduinoEstado } from './ControlArduinoEstado';
 import { ControlArduinoAcciones } from './ControlArduinoAcciones';
@@ -21,8 +22,9 @@ export function ControlArduino({ reducida = false }: ControlArduinoProps) {
     controlLed,
     exportData,
     toggleAutoRefresh,
-    isLoading
-  } = useControlArduino();
+    isLoading,
+    webSocketConectado,
+  } = useControlArduinoWebSocket();
 
   // Versión reducida para el dashboard principal
   if (reducida) {
@@ -40,14 +42,25 @@ export function ControlArduino({ reducida = false }: ControlArduinoProps) {
   return (
     <div className="bg-background p-6 rounded-lg border border-gray-200 dark:border-gray-700">
       {/* Header con controles principales */}
-      <ControlArduinoHeader
-        status={status}
-        autoRefresh={autoRefresh}
-        loading={loading.connection}
-        onConnect={connectArduino}
-        onDisconnect={disconnectArduino}
-        onToggleAutoRefresh={toggleAutoRefresh}
-      />
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex-1">
+          <ControlArduinoHeader
+            status={status}
+            autoRefresh={autoRefresh}
+            loading={loading.connection}
+            onConnect={connectArduino}
+            onDisconnect={disconnectArduino}
+            onToggleAutoRefresh={toggleAutoRefresh}
+          />
+        </div>
+        {/* Indicador de WebSocket */}
+        {webSocketConectado && (
+          <Badge variant="outline" className="ml-4 flex items-center gap-1">
+            <Wifi className="h-3 w-3 text-green-500" />
+            <span className="text-xs">Tiempo Real</span>
+          </Badge>
+        )}
+      </div>
 
       {/* Contenido principal con tabs */}
       <Tabs defaultValue="control" className="space-y-6">
