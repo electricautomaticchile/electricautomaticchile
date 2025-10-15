@@ -1,15 +1,13 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { ClienteRoute } from "@/components/auth/protected-route";
 import { CambioPasswordModal } from "@/components/ui/cambio-password-modal";
-import { BarraNavegacionLateral } from "./componentes/barras-navegacion";
-import Encabezado from "./componentes/encabezado";
 import { ConsumoElectrico } from "./componentes/consumo-electrico";
 import { EstadoServicio } from "./componentes/estado-servicio";
 import { PagosFacturas } from "./componentes/pagos-facturas";
 import { HistorialConsumo } from "./componentes/historial-consumo";
 import { SoporteUsuario } from "./componentes/soporte-usuario";
 import { PerfilUsuario } from "./componentes/perfil-usuario";
+import { AlertasEnTiempoReal } from "./componentes/alertas-tiempo-real";
 import HeaderCliente from "./components/layout/header";
 import NavigationCliente from "./components/layout/navigation";
 
@@ -124,7 +122,7 @@ export default function DashboardCliente() {
   // Renderizar el componente activo seleccionado
   const renderizarComponenteActivo = () => {
     switch (componenteActivo) {
-      case "consumo-electrico":
+      case "consumo":
         return <ConsumoElectrico />;
       case "estado-servicio":
         return (
@@ -133,34 +131,37 @@ export default function DashboardCliente() {
             onCambioEstado={manejarCambioEstado}
           />
         );
-      case "pagos-facturas":
+      case "boletas":
         return <PagosFacturas />;
-      case "historial-consumo":
+      case "historial":
         return <HistorialConsumo />;
-      case "soporte-usuario":
+      case "soporte":
         return <SoporteUsuario />;
-      case "perfil-usuario":
+      case "perfil":
         return <PerfilUsuario datos={datosCliente} />;
+      case "alertas":
+        return <AlertasEnTiempoReal />;
+      case "resumen":
+      case null:
       default:
         // Vista por defecto: dashboard general
         return (
           <>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-6">
-              <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+              <div className="p-6 bg-card border border-border rounded-lg shadow-lg hover:shadow-xl hover:border-muted transition-all cursor-pointer" onClick={() => setComponenteActivo("estado-servicio")}>
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">
                   Estado del servicio
                 </h3>
-                <div className="flex items-center mt-1">
+                <div className="flex items-center">
                   <div
-                    className={`w-3 h-3 rounded-full mr-2 ${
-                      estadoServicio === "activo"
-                        ? "bg-green-500"
-                        : estadoServicio === "desactivado"
-                          ? "bg-gray-500"
-                          : "bg-red-500"
-                    }`}
+                    className={`w-3 h-3 rounded-full mr-2 ${estadoServicio === "activo"
+                      ? "bg-green-500 animate-pulse"
+                      : estadoServicio === "desactivado"
+                        ? "bg-gray-500"
+                        : "bg-red-500"
+                      }`}
                   ></div>
-                  <p className="text-lg font-semibold">
+                  <p className="text-xl font-bold text-foreground">
                     {estadoServicio === "activo"
                       ? "Activo"
                       : estadoServicio === "desactivado"
@@ -170,37 +171,48 @@ export default function DashboardCliente() {
                 </div>
               </div>
 
-              <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+              <div className="p-6 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-lg hover:shadow-xl hover:from-orange-600 hover:to-orange-700 transition-all cursor-pointer" onClick={() => setComponenteActivo("consumo")}>
+                <h3 className="text-sm font-medium text-orange-100 mb-2">
                   Consumo actual
                 </h3>
-                <p className="text-2xl font-bold text-orange-600">
+                <p className="text-3xl font-bold text-white">
                   {datosCliente.consumoActual} kWh
                 </p>
               </div>
 
-              <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+              <div className="p-6 bg-card border border-border rounded-lg shadow-lg hover:shadow-xl hover:border-muted transition-all cursor-pointer" onClick={() => setComponenteActivo("boletas")}>
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">
                   Último pago
                 </h3>
-                <p className="text-lg font-semibold">
+                <p className="text-xl font-bold text-foreground">
                   {datosCliente.ultimoPago}
                 </p>
               </div>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 mb-6">
-              <ConsumoElectrico reducida={true} />
-              <HistorialConsumo reducida={true} />
+              <div onClick={() => setComponenteActivo("consumo")} className="cursor-pointer">
+                <ConsumoElectrico reducida={true} />
+              </div>
+              <div onClick={() => setComponenteActivo("historial")} className="cursor-pointer">
+                <HistorialConsumo reducida={true} />
+              </div>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 md:grid-cols-2 mb-6">
               <EstadoServicio
                 reducida={true}
                 estadoActual={estadoServicio}
                 onCambioEstado={manejarCambioEstado}
               />
-              <PagosFacturas reducida={true} />
+              <div onClick={() => setComponenteActivo("boletas")} className="cursor-pointer">
+                <PagosFacturas reducida={true} />
+              </div>
+            </div>
+
+            {/* Alertas en tiempo real */}
+            <div className="mb-6">
+              <AlertasEnTiempoReal reducida={true} sonidoHabilitado={true} />
             </div>
           </>
         );
@@ -208,15 +220,26 @@ export default function DashboardCliente() {
   };
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <HeaderCliente />
-      <div className="flex flex-1 overflow-hidden">
-        <NavigationCliente />
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
-          <h2 className="mb-4 text-xl font-semibold text-slate-700">
-            Bienvenido al panel de cliente
-          </h2>
-          {renderizarComponenteActivo()}
+      <div className="flex flex-1">
+        <NavigationCliente onNavigate={setComponenteActivo} activeItem={componenteActivo} />
+        <main className="flex-1 bg-background p-6">
+          {componenteActivo === null || componenteActivo === "resumen" ? (
+            <>
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-foreground">
+                  Bienvenido, {datosCliente.nombre}
+                </h2>
+                <p className="text-muted-foreground">
+                  Cliente N° {datosCliente.numeroCliente}
+                </p>
+              </div>
+              {renderizarComponenteActivo()}
+            </>
+          ) : (
+            renderizarComponenteActivo()
+          )}
         </main>
       </div>
 
