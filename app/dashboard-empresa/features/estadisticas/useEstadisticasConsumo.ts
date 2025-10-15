@@ -57,17 +57,43 @@ export function useEstadisticasConsumo() {
         });
 
       if (response.success && response.data) {
-        const { datos, resumen } = response.data as any;
-        setDatosConsumo(datos as DatoConsumo[]);
-        setResumenEstadisticas(resumen as EstadisticasResumen);
+        const responseData = response.data as any;
+        
+        // Validar que los datos tengan la estructura esperada
+        const datos = Array.isArray(responseData.datos) 
+          ? responseData.datos as DatoConsumo[]
+          : [];
+        
+        const resumen = responseData.resumen && typeof responseData.resumen === 'object'
+          ? responseData.resumen as EstadisticasResumen
+          : ESTADISTICAS_RESUMEN_DEFAULT;
+        
+        console.log("useEstadisticasConsumo: datos cargados desde API", {
+          success: response.success,
+          datosLength: datos.length,
+          resumenDefined: !!resumen,
+          timestamp: new Date().toISOString()
+        });
+        
+        setDatosConsumo(datos);
+        setResumenEstadisticas(resumen);
       } else {
-        console.log("useEstadisticasConsumo: usando datos simulados");
+        console.warn("useEstadisticasConsumo: API no devolvió datos válidos, usando simulación", {
+          success: response.success,
+          hasData: !!response.data
+        });
         const datosSimulados = generarDatosConsumo(periodo as TipoExportacion);
         setDatosConsumo(datosSimulados);
         setResumenEstadisticas(ESTADISTICAS_RESUMEN_DEFAULT);
       }
     } catch (error) {
       console.error("Error cargando estadísticas:", error);
+      
+      // Usar datos simulados en caso de error
+      const datosSimulados = generarDatosConsumo(periodo as TipoExportacion);
+      setDatosConsumo(datosSimulados);
+      setResumenEstadisticas(ESTADISTICAS_RESUMEN_DEFAULT);
+      
       toast({
         title: "❌ Error de Carga",
         description: "No se pudieron cargar las estadísticas de consumo.",

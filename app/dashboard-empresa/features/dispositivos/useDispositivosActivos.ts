@@ -103,14 +103,34 @@ export function useDispositivosActivos() {
       // Llamar a la API real
       const response = await apiService.obtenerDispositivos();
 
-      if (response.success) {
-        const dispositivosBackend = response.data as unknown as Dispositivo[];
-        setDispositivos(dispositivosBackend);
+      if (response.success && response.data) {
+        // La API devuelve { dispositivos: [], pagination: {} }
+        const responseData = response.data as any;
+        const dispositivosBackend = Array.isArray(responseData.dispositivos)
+          ? (responseData.dispositivos as unknown as Dispositivo[])
+          : Array.isArray(responseData)
+          ? (responseData as unknown as Dispositivo[])
+          : [];
+        
+        console.log("Dispositivos cargados desde API:", {
+          success: response.success,
+          hasDispositivos: !!responseData.dispositivos,
+          isArray: Array.isArray(dispositivosBackend),
+          count: dispositivosBackend.length,
+          timestamp: new Date().toISOString()
+        });
 
+        setDispositivos(dispositivosBackend);
         const resumen = calcularResumen(dispositivosBackend);
         setResumenDispositivos(resumen);
       } else {
-        // Fallback a simulación si la API falla
+        // Fallback a simulación si la API falla o devuelve datos inválidos
+        console.warn("API no devolvió datos válidos, usando simulación", {
+          success: response.success,
+          hasData: !!response.data,
+          dataType: typeof response.data
+        });
+        
         const dispositivosSimulados = generarDispositivosSimulados();
         setDispositivos(dispositivosSimulados);
 
@@ -119,6 +139,13 @@ export function useDispositivosActivos() {
       }
     } catch (error) {
       console.error("Error cargando dispositivos:", error);
+      
+      // Usar datos simulados en caso de error
+      const dispositivosSimulados = generarDispositivosSimulados();
+      setDispositivos(dispositivosSimulados);
+      const resumen = calcularResumen(dispositivosSimulados);
+      setResumenDispositivos(resumen);
+      
       toast({
         title: "❌ Error de Carga",
         description: MENSAJES.errorCarga,
