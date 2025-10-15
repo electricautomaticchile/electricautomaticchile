@@ -282,14 +282,14 @@ export function SoporteUsuario() {
   });
   
   return (
-    <div className="bg-white dark:bg-slate-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+    <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Headphones className="h-6 w-6 text-orange-600" />
+          <h2 className="text-3xl font-bold flex items-center gap-3 text-foreground">
+            <Headphones className="h-8 w-8 text-orange-600" />
             Soporte y Ayuda
           </h2>
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-muted-foreground mt-1">
             Asistencia técnica y respuestas a sus consultas
           </p>
         </div>

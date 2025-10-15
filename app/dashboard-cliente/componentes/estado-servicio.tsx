@@ -262,10 +262,10 @@ export function EstadoServicio({
   }
 
   return (
-    <div className="bg-white dark:bg-slate-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+    <div className="space-y-6">
       <div className="flex items-center mb-6">
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <Power className="h-6 w-6 text-orange-600" />
+        <h2 className="text-3xl font-bold flex items-center gap-3 text-foreground">
+          <Power className="h-8 w-8 text-orange-600" />
           Estado del Servicio
         </h2>
       </div>
@@ -273,74 +273,81 @@ export function EstadoServicio({
       <div className="space-y-6">
         <TarjetaEstado />
 
-        <div className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-orange-600" />
-            Historial de Cambios
-          </h3>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-orange-600" />
+              Historial de Cambios
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
 
-          <div className="space-y-3">
-            {historialCambios.map((cambio, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-4 py-2 border-b border-gray-100 dark:border-gray-800 last:border-0"
-              >
+            <div className="space-y-3">
+              {historialCambios.map((cambio, index) => (
                 <div
-                  className={`w-2 h-2 rounded-full ${
-                    cambio.estado === "activo"
-                      ? "bg-green-500"
+                  key={index}
+                  className="flex items-center gap-4 py-2 border-b border-border last:border-0"
+                >
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      cambio.estado === "activo"
+                        ? "bg-green-500"
+                        : cambio.estado === "desactivado"
+                          ? "bg-gray-500"
+                          : "bg-red-500"
+                    }`}
+                  ></div>
+                  <div className="text-sm text-muted-foreground">
+                    {cambio.fecha} {cambio.hora}
+                  </div>
+                  <div className="font-medium">
+                    {cambio.estado === "activo"
+                      ? "Servicio Activado"
                       : cambio.estado === "desactivado"
-                        ? "bg-gray-500"
-                        : "bg-red-500"
-                  }`}
-                ></div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  {cambio.fecha} {cambio.hora}
+                        ? "Servicio Desactivado"
+                        : "Servicio Suspendido"}
+                  </div>
+                  <div className="text-sm text-muted-foreground flex-1 text-right">
+                    {cambio.motivo}
+                  </div>
                 </div>
-                <div className="font-medium">
-                  {cambio.estado === "activo"
-                    ? "Servicio Activado"
-                    : cambio.estado === "desactivado"
-                      ? "Servicio Desactivado"
-                      : "Servicio Suspendido"}
-                </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400 flex-1 text-right">
-                  {cambio.motivo}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-orange-600" />
-            Información Importante
-          </h3>
-
-          <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-            <p>
-              Puede activar o desactivar su servicio en cualquier momento según
-              sus necesidades. No hay límite de cambios de estado.
-            </p>
-            <p>
-              La activación del servicio puede tomar hasta 5 minutos en
-              completarse. La desactivación es inmediata.
-            </p>
-            <p>
-              Si su servicio ha sido suspendido por el administrador, deberá
-              contactar con soporte para resolver la situación.
-            </p>
-
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-3 mt-3">
-              <p className="font-semibold text-gray-700 dark:text-gray-300">
-                Contacto Soporte:
-              </p>
-              <p>Teléfono: +56 2 2345 6789</p>
-              <p>Email: soporte@electricauto.cl</p>
+              ))}
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-orange-600" />
+              Información Importante
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                Puede activar o desactivar su servicio en cualquier momento según
+                sus necesidades. No hay límite de cambios de estado.
+              </p>
+              <p>
+                La activación del servicio puede tomar hasta 5 minutos en
+                completarse. La desactivación es inmediata.
+              </p>
+              <p>
+                Si su servicio ha sido suspendido por el administrador, deberá
+                contactar con soporte para resolver la situación.
+              </p>
+
+              <div className="border-t border-border pt-3 mt-3">
+                <p className="font-semibold text-foreground">
+                  Contacto Soporte:
+                </p>
+                <p>Teléfono: +56 2 2345 6789</p>
+                <p>Email: soporte@electricauto.cl</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <AlertDialog

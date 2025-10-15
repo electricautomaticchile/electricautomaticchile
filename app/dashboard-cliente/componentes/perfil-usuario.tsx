@@ -119,13 +119,13 @@ export function PerfilUsuario({ datos }: PerfilUsuarioProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+    <div className="space-y-6">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <User className="h-6 w-6 text-orange-600" />
+        <h2 className="text-3xl font-bold flex items-center gap-3 text-foreground">
+          <User className="h-8 w-8 text-orange-600" />
           Mi Perfil
         </h2>
-        <p className="text-gray-500 dark:text-gray-400">
+        <p className="text-muted-foreground mt-1">
           Administre su información personal y preferencias
         </p>
       </div>
