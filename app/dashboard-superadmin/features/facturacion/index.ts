@@ -1,1 +1,0 @@
-export { FacturacionGlobal } from './FacturacionGlobal';
