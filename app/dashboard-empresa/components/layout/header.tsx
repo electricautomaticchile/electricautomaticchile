@@ -17,9 +17,8 @@ import {
   CheckCircle2,
   BellRing,
   Clock,
-  Wifi,
-  WifiOff,
 } from "lucide-react";
+import { SearchBar } from "../SearchBar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -37,6 +36,7 @@ import { useRouter } from "next/navigation";
 import { useApi } from "@/lib/hooks/useApi";
 import { useNotifications } from "@/hooks/useNotifications";
 import { ProfileImageManager } from "@/components/ui/profile-image-manager";
+import { IndicadorEstadoConexion } from "@/components/websocket/IndicadorEstadoConexion";
 
 interface EncabezadoEmpresaProps {
   onCambiarPassword?: () => void;
@@ -56,8 +56,6 @@ export function EncabezadoEmpresa({
 
   const { notifications, unreadCount, markAsRead, markAllAsRead } =
     useNotifications();
-  // WebSocket removido temporalmente
-  const isConnected = false;
 
   useEffect(() => {
     setMounted(true);
@@ -116,15 +114,11 @@ export function EncabezadoEmpresa({
           </div>
 
           {/* Barra de búsqueda */}
-          <div className="flex-1 max-w-md ml-4 hidden lg:block">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                type="search"
-                placeholder="Buscar clientes, reportes..."
-                className="pl-10 w-full bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-gray-700"
-              />
-            </div>
+          <div className="flex-1 ml-4 hidden lg:block">
+            <SearchBar onResultClick={(result) => {
+              console.log("Resultado seleccionado:", result);
+              // Aquí puedes agregar lógica para navegar o mostrar detalles
+            }} />
           </div>
         </div>
 
@@ -149,6 +143,9 @@ export function EncabezadoEmpresa({
               <span className="text-gray-500">activos</span>
             </div>
           </div>
+
+          {/* Indicador de conexión WebSocket */}
+          <IndicadorEstadoConexion className="hidden md:flex" />
 
           {/* Toggle tema */}
           {mounted && (
@@ -176,24 +173,11 @@ export function EncabezadoEmpresa({
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 )}
-                {/* Indicador de conexión WebSocket */}
-                <span
-                  className={`absolute -bottom-1 -right-1 h-2 w-2 rounded-full ${
-                    isConnected ? "bg-green-400" : "bg-gray-400"
-                  }`}
-                />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80">
               <DropdownMenuLabel className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span>Notificaciones</span>
-                  {isConnected ? (
-                    <Wifi className="h-3 w-3 text-green-600" />
-                  ) : (
-                    <WifiOff className="h-3 w-3 text-gray-400" />
-                  )}
-                </div>
+                <span>Notificaciones</span>
                 <div className="flex items-center gap-2">
                   {unreadCount > 0 && (
                     <Badge variant="secondary" className="text-xs">
