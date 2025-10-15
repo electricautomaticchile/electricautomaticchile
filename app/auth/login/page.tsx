@@ -15,6 +15,41 @@ import { AlertCircle, KeyRound, User, LockKeyhole } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { apiService } from "@/lib/api/apiService";
 
+// ============================================
+// USUARIO DE DESARROLLO (SOLO MODO LOCAL)
+// ============================================
+const DEV_USER = {
+  numeroCliente: "000000-0",
+  password: "dev123456",
+};
+
+const DEV_USER_DATA = {
+  superadmin: {
+    id: "dev-superadmin-001",
+    name: "Admin Desarrollo",
+    email: "admin@dev.local",
+    numeroCliente: "000000-0",
+    type: "superadmin",
+    role: "superadmin",
+  },
+  empresa: {
+    id: "dev-empresa-001",
+    name: "Empresa Desarrollo",
+    email: "empresa@dev.local",
+    numeroCliente: "000000-0",
+    type: "empresa",
+    role: "empresa",
+  },
+  cliente: {
+    id: "dev-cliente-001",
+    name: "Cliente Desarrollo",
+    email: "cliente@dev.local",
+    numeroCliente: "000000-0",
+    type: "cliente",
+    role: "cliente",
+  },
+};
+
 // Componente para el contenido de login
 const LoginContent = () => {
   const [clientNumber, setClientNumber] = useState("");
@@ -44,9 +79,23 @@ const LoginContent = () => {
   };
 
   const handleClientNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+    let value = e.target.value;
+
+    // Remover todo excepto números
+    value = value.replace(/[^\d]/g, "");
+
+    // Limitar a 7 dígitos máximo
+    if (value.length > 7) {
+      value = value.slice(0, 7);
+    }
+
+    // Agregar guion automáticamente después del 6to dígito
+    if (value.length > 6) {
+      value = value.slice(0, 6) + "-" + value.slice(6);
+    }
+
     setClientNumber(value);
-    setIsValidFormat(validateClientNumber(value) || value === "");
+    setIsValidFormat(validateClientNumber(value) || value === "" || value.length < 8);
     if (error) setError("");
   };
 
@@ -66,6 +115,63 @@ const LoginContent = () => {
 
     if (!isValidFormat) {
       setError("El formato del número de cliente es incorrecto");
+      return;
+    }
+
+    // ============================================
+    // ✨ MODO DESARROLLO: Login sin backend
+    // ============================================
+    if (
+      process.env.NODE_ENV === "development" &&
+      clientNumber === DEV_USER.numeroCliente &&
+      password === DEV_USER.password
+    ) {
+      console.log("🔧 Modo desarrollo: Login sin backend activado");
+
+      // Determinar tipo de usuario según la URL de callback
+      let userType: "empresa" | "cliente" = "empresa";
+
+      if (callbackUrl.includes("dashboard-cliente")) {
+        userType = "cliente";
+      } else {
+        userType = "empresa";
+      }
+
+      const userData = DEV_USER_DATA[userType];
+
+      // Crear token mock con estructura JWT válida
+      const mockToken = btoa(JSON.stringify({
+        sub: userData.id,
+        userId: userData.id,
+        email: userData.email,
+        numeroCliente: userData.numeroCliente,
+        role: userData.role,
+        type: userData.type,
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 3600, // 1 hora
+      }));
+
+      // Guardar en localStorage
+      if (typeof window !== "undefined") {
+        localStorage.setItem("token", mockToken);
+        localStorage.setItem("user", JSON.stringify(userData));
+
+        // Guardar en cookies para el middleware
+        document.cookie = `auth_token=${mockToken}; path=/; max-age=3600; SameSite=Lax`;
+      }
+
+      // Redirigir según tipo
+      const redirectPath =
+        userType === "empresa" ? "/dashboard-empresa" :
+          "/dashboard-cliente";
+
+      console.log("🔗 Redirigiendo a:", redirectPath);
+      console.log("✅ Token guardado en localStorage y cookies");
+
+      setTimeout(() => {
+        window.location.href = redirectPath;
+      }, 500);
+
       return;
     }
 
@@ -138,15 +244,7 @@ const LoginContent = () => {
         let redirectPath = "/dashboard-empresa"; // default
 
         // Lógica de redirección mejorada
-        if (
-          role === "admin" ||
-          role === "superadmin" ||
-          tipoUsuario === "admin" ||
-          tipoUsuario === "superadmin"
-        ) {
-          redirectPath = "/dashboard-superadmin";
-          console.log("👑 Usuario administrador detectado");
-        } else if (role === "cliente" || tipoUsuario === "cliente") {
+        if (role === "cliente" || tipoUsuario === "cliente") {
           redirectPath = "/dashboard-cliente";
           console.log("👤 Usuario cliente detectado");
         } else if (role === "empresa" || tipoUsuario === "empresa") {
@@ -180,7 +278,7 @@ const LoginContent = () => {
         console.error("❌ Error en respuesta:", response);
         setError(
           response.error ||
-            "Credenciales incorrectas. Por favor, verifique su información."
+          "Credenciales incorrectas. Por favor, verifique su información."
         );
       }
     } catch (error) {

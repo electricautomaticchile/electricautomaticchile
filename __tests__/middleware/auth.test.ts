@@ -112,7 +112,7 @@ describe("Auth Middleware", () => {
     const response = await middleware(mockRequest as NextRequest);
 
     expect(response).toBeInstanceOf(NextResponse);
-    expect(response.headers.get("location")).toContain("/dashboard-superadmin");
+    expect(response.headers.get("location")).toContain("/dashboard-empresa");
   });
 
   it("redirects empresa user to correct dashboard", async () => {
@@ -132,8 +132,8 @@ describe("Auth Middleware", () => {
     expect(response.headers.get("location")).toContain("/dashboard-empresa");
   });
 
-  it("prevents unauthorized access to admin dashboard", async () => {
-    mockRequest.nextUrl!.pathname = "/dashboard-superadmin";
+  it("prevents unauthorized access to empresa dashboard", async () => {
+    mockRequest.nextUrl!.pathname = "/dashboard-empresa";
     mockCookies.set("auth_token", { value: "client-token" });
 
     jwtVerify.mockResolvedValue({

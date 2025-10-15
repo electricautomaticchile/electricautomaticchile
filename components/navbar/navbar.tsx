@@ -55,20 +55,13 @@ export default function Component() {
     const userType = user.type || (user as any).tipoUsuario;
 
     // Lógica mejorada para determinar el dashboard
-    if (
-      userRole === "admin" ||
-      userRole === "superadmin" ||
-      userType === "admin" ||
-      userType === "superadmin"
-    ) {
-      return "/dashboard-superadmin";
-    } else if (userRole === "cliente" || userType === "cliente") {
+    if (userRole === "cliente" || userType === "cliente") {
       return "/dashboard-cliente";
     } else if (userRole === "empresa" || userType === "empresa") {
       return "/dashboard-empresa";
     } else {
       // Default fallback
-      return "/dashboard-cliente";
+      return "/dashboard-empresa";
     }
   };
 

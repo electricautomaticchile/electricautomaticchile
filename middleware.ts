@@ -38,6 +38,21 @@ const logger = new MiddlewareLogger();
 // Función para verificar JWT
 async function verifyJWT(token: string): Promise<JWTPayload | null> {
   try {
+    // En desarrollo, intentar decodificar token mock (base64)
+    if (process.env.NODE_ENV === "development") {
+      try {
+        const decoded = JSON.parse(atob(token));
+        // Verificar si es un token mock válido
+        if (decoded.sub && decoded.userId && decoded.role && decoded.type) {
+          logger.info("Token mock de desarrollo detectado y aceptado");
+          return decoded as JWTPayload;
+        }
+      } catch (e) {
+        // Si falla, continuar con verificación JWT normal
+        logger.info("No es token mock, verificando como JWT real");
+      }
+    }
+
     // Validar que JWT_SECRET esté configurado
     if (!process.env.JWT_SECRET) {
       logger.error(
@@ -74,7 +89,6 @@ async function verifyJWT(token: string): Promise<JWTPayload | null> {
 const protectedRoutes = [
   "/dashboard-cliente",
   "/dashboard-empresa",
-  "/dashboard-superadmin",
 ];
 
 // Función para verificar si una ruta está protegida
@@ -88,15 +102,6 @@ function hasAccess(
   userRole: string,
   userType: string
 ): boolean {
-  if (pathname.startsWith("/dashboard-superadmin")) {
-    return (
-      userRole === "superadmin" ||
-      userRole === "admin" ||
-      userType === "admin" ||
-      userType === "superadmin"
-    );
-  }
-
   if (pathname.startsWith("/dashboard-cliente")) {
     return userType === "cliente" || userRole === "cliente";
   }
@@ -183,6 +188,5 @@ export const config = {
   matcher: [
     "/dashboard-cliente/:path*",
     "/dashboard-empresa/:path*",
-    "/dashboard-superadmin/:path*",
   ],
 };

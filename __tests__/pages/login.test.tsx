@@ -142,7 +142,7 @@ describe("Login Page", () => {
     });
   });
 
-  it("redirects admin users to superadmin dashboard", async () => {
+  it("redirects admin users to empresa dashboard", async () => {
     const mockAdminUser = {
       id: "1",
       email: "admin@test.com",
@@ -168,7 +168,7 @@ describe("Login Page", () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith("/dashboard-superadmin");
+      expect(mockPush).toHaveBeenCalledWith("/dashboard-empresa");
     });
   });
 
