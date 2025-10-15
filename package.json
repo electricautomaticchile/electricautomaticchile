@@ -55,7 +55,7 @@
     "cmdk": "^1.1.1",
     "csv-writer": "^1.6.0",
     "date-fns": "^3.6.0",
-    "electricautomaticchile-shared-types": "file:../shared-types",
+    "electricautomaticchile-shared-types": "^1.0.0",
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
     "html2canvas": "^1.4.1",
