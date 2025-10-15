@@ -132,10 +132,10 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-bold flex items-center gap-2">
             <CreditCard className="h-5 w-5 text-orange-600" />
-            Pagos y Facturas
+            Boletas y Pagos
           </CardTitle>
           <CardDescription>
-            Últimas facturas y pagos pendientes
+            Últimas boletas y pagos pendientes
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -143,7 +143,7 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
             <>
               <div className="flex justify-between items-center mb-3">
                 <h3 className="font-medium text-sm text-gray-500 dark:text-gray-400">
-                  Factura pendiente de pago
+                  Boleta pendiente de pago
                 </h3>
                 <Button variant="outline" size="sm" className="text-sm h-8">
                   Pagar ahora
@@ -167,7 +167,7 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
             </>
           ) : (
             <div className="text-center py-3">
-              <p className="text-sm text-gray-500 dark:text-gray-400">No tiene facturas pendientes</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">No tiene boletas pendientes</p>
             </div>
           )}
           
@@ -193,21 +193,21 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-slate-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+    <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <CreditCard className="h-6 w-6 text-orange-600" />
-            Pagos y Facturas
+          <h2 className="text-3xl font-bold flex items-center gap-3 text-slate-800 dark:text-white">
+            <CreditCard className="h-8 w-8 text-orange-600" />
+            Boletas y Pagos
           </h2>
-          <p className="text-gray-500 dark:text-gray-400">
-            Administre sus facturas y realice pagos
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Administre sus boletas y realice pagos
           </p>
         </div>
         
         {facturas.filter(f => f.estado === 'pendiente').length > 0 && (
           <Button className="bg-orange-600 hover:bg-orange-700">
-            Pagar factura pendiente
+            Pagar boleta pendiente
           </Button>
         )}
       </div>
@@ -216,7 +216,7 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
         <TabsList className="mb-4 grid grid-cols-2 gap-4">
           <TabsTrigger value="facturas" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
-            <span>Mis Facturas</span>
+            <span>Mis Boletas</span>
           </TabsTrigger>
           <TabsTrigger value="pagar" className="flex items-center gap-2">
             <CircleDollarSign className="h-4 w-4" />
@@ -228,7 +228,7 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
           {facturas.filter(f => f.estado === 'pendiente').length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Factura Pendiente</CardTitle>
+                <CardTitle>Boleta Pendiente</CardTitle>
                 <CardDescription>
                   Tienes una factura pendiente de pago
                 </CardDescription>
@@ -286,9 +286,9 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
           
           <Card>
             <CardHeader>
-              <CardTitle>Historial de Facturas</CardTitle>
+              <CardTitle>Historial de Boletas</CardTitle>
               <CardDescription>
-                Todas sus facturas de los últimos meses
+                Todas sus boletas de los últimos meses
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -343,10 +343,10 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
               {facturas.filter(f => f.estado === 'pendiente').length > 0 ? (
                 <>
                   <div className="space-y-2">
-                    <Label>Factura a pagar</Label>
+                    <Label>Boleta a pagar</Label>
                     <Select defaultValue={facturas.find(f => f.estado === 'pendiente')?.id}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar factura" />
+                        <SelectValue placeholder="Seleccionar boleta" />
                       </SelectTrigger>
                       <SelectContent>
                         {facturas.filter(f => f.estado === 'pendiente').map(factura => (
@@ -452,7 +452,7 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
                   </div>
                   <h3 className="text-lg font-medium mb-2">No tienes pagos pendientes</h3>
                   <p className="text-gray-500 dark:text-gray-400 mb-4">
-                    Todas tus facturas han sido pagadas. La próxima factura estará disponible pronto.
+                    Todas tus boletas han sido pagadas. La próxima boleta estará disponible pronto.
                   </p>
                 </div>
               )}

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -22,8 +22,13 @@ import {
   Clock,
   BarChart2,
   AlertTriangle,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import { apiService } from "@/lib/api/apiService";
+import { useWebSocket } from "@/lib/websocket/useWebSocket";
+import type { ActualizacionPotenciaDispositivo } from "@/lib/websocket/tipos";
+import { Badge } from "@/components/ui/badge";
 
 interface ConsumoElectricoProps {
   reducida?: boolean;
@@ -58,6 +63,55 @@ export function ConsumoElectrico({
   const [datosConsumo, setDatosConsumo] = useState<DatosConsumo | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Estado para datos en tiempo real
+  const [consumoTiempoReal, setConsumoTiempoReal] = useState<number | null>(null);
+  const [costoTiempoReal, setCostoTiempoReal] = useState<number | null>(null);
+  const [ultimaActualizacionTiempoReal, setUltimaActualizacionTiempoReal] = useState<Date | null>(null);
+  
+  // Hook de WebSocket
+  const { estaConectado } = useWebSocket();
+  
+  /**
+   * Manejar actualizaciones de potencia en tiempo real
+   */
+  const manejarActualizacionPotencia = useCallback((datos: ActualizacionPotenciaDispositivo) => {
+    console.log('[ConsumoElectrico] Actualización de potencia recibida:', datos);
+    
+    // Actualizar consumo en tiempo real (convertir W a kWh)
+    const consumoKwh = datos.energia || (datos.potenciaActiva / 1000);
+    setConsumoTiempoReal(consumoKwh);
+    
+    // Actualizar costo en tiempo real
+    if (datos.costo !== undefined) {
+      setCostoTiempoReal(datos.costo);
+    } else if (datosConsumo?.tarifaKwh) {
+      // Calcular costo si no viene en los datos
+      setCostoTiempoReal(consumoKwh * datosConsumo.tarifaKwh);
+    }
+    
+    // Actualizar timestamp
+    setUltimaActualizacionTiempoReal(new Date(datos.marcaTiempo));
+    
+    // Actualizar también los datos de consumo si están disponibles
+    if (datosConsumo) {
+      setDatosConsumo({
+        ...datosConsumo,
+        consumoActual: consumoKwh,
+        costoEstimado: datos.costo || (consumoKwh * datosConsumo.tarifaKwh),
+        resumen: {
+          ...datosConsumo.resumen,
+          ultimaActualizacion: datos.marcaTiempo,
+        },
+      });
+    }
+  }, [datosConsumo]);
+  
+  // Escuchar eventos de actualización de potencia
+  useWebSocket<ActualizacionPotenciaDispositivo>(
+    'dispositivo:actualizacion_potencia',
+    manejarActualizacionPotencia
+  );
 
   // Cargar datos desde la API
   useEffect(() => {
@@ -206,6 +260,12 @@ export function ConsumoElectrico({
           <CardTitle className="text-lg font-bold flex items-center gap-2">
             <Zap className="h-5 w-5 text-orange-600" />
             Consumo Eléctrico
+            {estaConectado && (
+              <Badge variant="default" className="ml-auto bg-green-500 hover:bg-green-600 text-xs">
+                <Wifi className="h-3 w-3 mr-1" />
+                En Vivo
+              </Badge>
+            )}
           </CardTitle>
           <CardDescription>
             Consumo actual y estadísticas en tiempo real
@@ -214,9 +274,14 @@ export function ConsumoElectrico({
         <CardContent>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <div className="text-sm text-gray-500">Consumo Actual</div>
+              <div className="text-sm text-gray-500 flex items-center justify-between">
+                Consumo Actual
+                {estaConectado && consumoTiempoReal !== null && (
+                  <span className="inline-flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                )}
+              </div>
               <div className="text-2xl font-bold">
-                {datosConsumo.consumoActual} kWh
+                {consumoTiempoReal !== null ? consumoTiempoReal.toFixed(2) : datosConsumo.consumoActual} kWh
               </div>
               <div className="text-sm text-gray-500">
                 <TrendingUp className="h-4 w-4 inline mr-1 text-green-600" />
@@ -224,9 +289,14 @@ export function ConsumoElectrico({
               </div>
             </div>
             <div className="space-y-2">
-              <div className="text-sm text-gray-500">Costo Estimado</div>
+              <div className="text-sm text-gray-500 flex items-center justify-between">
+                Costo Estimado
+                {estaConectado && costoTiempoReal !== null && (
+                  <span className="inline-flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                )}
+              </div>
               <div className="text-2xl font-bold">
-                ${datosConsumo.costoEstimado.toLocaleString("es-CL")}
+                ${(costoTiempoReal !== null ? costoTiempoReal : datosConsumo.costoEstimado).toLocaleString("es-CL")}
               </div>
               <div className="text-sm text-gray-500">
                 <Clock className="h-4 w-4 inline mr-1" />
@@ -236,58 +306,103 @@ export function ConsumoElectrico({
           </div>
 
           <div className="h-28 mt-4">{renderizarGrafico()}</div>
+          
+          {estaConectado && ultimaActualizacionTiempoReal && (
+            <div className="mt-3 text-xs text-green-600 flex items-center gap-1">
+              <Wifi className="h-3 w-3" />
+              Última actualización: {ultimaActualizacionTiempoReal.toLocaleTimeString("es-CL")}
+            </div>
+          )}
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-slate-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
-      <div className="flex items-center mb-6">
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <Zap className="h-6 w-6 text-orange-600" />
-          Consumo Eléctrico
-        </h2>
-        <div className="ml-auto text-sm text-gray-500">
-          Última actualización:{" "}
-          {new Date(
-            datosConsumo.resumen.ultimaActualizacion
-          ).toLocaleTimeString("es-CL")}
+    <div className="space-y-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-3xl font-bold flex items-center gap-3 text-slate-800 dark:text-white">
+            <Zap className="h-8 w-8 text-orange-600" />
+            Consumo Eléctrico
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Monitoreo en tiempo real de su consumo energético
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          {/* Indicador de tiempo real */}
+          {estaConectado ? (
+            <Badge variant="default" className="bg-green-500 hover:bg-green-600 text-sm px-3 py-1">
+              <Wifi className="h-4 w-4 mr-1" />
+              Tiempo Real
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="text-sm px-3 py-1">
+              <WifiOff className="h-4 w-4 mr-1" />
+              Offline
+            </Badge>
+          )}
+          
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            Última actualización:{" "}
+            {ultimaActualizacionTiempoReal
+              ? ultimaActualizacionTiempoReal.toLocaleTimeString("es-CL")
+              : new Date(
+                  datosConsumo.resumen.ultimaActualizacion
+                ).toLocaleTimeString("es-CL")}
+          </div>
         </div>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6 mb-8">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">
+            <CardTitle className="text-sm font-medium text-gray-500 flex items-center justify-between">
               Consumo Actual
+              {estaConectado && consumoTiempoReal !== null && (
+                <span className="inline-flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-orange-600">
-              {datosConsumo.consumoActual} kWh
+              {consumoTiempoReal !== null ? consumoTiempoReal.toFixed(2) : datosConsumo.consumoActual} kWh
             </div>
             <div className="text-sm text-gray-500 mt-1">
               <TrendingUp className="h-4 w-4 inline mr-1 text-green-600" />
               {datosConsumo.resumen.tendencia}
             </div>
+            {estaConectado && consumoTiempoReal !== null && (
+              <div className="text-xs text-green-600 mt-1">
+                Actualizado en tiempo real
+              </div>
+            )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">
+            <CardTitle className="text-sm font-medium text-gray-500 flex items-center justify-between">
               Costo Estimado
+              {estaConectado && costoTiempoReal !== null && (
+                <span className="inline-flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-orange-600">
-              ${datosConsumo.costoEstimado.toLocaleString("es-CL")}
+              ${(costoTiempoReal !== null ? costoTiempoReal : datosConsumo.costoEstimado).toLocaleString("es-CL")}
             </div>
             <div className="text-sm text-gray-500 mt-1">
               <DollarSign className="h-4 w-4 inline mr-1" />
               Tarifa: ${datosConsumo.tarifaKwh}/kWh
             </div>
+            {estaConectado && costoTiempoReal !== null && (
+              <div className="text-xs text-green-600 mt-1">
+                Calculado en tiempo real
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -419,26 +534,28 @@ export function ConsumoElectrico({
         </TabsContent>
       </Tabs>
 
-      <div className="mt-6 bg-gray-50 dark:bg-slate-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-          <BarChart2 className="h-5 w-5 text-orange-600" />
-          Análisis Inteligente
-        </h3>
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm">
-            <span className="font-medium">Tendencia:</span>
-            <span>{datosConsumo.resumen.tendencia}</span>
+      <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900 border-blue-200 dark:border-slate-700">
+        <CardContent className="p-6">
+          <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-slate-800 dark:text-white">
+            <BarChart2 className="h-5 w-5 text-orange-600" />
+            Análisis Inteligente
+          </h3>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="font-medium text-slate-700 dark:text-slate-300">Tendencia:</span>
+              <span className="text-slate-600 dark:text-slate-400">{datosConsumo.resumen.tendencia}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="font-medium text-slate-700 dark:text-slate-300">Dispositivos activos:</span>
+              <span className="text-slate-600 dark:text-slate-400">{datosConsumo.resumen.dispositivosActivos}</span>
+            </div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Los datos se actualizan automáticamente desde sus dispositivos IoT
+              conectados.
+            </div>
           </div>
-          <div className="flex items-center gap-2 text-sm">
-            <span className="font-medium">Dispositivos activos:</span>
-            <span>{datosConsumo.resumen.dispositivosActivos}</span>
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            Los datos se actualizan automáticamente desde sus dispositivos IoT
-            conectados.
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
