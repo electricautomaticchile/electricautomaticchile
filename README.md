@@ -1,175 +1,79 @@
-# Electricautomaticchile - Plataforma IoT de Gestión Eléctrica Inteligente
+# Frontend - Electric Automatic Chile
 
-## 🔌 Descripción del Proyecto
+Aplicación web construida con Next.js que proporciona la interfaz de usuario del sistema.
 
-**Electricautomaticchile** es una plataforma IoT empresarial diseñada específicamente para empresas distribuidoras de electricidad en Chile. La plataforma automatiza el proceso completo de gestión del suministro eléctrico, desde la medición del consumo hasta la reposición automática del servicio tras regularización de pagos.
+## 🎯 ¿Para qué sirve?
 
-### 🎯 Propósito Principal
+Este es el **frontend del sistema**. Proporciona:
+- Interfaz de usuario para clientes y administradores
+- Dashboard con datos en tiempo real
+- Gestión de cotizaciones y servicios
+- Visualización de dispositivos IoT
+- Notificaciones en tiempo real vía WebSocket
 
-Transformar el proceso manual de reposición de servicio eléctrico (que tradicionalmente toma 24-72 horas) en un proceso automatizado que se ejecuta en segundos, reduciendo costos operativos en más del 30% y eliminando reclamos por demoras.
+## 🔌 ¿Cómo se conecta con los otros proyectos?
 
-## 🏗️ Arquitectura del Sistema
+```
+Frontend (Puerto 3000) ← Tú estás aquí
+    ↓ HTTP/REST          ↓ WebSocket
+Backend API              WebSocket API
+(Puerto 4000)            (Puerto 5000)
+```
 
-### Stack Tecnológico
+- **Frontend → Backend**: Envía peticiones HTTP para todas las operaciones (login, CRUD, etc.)
+- **Frontend ↔ WebSocket**: Mantiene conexión WebSocket para recibir notificaciones y eventos en tiempo real
+- **Usuario**: Interactúa con esta aplicación desde el navegador
 
-- **Frontend**: Next.js 14 con TypeScript
-- **Backend**: Next.js API Routes + AWS Amplify
-- **Base de Datos**: MongoDB con Mongoose
-- **Autenticación**: NextAuth.js
-- **Cloud Provider**: AWS (Amplify, S3)
-- **IoT**: Dispositivos con GPS integrado y comunicación en tiempo real
-- **UI/UX**: Tailwind CSS + Radix UI
-- **Monitoreo**: Gráficos con Recharts y Nivo
+## 🚀 Inicio Rápido
 
-### Tipos de Usuario
-
-1. **Clientes Finales**: Usuarios residenciales y comerciales
-2. **Empresas Distribuidoras**: Gestión operativa de la red
-3. **Superadministradores**: Control global del sistema
-
-## 🚀 Características Principales
-
-### Para Empresas Distribuidoras
-
-- **Automatización Completa**: Corte y reconexión automática del servicio
-- **Monitoreo en Tiempo Real**: Visualización 24/7 del estado de la red
-- **Prevención de Fraude**: Dispositivos IoT con GPS integrado
-- **Reducción de Costos**: Eliminación de cuadrillas manuales
-- **Cumplimiento Normativo**: Diseñado según lineamientos SEC
-
-### Para Clientes Finales
-
-- **Portal Web Intuitivo**: Gestión completa del servicio eléctrico
-- **Monitoreo de Consumo**: Gráficos detallados en tiempo real
-- **Gestión de Pagos**: Sistema integrado de facturación
-- **Notificaciones**: Alertas automáticas por email y SMS
-- **Control de Servicio**: Activación/desactivación remota
-
-## 🛠️ Instalación y Configuración
-
-### Prerrequisitos
-
-- Node.js 18+
-- npm o bun
-- MongoDB
-- Docker (opcional, para desarrollo con contenedores)
-
-### Instalación Básica
-
+### 1. Instalar dependencias
 ```bash
-# Clonar el repositorio
-git clone [repository-url]
-cd electricautomaticchile
-
-# Instalar dependencias
 npm install
-# o
-bun install
+```
 
-# Configurar variables de entorno
+### 2. Configurar variables de entorno
+```bash
 cp .env.example .env.local
+# Editar .env.local con tus valores
+```
 
-# Ejecutar en modo desarrollo
+### 3. Ejecutar en desarrollo
+```bash
 npm run dev
 ```
 
-### Desarrollo con Docker
-
+### 4. Build para producción
 ```bash
-# Iniciar servicios de desarrollo
-npm run docker:start
-
-# Ver logs
-npm run docker:logs
-
-# Detener servicios
-npm run docker:stop
+npm run build
+npm start
 ```
 
-## 🧪 Testing
+## 📱 Páginas Principales
 
-El proyecto incluye una suite completa de pruebas:
+- `/` - Página de inicio
+- `/auth/login` - Inicio de sesión
+- `/dashboard` - Dashboard principal
+- `/cotizaciones` - Gestión de cotizaciones
+- `/dispositivos` - Monitoreo de dispositivos IoT
+- `/reportes` - Reportes y analítica
 
-```bash
-# Ejecutar todas las pruebas
-npm test
+## ⚙️ Variables de Entorno Importantes
 
-# Pruebas con coverage
-npm run test:coverage
+| Variable | Descripción | Requerida |
+|----------|-------------|-----------|
+| `NEXT_PUBLIC_API_URL` | URL del Backend API | ✅ Sí |
+| `NEXT_PUBLIC_WS_URL` | URL del WebSocket API | ✅ Sí |
+| `NEXTAUTH_SECRET` | Secret para NextAuth | ✅ Sí |
+| `NEXTAUTH_URL` | URL de esta aplicación | ✅ Sí |
 
-# Pruebas por categoría
-npm run test:unit
-npm run test:integration
-npm run test:auth
-npm run test:ui
-```
+## 🔄 WebSocket en Tiempo Real
 
-## 📊 Dashboards Disponibles
-
-### Dashboard Cliente (`/dashboard-cliente`)
-
-- Consumo eléctrico en tiempo real
-- Historial de pagos y facturas
-- Estado del servicio
-- Soporte técnico
-
-### Dashboard Empresa (`/dashboard-empresa`)
-
-- Control de dispositivos Arduino
-- Estadísticas de consumo sectorial
-- Gestión de clientes
+El frontend se conecta automáticamente al WebSocket API para recibir:
+- Notificaciones instantáneas
+- Actualizaciones de dispositivos IoT
 - Alertas del sistema
-
-### Dashboard Superadmin (`/dashboard-superadmin`)
-
-- Gestión global de empresas
-- Estadísticas globales
-- Sistema de mensajería
-- Configuración avanzada
-
-## 🔒 Seguridad
-
-- Validación de seguridad automatizada
-- Autenticación multi-nivel
-- Encriptación de datos sensibles
-- Cumplimiento con normativas chilenas
-- Monitoreo de accesos y auditoría
-
-## 📋 Scripts Disponibles
-
-```bash
-npm run dev          # Desarrollo local
-npm run build        # Build para producción
-npm run start        # Iniciar en producción
-npm run lint         # Linting
-npm test             # Ejecutar pruebas
-npm run docker:start # Desarrollo con Docker
-```
-
-## 🔧 Configuración de Entorno
-
-Para configuración detallada de variables de entorno, seguridad, y despliegue, consulte la documentación técnica en `/docs`.
+- Cambios en cotizaciones
 
 ## 📚 Documentación Adicional
 
-- [Documentación Técnica Completa](./docs/)
-- [Guía de Despliegue](./docs/DEPLOYMENT.md)
-- [Configuración de Seguridad](./docs/SECURITY.md)
-- [Integración con Arduino](./docs/ARDUINO_INTEGRATION.md)
-- [API Reference](./docs/API_REFERENCE.md)
-
-## 📞 Soporte
-
-Para soporte técnico o consultas comerciales:
-
-- **Email**: electricautomaticchile@gmail.com
-- **Documentación**: Ver carpeta `/docs`
-
-## ⚖️ Cumplimiento Legal
-
-Esta plataforma ha sido desarrollada considerando las normativas y lineamientos técnicos de la Superintendencia de Electricidad y Combustibles (SEC) de Chile.
-
----
-
-**Versión**: 0.1.0  
-**Última actualización**: Diciembre 2024
+Ver carpeta `docs/` para documentación detallada.

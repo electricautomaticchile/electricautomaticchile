@@ -1,191 +1,108 @@
-# Documentación Técnica - Electricautomaticchile
+# Documentación - Frontend
 
-## 📋 Índice de Documentación
+## 📋 Documentos Disponibles
 
-Esta carpeta contiene toda la documentación técnica detallada de la plataforma IoT de Electricautomaticchile. A continuación se presenta una guía completa de todos los documentos disponibles.
+### [📄 Deployment](./DEPLOYMENT.md)
+Guía completa para desplegar el frontend en producción (Vercel, AWS Amplify).
 
-## 🚀 Documentación de Despliegue y Configuración
+### [🔌 WebSocket - Guía Básica](./WEBSOCKET.md)
+Cómo usar el sistema de WebSocket en tiempo real en el frontend.
 
-### [📄 Guía de Despliegue](./DEPLOYMENT.md)
+### [⚡ WebSocket - Guía Avanzada](./WEBSOCKET_ADVANCED.md)
+Arquitectura, manejo de errores, optimización de rendimiento y manejadores de eventos.
 
-Configuración completa para el despliegue en producción, incluyendo:
+## 🏗️ Arquitectura del Frontend
 
-- Variables de entorno críticas
-- Configuración de AWS Amplify
-- Despliegue con Docker
-- Configuración de MongoDB Atlas
-- Procedimientos de emergencia y rollback
+```
+Frontend (Next.js 14)
+├── app/                    # App Router (Next.js 14)
+│   ├── auth/              # Páginas de autenticación
+│   ├── dashboard/         # Dashboard principal
+│   ├── cotizaciones/      # Gestión de cotizaciones
+│   └── dispositivos/      # Monitoreo IoT
+├── components/            # Componentes React
+│   ├── ui/               # Componentes de UI base
+│   └── websocket/        # Componentes WebSocket
+├── lib/                  # Librerías y utilidades
+│   ├── websocket/        # Sistema WebSocket
+│   ├── store/            # Estado global (Zustand)
+│   └── utils/            # Utilidades
+└── public/               # Archivos estáticos
+```
 
-### [🔒 Configuración de Seguridad](./SECURITY.md)
+## 🔄 Flujo de Datos
 
-Implementación de medidas de seguridad avanzadas:
+### 1. Autenticación
+```
+Usuario → Login Form → Backend API → JWT Token → Frontend
+```
 
-- Sistema de autenticación multi-factor (MFA)
-- Encriptación de datos sensibles
-- Rate limiting y WAF
-- Auditoría y monitoreo de seguridad
-- Cumplimiento normativo (SEC Chile, GDPR)
+### 2. Datos en Tiempo Real
+```
+Backend API → WebSocket API → Frontend (useWebSocket hook)
+```
 
-## 🛠️ Documentación Técnica
+### 3. Operaciones CRUD
+```
+Frontend → Backend API → MongoDB → Backend API → Frontend
+```
 
-### [🔌 Integración con Arduino IoT](./ARDUINO_INTEGRATION.md)
+## 🎨 Componentes Principales
 
-Guía completa de integración con dispositivos IoT:
+### Dashboard
+- Vista general del sistema
+- Métricas en tiempo real
+- Gráficos y estadísticas
 
-- Arquitectura de hardware
-- Protocolos de comunicación MQTT
-- Seguridad de dispositivos
-- Control de corte y reconexión
-- Sistemas de telemetría y alertas
+### Gestión de Cotizaciones
+- Crear/editar cotizaciones
+- Seguimiento de estado
+- Exportación de reportes
 
-### [📡 Referencia de API](./API_REFERENCE.md)
-
-Documentación completa de la API REST:
-
-- Endpoints de autenticación
-- Gestión de usuarios y empresas
-- Control de dispositivos IoT
-- Facturación y pagos
+### Monitoreo IoT
+- Estado de dispositivos en tiempo real
 - Alertas y notificaciones
+- Control remoto
 
-### [🧪 Guía de Testing](./TESTING.md)
+## 🔌 WebSocket
 
-Estrategias y configuración de pruebas:
+El frontend mantiene una conexión WebSocket permanente para:
+- Notificaciones instantáneas
+- Actualizaciones de dispositivos IoT
+- Alertas del sistema
+- Cambios en cotizaciones
 
-- Testing de componentes React
-- Pruebas de seguridad
-- Testing de integración IoT
-- Pruebas de rendimiento
-- Configuración de CI/CD
+Ver [WEBSOCKET.md](./WEBSOCKET.md) para más detalles.
 
-## 📊 Arquitectura del Sistema
+## 🛠️ Desarrollo
 
-### Visión General
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   Backend       │    │   IoT Devices   │
-│   (Next.js)     │◄──►│   (API Routes)  │◄──►│   (Arduino)     │
-│                 │    │                 │    │                 │
-│ • Dashboards    │    │ • Authentication│    │ • Measurements  │
-│ • User Mgmt     │    │ • Device Control│    │ • GPS Tracking  │
-│ • Billing       │    │ • Data Storage  │    │ • Remote Control│
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Database      │    │   File Storage  │    │   Monitoring    │
-│   (MongoDB)     │    │   (AWS S3)      │    │   (CloudWatch)  │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+### Comandos
+```bash
+npm run dev      # Desarrollo
+npm run build    # Build producción
+npm run lint     # Linting
+npm run type-check # Verificar tipos
 ```
 
-### Flujo de Datos
+### Variables de Entorno
+Ver `.env.example` en la raíz del proyecto.
 
-1. **Dispositivos IoT** → Mediciones en tiempo real vía MQTT
-2. **Backend** → Procesamiento y almacenamiento de datos
-3. **Frontend** → Visualización y control de dispositivos
-4. **Usuarios** → Interacción con dashboards especializados
+## 📱 Responsive Design
 
-## 🔐 Aspectos de Seguridad Críticos
+El frontend está optimizado para:
+- Desktop (1920x1080+)
+- Tablet (768x1024)
+- Mobile (375x667+)
 
-### Niveles de Seguridad
+## 🧪 Testing
 
-- **Nivel 1**: Autenticación básica (email/password)
-- **Nivel 2**: MFA obligatorio para administradores
-- **Nivel 3**: Certificados PKI para dispositivos IoT
-- **Nivel 4**: Encriptación end-to-end de datos sensibles
+Para testing de WebSocket en desarrollo:
+- Acceder a `/test-websocket`
+- Simular eventos
+- Ver métricas de conexión
 
-### Cumplimiento Normativo
-
-- **SEC Chile**: Cumplimiento con regulaciones eléctricas
-- **GDPR/LOPD**: Protección de datos personales
-- **ISO 27001**: Estándares de seguridad de la información
-
-
-
-## 📈 Métricas y Monitoreo
-
-### KPIs del Sistema
-
-- **Uptime**: 99.9% objetivo
-- **Latencia API**: <200ms promedio
-- **Dispositivos IoT**: >99% online
-- **Tiempo de respuesta a incidentes**: <15 minutos
-
-### Dashboards de Monitoreo
-
-- **Sistema**: CloudWatch + Grafana
-- **Aplicación**: New Relic
-- **Seguridad**: SIEM personalizado
-- **IoT**: Dashboard interno de telemetría
-
-## 📋 Procesos de Desarrollo
-
-### Workflow de Desarrollo
-
-```
-Desarrollo → Testing → Staging → Producción
-     ↓         ↓         ↓          ↓
-   Feature   Unit &    E2E &     Monitoring
-   Branch    Int Test  Load Test  & Alerting
-```
-
-### Versionado
-
-- **Semántico**: MAJOR.MINOR.PATCH
-- **Branches**: main, develop, feature/\*
-- **Tags**: v1.0.0, v1.0.1, etc.
-
-## 🔄 Actualizaciones de Documentación
-
-### Responsabilidades
-
-- **Arquitectura**: Equipo de backend
-- **API**: Equipo de desarrollo
-- **Seguridad**: CISO y equipo de seguridad
-- **IoT**: Equipo de hardware/firmware
-
-### Frecuencia de Actualización
-
-- **Crítica**: Inmediata
-- **Mayor**: Cada release
-- **Menor**: Mensual
-- **Revisión general**: Trimestral
-
-## 📚 Recursos Adicionales
-
-### Documentación Externa
+## 📚 Recursos
 
 - [Next.js Documentation](https://nextjs.org/docs)
-- [AWS Amplify Docs](https://docs.amplify.aws/)
-- [MongoDB Documentation](https://docs.mongodb.com/)
-- [Arduino IoT Documentation](https://docs.arduino.cc/arduino-cloud/)
-
-## 🏷️ Clasificación de Documentos
-
-### Niveles de Acceso
-
-- **🟢 Público**: README.md, API básica
-- **🟡 Interno**: Documentación técnica general
-- **🟠 Confidencial**: Configuraciones de seguridad
-- **🔴 Restringido**: Credenciales y secretos
-
-### Audiencia
-
-- **Desarrolladores**: API, Testing, Integración
-- **DevOps**: Despliegue, Seguridad, Monitoreo
-- **Gerencia**: Métricas, Procesos, Contactos
-- **Soporte**: Troubleshooting, Procedimientos
-
----
-
-## 📝 Notas Importantes
-
-⚠️ **Advertencia**: Esta documentación contiene información técnica sensible. Mantenga la confidencialidad y actualice regularmente.
-
-🔄 **Actualización**: Revise y actualice esta documentación después de cada release mayor.
-
-🛡️ **Seguridad**: Nunca incluya credenciales reales, tokens o información de producción en esta documentación.
-
----
+- [React Documentation](https://react.dev)
+- [Socket.IO Client](https://socket.io/docs/v4/client-api/)
