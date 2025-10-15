@@ -348,6 +348,7 @@ export function ModoTestWebSocket({ visible = true }: ModoTestWebSocketProps) {
     }, 3000); // Cada 3 segundos
 
     return () => clearInterval(intervalo);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [simulacionActiva, estaConectado]);
 
   /**

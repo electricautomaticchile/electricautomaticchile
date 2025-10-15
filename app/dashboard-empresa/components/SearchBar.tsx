@@ -83,6 +83,7 @@ export function SearchBar({ onResultClick }: SearchBarProps) {
   const [isSearching, setIsSearching] = useState(false);
 
   // Debounced search
+  // Debounced search
   useEffect(() => {
     if (query.length < 2) {
       setResults([]);
@@ -102,6 +103,7 @@ export function SearchBar({ onResultClick }: SearchBarProps) {
     }, 300);
 
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
   const handleSelect = (result: SearchResult) => {
@@ -170,7 +172,7 @@ export function SearchBar({ onResultClick }: SearchBarProps) {
                 <div className="p-4 text-center">
                   <Search className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
                   <p className="text-sm text-muted-foreground">
-                    No se encontraron resultados para "{query}"
+                    No se encontraron resultados para &quot;{query}&quot;
                   </p>
                 </div>
               </CommandEmpty>

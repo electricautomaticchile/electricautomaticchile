@@ -214,6 +214,7 @@ export function ProveedorWebSocket({
         administradorRef.current = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wsUrl]); // Solo re-inicializar si cambia la URL
   
   /**
@@ -242,6 +243,7 @@ export function ProveedorWebSocket({
       console.log('[ProveedorWebSocket] Token no disponible, desconectando...');
       administradorRef.current.desconectar();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conectarAutomaticamente, estaConectado, estadoConexion]);
   
   /**
@@ -274,6 +276,7 @@ export function ProveedorWebSocket({
     }, 5000); // Verificar cada 5 segundos
     
     return () => clearInterval(intervalo);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [estaConectado, estadoConexion]);
   
   /**
