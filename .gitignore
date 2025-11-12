@@ -44,3 +44,20 @@ amplifyconfiguration*
 #ia
 .bmad-core
 web-bundles
+
+# Docker (no longer used)
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Bun (using npm instead)
+bun.lock*
+.bun
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Tool version files (keeping only .nvmrc)
+.tool-versions

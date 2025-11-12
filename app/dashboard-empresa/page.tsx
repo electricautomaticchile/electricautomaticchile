@@ -18,6 +18,10 @@ import { ConsumoSectorial } from "./features/consumo";
 import { ControlArduino } from "./features/control";
 import { ConfiguracionEmpresa } from "./features/configuracion";
 import { DispositivosIoT } from "./features/dispositivos-iot";
+import { PredictorDemanda } from "./features/predicciones-avanzadas/PredictorDemanda";
+import { AnalisisCorrelaciones } from "./features/predicciones-avanzadas/AnalisisCorrelaciones";
+import { MapaInteractivo } from "./features/gestion-geografica/MapaInteractivo";
+import { SistemaAntifraude } from "./features/gestion-geografica/SistemaAntifraude";
 
 import {
   Users,
@@ -35,6 +39,7 @@ import {
   X,
   Settings,
   Router,
+  MapPin,
 } from "lucide-react";
 
 // Datos de resumen del dashboard
@@ -70,6 +75,10 @@ const MobileNavigation = ({
     { id: "consumo", label: "Consumo", icon: Lightbulb },
     { id: "arduino", label: "Arduino", icon: Zap },
     { id: "dispositivos-iot", label: "Dispositivos IoT", icon: Router },
+    { id: "predictor-demanda", label: "Predictor Demanda", icon: TrendingUp },
+    { id: "analisis-correlaciones", label: "Análisis Correlaciones", icon: BarChart2 },
+    { id: "mapa-interactivo", label: "Mapa Interactivo", icon: MapPin },
+    { id: "sistema-antifraude", label: "Sistema Anti-fraude", icon: Shield },
     { id: "configuracion", label: "Configuración", icon: Settings },
   ];
 
@@ -163,6 +172,14 @@ export default function DashboardEmpresa() {
         return <ControlArduino />;
       case "dispositivos-iot":
         return <DispositivosIoT />;
+      case "predictor-demanda":
+        return <PredictorDemanda />;
+      case "analisis-correlaciones":
+        return <AnalisisCorrelaciones />;
+      case "mapa-interactivo":
+        return <MapaInteractivo />;
+      case "sistema-antifraude":
+        return <SistemaAntifraude />;
       case "configuracion":
         return <ConfiguracionEmpresa />;
       default:
@@ -193,6 +210,10 @@ export default function DashboardEmpresa() {
                   { id: "consumo", label: "Consumo", icon: Lightbulb },
                   { id: "arduino", label: "Arduino", icon: Zap },
                   { id: "dispositivos-iot", label: "Dispositivos IoT", icon: Router },
+                  { id: "predictor-demanda", label: "Predictor Demanda", icon: TrendingUp },
+                  { id: "analisis-correlaciones", label: "Análisis Correlaciones", icon: BarChart2 },
+                  { id: "mapa-interactivo", label: "Mapa Interactivo", icon: MapPin },
+                  { id: "sistema-antifraude", label: "Sistema Anti-fraude", icon: Shield },
                   { id: "configuracion", label: "Configuración", icon: Settings },
                 ].map((item) => {
                   const Icon = item.icon;
@@ -470,6 +491,66 @@ export default function DashboardEmpresa() {
                         </CardHeader>
                         <CardContent>
                           <DispositivosIoT reducida={true} />
+                        </CardContent>
+                      </Card>
+
+                      <Card className="hover:shadow-lg transition-shadow duration-200">
+                        <CardHeader className="pb-4">
+                          <CardTitle className="text-lg font-bold flex items-center gap-2">
+                            <TrendingUp className="h-5 w-5 text-orange-600" />
+                            Predictor de Demanda
+                          </CardTitle>
+                          <CardDescription>
+                            Predicciones inteligentes basadas en clima
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <PredictorDemanda reducida={true} />
+                        </CardContent>
+                      </Card>
+
+                      <Card className="hover:shadow-lg transition-shadow duration-200">
+                        <CardHeader className="pb-4">
+                          <CardTitle className="text-lg font-bold flex items-center gap-2">
+                            <BarChart2 className="h-5 w-5 text-orange-600" />
+                            Análisis de Correlaciones
+                          </CardTitle>
+                          <CardDescription>
+                            Correlación factores ambientales vs consumo
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <AnalisisCorrelaciones reducida={true} />
+                        </CardContent>
+                      </Card>
+
+                      <Card className="hover:shadow-lg transition-shadow duration-200">
+                        <CardHeader className="pb-4">
+                          <CardTitle className="text-lg font-bold flex items-center gap-2">
+                            <MapPin className="h-5 w-5 text-orange-600" />
+                            Mapa Interactivo
+                          </CardTitle>
+                          <CardDescription>
+                            Visualización geográfica de la red eléctrica
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <MapaInteractivo reducida={true} />
+                        </CardContent>
+                      </Card>
+
+                      <Card className="hover:shadow-lg transition-shadow duration-200">
+                        <CardHeader className="pb-4">
+                          <CardTitle className="text-lg font-bold flex items-center gap-2">
+                            <Shield className="h-5 w-5 text-orange-600" />
+                            Sistema Anti-fraude GPS
+                          </CardTitle>
+                          <CardDescription>
+                            Detección automática de anomalías GPS
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <SistemaAntifraude reducida={true} />
                         </CardContent>
                       </Card>
                     </div>

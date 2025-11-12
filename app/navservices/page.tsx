@@ -8,6 +8,9 @@ import Link from "next/link";
 import Consumo from "@/app/navservices/consumo/page";
 import Hardware from "@/app/navservices/hardware/page";
 import Reposicion from "@/app/navservices/reposicion/page";
+import PrediccionesInteligentes from "@/app/navservices/predicciones-inteligentes/page";
+import AnalyticsAmbientales from "@/app/navservices/analytics-ambientales/page";
+import MapasInteligentes from "@/app/navservices/mapas-inteligentes/page";
 
 export default function ServicesPage() {
   const [activeTab, setActiveTab] = useState("reposicion");
@@ -23,6 +26,30 @@ export default function ServicesPage() {
       component: <Reposicion />
     },
     {
+      id: "predicciones-inteligentes",
+      title: "Predicciones Inteligentes",
+      icon: <GaugeIcon className="h-5 w-5 text-blue-500" />,
+      description: "Sistema avanzado de predicción de demanda energética basado en IA y datos meteorológicos.",
+      benefits: ["Reducción de costos 15%", "Predicción 7 días", "Precisión +85%"],
+      component: <PrediccionesInteligentes />
+    },
+    {
+      id: "analytics-ambientales",
+      title: "Analytics Ambientales",
+      icon: <WrenchIcon className="h-5 w-5 text-green-500" />,
+      description: "Análisis de correlaciones entre calidad del aire y patrones de consumo eléctrico.",
+      benefits: ["Insights únicos", "Reportes ESG", "Optimización HVAC"],
+      component: <AnalyticsAmbientales />
+    },
+    {
+      id: "mapas-inteligentes",
+      title: "Mapas Inteligentes GPS",
+      icon: <GaugeIcon className="h-5 w-5 text-red-500" />,
+      description: "Sistema avanzado de mapas interactivos con detección automática de fraudes GPS.",
+      benefits: ["Reducción fraudes 25%", "GPS Anti-fraude", "Rutas optimizadas"],
+      component: <MapasInteligentes />
+    },
+    {
       id: "hardware",
       title: "Integración de Hardware",
       icon: <WrenchIcon className="h-5 w-5 text-orange-500" />,
@@ -33,7 +60,7 @@ export default function ServicesPage() {
     {
       id: "consumo",
       title: "Control de Consumo",
-      icon: <GaugeIcon className="h-5 w-5 text-orange-500" />,
+      icon: <GaugeIcon className="h-5 w-5 text-purple-500" />,
       description: "Monitoreo en tiempo real del consumo energético para optimizar gastos y detectar anomalías.",
       benefits: ["Análisis de patrones", "Recomendaciones de ahorro", "Histórico detallado"],
       component: <Consumo />
@@ -51,8 +78,8 @@ export default function ServicesPage() {
           Soluciones Inteligentes de Electricidad
         </h1>
         <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto">
-          Ofrecemos tecnología avanzada para el monitoreo, control y automatización 
-          de sistemas eléctricos, mejorando la eficiencia y reduciendo costos.
+          Tecnología avanzada con IA, análisis predictivo y correlaciones ambientales 
+          para optimizar su red eléctrica y generar nuevas fuentes de valor.
         </p>
       </div>
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { Home, Zap, FileText, Clock, AlertCircle, User, HelpCircle } from "lucide-react";
+import { Home, Zap, FileText, Clock, AlertCircle, User, HelpCircle, CloudSun, Lightbulb, Wind, MapPin } from "lucide-react";
 
 interface NavigationClienteProps {
   onNavigate?: (item: string | null) => void;
@@ -9,6 +9,10 @@ interface NavigationClienteProps {
 const navItems = [
   { id: "resumen", label: "Resumen", icon: Home },
   { id: "consumo", label: "Consumo", icon: Zap },
+  { id: "pronostico-clima", label: "Pronóstico Clima", icon: CloudSun },
+  { id: "consejos-ahorro", label: "Consejos Ahorro", icon: Lightbulb },
+  { id: "calidad-aire", label: "Calidad del Aire", icon: Wind },
+  { id: "mapa-ubicacion", label: "Ubicación", icon: MapPin },
   { id: "boletas", label: "Boletas", icon: FileText },
   { id: "historial", label: "Historial", icon: Clock },
   { id: "alertas", label: "Alertas", icon: AlertCircle },

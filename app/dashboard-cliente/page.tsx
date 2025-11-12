@@ -8,6 +8,10 @@ import { HistorialConsumo } from "./componentes/historial-consumo";
 import { SoporteUsuario } from "./componentes/soporte-usuario";
 import { PerfilUsuario } from "./componentes/perfil-usuario";
 import { AlertasEnTiempoReal } from "./componentes/alertas-tiempo-real";
+import { PronosticoConsumo } from "./componentes/predicciones-clima/PronosticoConsumo";
+import { ConsejosAhorro } from "./componentes/predicciones-clima/ConsejosAhorro";
+import { IndiceCalidadAire } from "./componentes/calidad-aire/IndiceCalidadAire";
+import { MapaBasico } from "./componentes/ubicacion/MapaBasico";
 import HeaderCliente from "./components/layout/header";
 import NavigationCliente from "./components/layout/navigation";
 
@@ -29,6 +33,7 @@ export default function DashboardCliente() {
     direccion: "Av. Principal 123, Santiago",
     ultimoPago: "15/04/2023",
     consumoActual: 245.8, // kWh
+    ubicacion: { lat: -33.4489, lng: -70.6693 }, // Santiago, Chile
   });
 
   // Control de tiempo de inactividad (30 minutos)
@@ -141,6 +146,14 @@ export default function DashboardCliente() {
         return <PerfilUsuario datos={datosCliente} />;
       case "alertas":
         return <AlertasEnTiempoReal />;
+      case "mapa-ubicacion":
+        return <MapaBasico ubicacion={datosCliente.ubicacion} direccionRegistrada={datosCliente.direccion} />;
+      case "pronostico-clima":
+        return <PronosticoConsumo ubicacion={datosCliente.ubicacion} />;
+      case "consejos-ahorro":
+        return <ConsejosAhorro condicionesClimaticas={{ temperatura: 25, humedad: 65, descripcion: "Parcialmente nublado" }} />;
+      case "calidad-aire":
+        return <IndiceCalidadAire ubicacion={datosCliente.ubicacion} />;
       case "resumen":
       case null:
       default:
@@ -194,20 +207,41 @@ export default function DashboardCliente() {
               <div onClick={() => setComponenteActivo("consumo")} className="cursor-pointer">
                 <ConsumoElectrico reducida={true} />
               </div>
+              <div onClick={() => setComponenteActivo("pronostico-clima")} className="cursor-pointer">
+                <PronosticoConsumo reducida={true} ubicacion={datosCliente.ubicacion} />
+              </div>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2 mb-6">
+              <div onClick={() => setComponenteActivo("consejos-ahorro")} className="cursor-pointer">
+                <ConsejosAhorro reducida={true} condicionesClimaticas={{ temperatura: 25, humedad: 65, descripcion: "Parcialmente nublado" }} />
+              </div>
+              <div onClick={() => setComponenteActivo("calidad-aire")} className="cursor-pointer">
+                <IndiceCalidadAire reducida={true} ubicacion={datosCliente.ubicacion} />
+              </div>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2 mb-6">
+              <div onClick={() => setComponenteActivo("mapa-ubicacion")} className="cursor-pointer">
+                <MapaBasico reducida={true} ubicacion={datosCliente.ubicacion} direccionRegistrada={datosCliente.direccion} />
+              </div>
               <div onClick={() => setComponenteActivo("historial")} className="cursor-pointer">
                 <HistorialConsumo reducida={true} />
               </div>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 mb-6">
+            <div className="grid gap-6 md:grid-cols-1 mb-6">
+              <div onClick={() => setComponenteActivo("boletas")} className="cursor-pointer">
+                <PagosFacturas reducida={true} />
+              </div>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-1 mb-6">
               <EstadoServicio
                 reducida={true}
                 estadoActual={estadoServicio}
                 onCambioEstado={manejarCambioEstado}
               />
-              <div onClick={() => setComponenteActivo("boletas")} className="cursor-pointer">
-                <PagosFacturas reducida={true} />
-              </div>
             </div>
 
             {/* Alertas en tiempo real */}

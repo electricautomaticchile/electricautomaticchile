@@ -1,0 +1,17 @@
+
+> electricautomaticchile-frontend@2.0.0 build
+> next build
+
+[1G[0K  [1m[38;2;173;127;168m▲ Next.js 14.2.33[39m[22m
+  - Environments: .env
+  - Experiments (use with caution):
+    · esmExternals
+
+ [37m[1m [22m[39m Creating an optimized production build ...
+ [33m[1m⚠[22m[39m Found lockfile missing swc dependencies, patching...
+npm error code ENOWORKSPACES
+npm error This command does not support workspaces.
+npm error A complete log of this run can be found in: /home/pipeaalzamora/.npm/_logs/2025-11-03T01_19_31_814Z-debug-0.log
+ [33m[1m⚠[22m[39m For production Image Optimization with Next.js, the optional 'sharp' package is strongly recommended. Run 'npm i sharp', and Next.js will use it automatically for Image Optimization.
+Read more: https://nextjs.org/docs/messages/sharp-missing-in-production
+[1G[0K⠙[1G[0K
