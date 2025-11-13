@@ -1,57 +1,182 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect, useMemo } from "react";
 import { EmpresaRoute } from "@/components/auth/protected-route";
 import { CambioPasswordModal } from "@/components/ui/cambio-password-modal";
 import { ProveedorWebSocket } from "@/lib/websocket/ProveedorWebSocket";
 import { EncabezadoEmpresa } from "./components/layout/header";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 // Importaciones de features
 import { GestionClientes } from "./features/clientes";
-import { EstadisticasConsumo } from "./features/estadisticas";
 import { DispositivosActivos } from "./features/dispositivos";
 import { AlertasSistema } from "./features/alertas";
-import { ConsumoSectorial } from "./features/consumo";
 import { ControlArduino } from "./features/control";
 import { ConfiguracionEmpresa } from "./features/configuracion";
 import { DispositivosIoT } from "./features/dispositivos-iot";
-import { PredictorDemanda } from "./features/predicciones-avanzadas/PredictorDemanda";
-import { AnalisisCorrelaciones } from "./features/predicciones-avanzadas/AnalisisCorrelaciones";
 import { MapaInteractivo } from "./features/gestion-geografica/MapaInteractivo";
 import { SistemaAntifraude } from "./features/gestion-geografica/SistemaAntifraude";
 
 import {
   Users,
   LayoutDashboard,
-  BarChart2,
   Battery,
   BellRing,
-  Lightbulb,
-  Zap,
   TrendingUp,
   TrendingDown,
   Activity,
-  Shield,
-  Clock,
   X,
   Settings,
-  Router,
   MapPin,
+  RefreshCw,
+  ArrowRight,
 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Datos de resumen del dashboard
 const resumenDashboard = {
   clientesActivos: 24,
   clientesTotales: 26,
-  consumoMensual: 45720,
-  variacionConsumo: -2.3,
   dispositivosActivos: 187,
   dispositivosTotales: 195,
   alertasActivas: 3,
-  eficienciaPromedio: 87.5,
+};
+
+// Componente de KPI mejorado
+const KPICard = ({
+  title,
+  value,
+  subtitle,
+  icon: Icon,
+  trend,
+  trendValue,
+  colorScheme,
+}: {
+  title: string;
+  value: string | number;
+  subtitle?: string;
+  icon: any;
+  trend?: "up" | "down" | "neutral";
+  trendValue?: string;
+  colorScheme: "blue" | "orange" | "green" | "purple";
+}) => {
+  const colors = {
+    blue: {
+      bg: "from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900",
+      icon: "bg-blue-500",
+      text: "text-blue-700 dark:text-blue-300",
+      trend: trend === "up" ? "text-red-600" : "text-green-600",
+    },
+    orange: {
+      bg: "from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900",
+      icon: "bg-orange-500",
+      text: "text-orange-700 dark:text-orange-300",
+      trend: trend === "up" ? "text-red-600" : "text-green-600",
+    },
+    green: {
+      bg: "from-green-50 to-green-100 dark:from-green-950 dark:to-green-900",
+      icon: "bg-green-500",
+      text: "text-green-700 dark:text-green-300",
+      trend: "text-green-600",
+    },
+    purple: {
+      bg: "from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900",
+      icon: "bg-purple-500",
+      text: "text-purple-700 dark:text-purple-300",
+      trend: "text-blue-600",
+    },
+  };
+
+  const scheme = colors[colorScheme];
+
+  return (
+    <Card
+      className={`hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br ${scheme.bg}`}
+    >
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <p className={`text-sm font-semibold ${scheme.text}`}>{title}</p>
+          <div
+            className={`w-12 h-12 ${scheme.icon} rounded-xl flex items-center justify-center shadow-lg`}
+          >
+            <Icon className="h-6 w-6 text-white" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-baseline gap-2">
+            <p className="text-3xl font-bold text-foreground">{value}</p>
+            {subtitle && (
+              <span className="text-sm text-muted-foreground">{subtitle}</span>
+            )}
+          </div>
+          {trendValue && (
+            <div className="flex items-center gap-1">
+              {trend === "up" ? (
+                <TrendingUp className="h-4 w-4 text-red-500" />
+              ) : trend === "down" ? (
+                <TrendingDown className="h-4 w-4 text-green-500" />
+              ) : (
+                <Activity className="h-4 w-4 text-blue-500" />
+              )}
+              <span className={`text-xs font-medium ${scheme.trend}`}>
+                {trendValue}
+              </span>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Sección de Dispositivos con tabs
+const DispositivosSection = () => {
+  return (
+    <Tabs defaultValue="estado" className="w-full">
+      <TabsList className="grid w-full grid-cols-3">
+        <TabsTrigger value="estado">Estado</TabsTrigger>
+        <TabsTrigger value="iot">Dispositivos IoT</TabsTrigger>
+        <TabsTrigger value="arduino">Control Arduino</TabsTrigger>
+      </TabsList>
+      <TabsContent value="estado" className="mt-6">
+        <DispositivosActivos />
+      </TabsContent>
+      <TabsContent value="iot" className="mt-6">
+        <DispositivosIoT />
+      </TabsContent>
+      <TabsContent value="arduino" className="mt-6">
+        <ControlArduino />
+      </TabsContent>
+    </Tabs>
+  );
+};
+
+// Sección de Mapa y Seguridad con tabs
+const MapaSeguridadSection = () => {
+  return (
+    <Tabs defaultValue="mapa" className="w-full">
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="mapa">Mapa Interactivo</TabsTrigger>
+        <TabsTrigger value="antifraude">Sistema Anti-fraude</TabsTrigger>
+      </TabsList>
+      <TabsContent value="mapa" className="mt-6">
+        <MapaInteractivo />
+      </TabsContent>
+      <TabsContent value="antifraude" className="mt-6">
+        <SistemaAntifraude />
+      </TabsContent>
+    </Tabs>
+  );
 };
 
 // Navegación móvil
@@ -69,16 +194,9 @@ const MobileNavigation = ({
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "clientes", label: "Clientes", icon: Users },
-    { id: "estadisticas", label: "Estadísticas", icon: BarChart2 },
     { id: "dispositivos", label: "Dispositivos", icon: Battery },
+    { id: "mapa-seguridad", label: "Mapa & Seguridad", icon: MapPin },
     { id: "alertas", label: "Alertas", icon: BellRing, badge: "3" },
-    { id: "consumo", label: "Consumo", icon: Lightbulb },
-    { id: "arduino", label: "Arduino", icon: Zap },
-    { id: "dispositivos-iot", label: "Dispositivos IoT", icon: Router },
-    { id: "predictor-demanda", label: "Predictor Demanda", icon: TrendingUp },
-    { id: "analisis-correlaciones", label: "Análisis Correlaciones", icon: BarChart2 },
-    { id: "mapa-interactivo", label: "Mapa Interactivo", icon: MapPin },
-    { id: "sistema-antifraude", label: "Sistema Anti-fraude", icon: Shield },
     { id: "configuracion", label: "Configuración", icon: Settings },
   ];
 
@@ -93,7 +211,9 @@ const MobileNavigation = ({
       <div className="fixed top-0 left-0 h-full w-64 bg-card border-r border-border z-50 lg:hidden animate-in slide-in-from-left duration-300">
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between p-4 border-b border-border">
-            <h2 className="text-lg font-semibold text-foreground">Navegación</h2>
+            <h2 className="text-lg font-semibold text-foreground">
+              Navegación
+            </h2>
             <Button variant="ghost" size="icon" onClick={onClose}>
               <X className="h-5 w-5" />
             </Button>
@@ -109,10 +229,11 @@ const MobileNavigation = ({
                     onTabChange(item.id);
                     onClose();
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isActive
-                    ? "bg-orange-500 text-white shadow-md"
-                    : "text-muted-foreground hover:bg-accent hover:text-orange-400"
-                    }`}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    isActive
+                      ? "bg-orange-500 text-white shadow-md"
+                      : "text-muted-foreground hover:bg-accent hover:text-orange-400"
+                  }`}
                 >
                   <Icon className="h-5 w-5" />
                   <span className="flex-1 text-left">{item.label}</span>
@@ -160,26 +281,12 @@ export default function DashboardEmpresa() {
     switch (activeTab) {
       case "clientes":
         return <GestionClientes />;
-      case "estadisticas":
-        return <EstadisticasConsumo />;
       case "dispositivos":
-        return <DispositivosActivos />;
+        return <DispositivosSection />;
+      case "mapa-seguridad":
+        return <MapaSeguridadSection />;
       case "alertas":
         return <AlertasSistema />;
-      case "consumo":
-        return <ConsumoSectorial />;
-      case "arduino":
-        return <ControlArduino />;
-      case "dispositivos-iot":
-        return <DispositivosIoT />;
-      case "predictor-demanda":
-        return <PredictorDemanda />;
-      case "analisis-correlaciones":
-        return <AnalisisCorrelaciones />;
-      case "mapa-interactivo":
-        return <MapaInteractivo />;
-      case "sistema-antifraude":
-        return <SistemaAntifraude />;
       case "configuracion":
         return <ConfiguracionEmpresa />;
       default:
@@ -202,19 +309,29 @@ export default function DashboardEmpresa() {
             <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r border-border bg-card sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
               <nav className="flex flex-col gap-1 p-4">
                 {[
-                  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+                  {
+                    id: "dashboard",
+                    label: "Dashboard",
+                    icon: LayoutDashboard,
+                  },
                   { id: "clientes", label: "Clientes", icon: Users },
-                  { id: "estadisticas", label: "Estadísticas", icon: BarChart2 },
                   { id: "dispositivos", label: "Dispositivos", icon: Battery },
-                  { id: "alertas", label: "Alertas", icon: BellRing, badge: "3" },
-                  { id: "consumo", label: "Consumo", icon: Lightbulb },
-                  { id: "arduino", label: "Arduino", icon: Zap },
-                  { id: "dispositivos-iot", label: "Dispositivos IoT", icon: Router },
-                  { id: "predictor-demanda", label: "Predictor Demanda", icon: TrendingUp },
-                  { id: "analisis-correlaciones", label: "Análisis Correlaciones", icon: BarChart2 },
-                  { id: "mapa-interactivo", label: "Mapa Interactivo", icon: MapPin },
-                  { id: "sistema-antifraude", label: "Sistema Anti-fraude", icon: Shield },
-                  { id: "configuracion", label: "Configuración", icon: Settings },
+                  {
+                    id: "mapa-seguridad",
+                    label: "Mapa & Seguridad",
+                    icon: MapPin,
+                  },
+                  {
+                    id: "alertas",
+                    label: "Alertas",
+                    icon: BellRing,
+                    badge: "3",
+                  },
+                  {
+                    id: "configuracion",
+                    label: "Configuración",
+                    icon: Settings,
+                  },
                 ].map((item) => {
                   const Icon = item.icon;
                   const isActive = activeTab === item.id;
@@ -222,15 +339,19 @@ export default function DashboardEmpresa() {
                     <button
                       key={item.id}
                       onClick={() => setActiveTab(item.id)}
-                      className={`flex items-center gap-3 rounded-lg px-4 py-3 transition-all ${isActive
-                        ? "bg-orange-500 text-white shadow-md"
-                        : "text-muted-foreground hover:bg-accent hover:text-orange-400"
-                        }`}
+                      className={`flex items-center gap-3 rounded-lg px-4 py-3 transition-all ${
+                        isActive
+                          ? "bg-orange-500 text-white shadow-md"
+                          : "text-muted-foreground hover:bg-accent hover:text-orange-400"
+                      }`}
                     >
                       <Icon className="h-5 w-5" />
                       <span>{item.label}</span>
                       {item.badge && (
-                        <Badge variant="destructive" className="ml-auto text-xs">
+                        <Badge
+                          variant="destructive"
+                          className="ml-auto text-xs"
+                        >
                           {item.badge}
                         </Badge>
                       )}
@@ -252,305 +373,181 @@ export default function DashboardEmpresa() {
               <div className="space-y-6 animate-in fade-in duration-300">
                 {activeTab === "dashboard" ? (
                   <>
-                    {/* KPIs principales */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                      <Card className="hover:shadow-lg transition-shadow duration-200">
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-medium text-muted-foreground">
-                                Clientes Activos
-                              </p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <p className="text-2xl font-bold text-foreground">
-                                  {resumenDashboard.clientesActivos}
-                                </p>
-                                <span className="text-sm text-muted-foreground">
-                                  / {resumenDashboard.clientesTotales}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                              <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1 mt-3">
-                            <Shield className="h-3 w-3 text-green-500" />
-                            <span className="text-xs text-green-600 dark:text-green-400">
-                              92% activos
-                            </span>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card className="hover:shadow-lg transition-shadow duration-200">
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-medium text-muted-foreground">
-                                Consumo Mensual
-                              </p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <p className="text-2xl font-bold text-foreground">
-                                  {resumenDashboard.consumoMensual.toLocaleString()}
-                                </p>
-                                <span className="text-sm text-muted-foreground">kWh</span>
-                              </div>
-                            </div>
-                            <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
-                              <Activity className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1 mt-3">
-                            {resumenDashboard.variacionConsumo > 0 ? (
-                              <TrendingUp className="h-3 w-3 text-red-500" />
-                            ) : (
-                              <TrendingDown className="h-3 w-3 text-green-500" />
-                            )}
-                            <span
-                              className={`text-xs ${resumenDashboard.variacionConsumo > 0
-                                ? "text-red-600 dark:text-red-400"
-                                : "text-green-600 dark:text-green-400"
-                                }`}
-                            >
-                              {resumenDashboard.variacionConsumo > 0 ? "+" : ""}
-                              {resumenDashboard.variacionConsumo}% vs mes anterior
-                            </span>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card className="hover:shadow-lg transition-shadow duration-200">
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-medium text-muted-foreground">
-                                Dispositivos
-                              </p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <p className="text-2xl font-bold text-foreground">
-                                  {resumenDashboard.dispositivosActivos}
-                                </p>
-                                <span className="text-sm text-muted-foreground">
-                                  / {resumenDashboard.dispositivosTotales}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="w-10 h-10 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
-                              <Battery className="h-5 w-5 text-green-600 dark:text-green-400" />
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1 mt-3">
-                            <Shield className="h-3 w-3 text-green-500" />
-                            <span className="text-xs text-green-600 dark:text-green-400">
-                              {Math.round(
-                                (resumenDashboard.dispositivosActivos /
-                                  resumenDashboard.dispositivosTotales) *
-                                100
-                              )}
-                              % operativos
-                            </span>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card className="hover:shadow-lg transition-shadow duration-200">
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-medium text-muted-foreground">
-                                Eficiencia
-                              </p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <p className="text-2xl font-bold text-foreground">
-                                  {resumenDashboard.eficienciaPromedio}%
-                                </p>
-                              </div>
-                            </div>
-                            <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
-                              <Zap className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1 mt-3">
-                            <Clock className="h-3 w-3 text-blue-500" />
-                            <span className="text-xs text-blue-600 dark:text-blue-400">
-                              Última hora
-                            </span>
-                          </div>
-                        </CardContent>
-                      </Card>
+                    {/* Header con acciones rápidas */}
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
+                      <div>
+                        <h1 className="text-3xl font-bold text-foreground">
+                          Dashboard Empresa
+                        </h1>
+                        <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                          <RefreshCw className="h-3 w-3" />
+                          Actualizado hace 2 minutos
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setActiveTab("clientes")}
+                          className="gap-2"
+                        >
+                          <Users className="h-4 w-4" />
+                          Ver Clientes
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setActiveTab("alertas")}
+                          className="gap-2"
+                        >
+                          <BellRing className="h-4 w-4" />
+                          Alertas
+                          <Badge
+                            variant="destructive"
+                            className="ml-1 text-xs px-1.5"
+                          >
+                            {resumenDashboard.alertasActivas}
+                          </Badge>
+                        </Button>
+                      </div>
                     </div>
 
-                    {/* Secciones principales */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      <Card className="hover:shadow-lg transition-shadow duration-200">
+                    {/* KPIs principales mejorados */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                      <KPICard
+                        title="Clientes Activos"
+                        value={resumenDashboard.clientesActivos}
+                        subtitle={`/ ${resumenDashboard.clientesTotales}`}
+                        icon={Users}
+                        trendValue="92% activos"
+                        trend="neutral"
+                        colorScheme="blue"
+                      />
+                      <KPICard
+                        title="Dispositivos"
+                        value={resumenDashboard.dispositivosActivos}
+                        subtitle={`/ ${resumenDashboard.dispositivosTotales}`}
+                        icon={Battery}
+                        trendValue={`${Math.round((resumenDashboard.dispositivosActivos / resumenDashboard.dispositivosTotales) * 100)}% operativos`}
+                        trend="neutral"
+                        colorScheme="green"
+                      />
+                      <KPICard
+                        title="Alertas Activas"
+                        value={resumenDashboard.alertasActivas}
+                        icon={BellRing}
+                        trendValue="Requieren atención"
+                        trend="neutral"
+                        colorScheme="orange"
+                      />
+                    </div>
+
+                    {/* Secciones principales mejoradas */}
+                    <div className="flex flex-col gap-6">
+                      <Card className="hover:shadow-xl transition-all duration-300 border-l-4 border-l-blue-500">
                         <CardHeader className="pb-4">
-                          <CardTitle className="text-lg font-bold flex items-center gap-2">
-                            <Users className="h-5 w-5 text-orange-600" />
-                            Resumen de Clientes
-                          </CardTitle>
-                          <CardDescription>
-                            Estado actual de su cartera de clientes
-                          </CardDescription>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+                                <Users className="h-5 w-5 text-blue-600" />
+                              </div>
+                              <div>
+                                <CardTitle className="text-lg font-bold">
+                                  Resumen de Clientes
+                                </CardTitle>
+                                <CardDescription className="text-xs">
+                                  Estado actual de su cartera
+                                </CardDescription>
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setActiveTab("clientes")}
+                              className="gap-1 text-xs"
+                            >
+                              Ver todo
+                              <ArrowRight className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </CardHeader>
                         <CardContent>
                           <GestionClientes reducida={true} />
                         </CardContent>
                       </Card>
 
-                      <Card className="hover:shadow-lg transition-shadow duration-200">
+                      <Card className="hover:shadow-xl transition-all duration-300 border-l-4 border-l-green-500">
                         <CardHeader className="pb-4">
-                          <CardTitle className="text-lg font-bold flex items-center gap-2">
-                            <BarChart2 className="h-5 w-5 text-orange-600" />
-                            Consumo Energético
-                          </CardTitle>
-                          <CardDescription>
-                            Estadísticas y tendencias de consumo
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <EstadisticasConsumo reducida={true} />
-                        </CardContent>
-                      </Card>
-
-                      <Card className="hover:shadow-lg transition-shadow duration-200">
-                        <CardHeader className="pb-4">
-                          <CardTitle className="text-lg font-bold flex items-center gap-2">
-                            <Battery className="h-5 w-5 text-orange-600" />
-                            Estado de Dispositivos
-                          </CardTitle>
-                          <CardDescription>
-                            Monitoreo de medidores y sensores
-                          </CardDescription>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
+                                <Battery className="h-5 w-5 text-green-600" />
+                              </div>
+                              <div>
+                                <CardTitle className="text-lg font-bold">
+                                  Estado de Dispositivos
+                                </CardTitle>
+                                <CardDescription className="text-xs">
+                                  Monitoreo de medidores
+                                </CardDescription>
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setActiveTab("dispositivos")}
+                              className="gap-1 text-xs"
+                            >
+                              Ver todo
+                              <ArrowRight className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </CardHeader>
                         <CardContent>
                           <DispositivosActivos reducida={true} />
                         </CardContent>
                       </Card>
 
-                      <Card className="hover:shadow-lg transition-shadow duration-200">
+                      <Card className="hover:shadow-xl transition-all duration-300 border-l-4 border-l-red-500">
                         <CardHeader className="pb-4">
-                          <CardTitle className="text-lg font-bold flex items-center gap-2">
-                            <BellRing className="h-5 w-5 text-orange-600" />
-                            Alertas del Sistema
-                            <Badge variant="destructive" className="ml-2 text-xs">
-                              {resumenDashboard.alertasActivas}
-                            </Badge>
-                          </CardTitle>
-                          <CardDescription>
-                            Notificaciones que requieren atención
-                          </CardDescription>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-red-100 dark:bg-red-900/20 rounded-lg flex items-center justify-center relative">
+                                <BellRing className="h-5 w-5 text-red-600" />
+                                {resumenDashboard.alertasActivas > 0 && (
+                                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold">
+                                    {resumenDashboard.alertasActivas}
+                                  </span>
+                                )}
+                              </div>
+                              <div>
+                                <CardTitle className="text-lg font-bold flex items-center gap-2">
+                                  Alertas del Sistema
+                                  <Badge
+                                    variant="destructive"
+                                    className="text-xs px-2"
+                                  >
+                                    {resumenDashboard.alertasActivas}
+                                  </Badge>
+                                </CardTitle>
+                                <CardDescription className="text-xs">
+                                  Requieren atención inmediata
+                                </CardDescription>
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setActiveTab("alertas")}
+                              className="gap-1 text-xs"
+                            >
+                              Ver todo
+                              <ArrowRight className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </CardHeader>
                         <CardContent>
                           <AlertasSistema reducida={true} />
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    {/* Secciones adicionales */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      <Card className="hover:shadow-lg transition-shadow duration-200">
-                        <CardHeader className="pb-4">
-                          <CardTitle className="text-lg font-bold flex items-center gap-2">
-                            <Lightbulb className="h-5 w-5 text-orange-600" />
-                            Distribución de Consumo
-                          </CardTitle>
-                          <CardDescription>
-                            Análisis por sectores y zonas
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <ConsumoSectorial reducida={true} />
-                        </CardContent>
-                      </Card>
-
-                      <Card className="hover:shadow-lg transition-shadow duration-200">
-                        <CardHeader className="pb-4">
-                          <CardTitle className="text-lg font-bold flex items-center gap-2">
-                            <Zap className="h-5 w-5 text-orange-600" />
-                            Control Arduino IoT
-                          </CardTitle>
-                          <CardDescription>
-                            Sistema de control y monitoreo
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <ControlArduino reducida={true} />
-                        </CardContent>
-                      </Card>
-
-                      <Card className="hover:shadow-lg transition-shadow duration-200">
-                        <CardHeader className="pb-4">
-                          <CardTitle className="text-lg font-bold flex items-center gap-2">
-                            <Router className="h-5 w-5 text-orange-600" />
-                            Dispositivos IoT
-                          </CardTitle>
-                          <CardDescription>
-                            Estado de dispositivos de clientes asignados
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <DispositivosIoT reducida={true} />
-                        </CardContent>
-                      </Card>
-
-                      <Card className="hover:shadow-lg transition-shadow duration-200">
-                        <CardHeader className="pb-4">
-                          <CardTitle className="text-lg font-bold flex items-center gap-2">
-                            <TrendingUp className="h-5 w-5 text-orange-600" />
-                            Predictor de Demanda
-                          </CardTitle>
-                          <CardDescription>
-                            Predicciones inteligentes basadas en clima
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <PredictorDemanda reducida={true} />
-                        </CardContent>
-                      </Card>
-
-                      <Card className="hover:shadow-lg transition-shadow duration-200">
-                        <CardHeader className="pb-4">
-                          <CardTitle className="text-lg font-bold flex items-center gap-2">
-                            <BarChart2 className="h-5 w-5 text-orange-600" />
-                            Análisis de Correlaciones
-                          </CardTitle>
-                          <CardDescription>
-                            Correlación factores ambientales vs consumo
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <AnalisisCorrelaciones reducida={true} />
-                        </CardContent>
-                      </Card>
-
-                      <Card className="hover:shadow-lg transition-shadow duration-200">
-                        <CardHeader className="pb-4">
-                          <CardTitle className="text-lg font-bold flex items-center gap-2">
-                            <MapPin className="h-5 w-5 text-orange-600" />
-                            Mapa Interactivo
-                          </CardTitle>
-                          <CardDescription>
-                            Visualización geográfica de la red eléctrica
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <MapaInteractivo reducida={true} />
-                        </CardContent>
-                      </Card>
-
-                      <Card className="hover:shadow-lg transition-shadow duration-200">
-                        <CardHeader className="pb-4">
-                          <CardTitle className="text-lg font-bold flex items-center gap-2">
-                            <Shield className="h-5 w-5 text-orange-600" />
-                            Sistema Anti-fraude GPS
-                          </CardTitle>
-                          <CardDescription>
-                            Detección automática de anomalías GPS
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <SistemaAntifraude reducida={true} />
                         </CardContent>
                       </Card>
                     </div>

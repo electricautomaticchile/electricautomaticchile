@@ -12,13 +12,24 @@ import { Label } from "@/components/ui/label";
 import { ConfiguracionContactoProps } from "./types";
 import { CAMPOS_CONTACTO, VALIDADORES, FORMATEADORES } from "./config";
 import { useState } from "react";
+import { ProfileImageManager } from "@/components/ui/profile-image-manager";
+import { RefreshCw, User } from "lucide-react";
 
 export function ConfiguracionContacto({
   contactoPrincipal,
   onContactoChange,
   loading = false,
   saving = false,
-}: ConfiguracionContactoProps) {
+  userId,
+  userType,
+  userName,
+  userLoading,
+}: ConfiguracionContactoProps & {
+  userId?: string;
+  userType?: string;
+  userName?: string;
+  userLoading?: boolean;
+}) {
   const [erroresValidacion, setErroresValidacion] = useState<
     Record<string, string>
   >({});
@@ -66,43 +77,86 @@ export function ConfiguracionContacto({
       <CardHeader>
         <CardTitle>Contacto Principal</CardTitle>
         <CardDescription>
-          Información del representante principal de la empresa
+          Información del representante principal de la empresa (editable)
         </CardDescription>
+        <div className="mt-2 p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
+          <p className="text-sm text-green-700 dark:text-green-300">
+            ✏️ Puede modificar libremente los datos del contacto principal.
+          </p>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {CAMPOS_CONTACTO.map((campo) => {
-            const valor =
-              contactoPrincipal[campo.id as keyof typeof contactoPrincipal];
-            const tieneError = erroresValidacion[campo.id];
-
-            return (
-              <div key={campo.id} className="space-y-2">
-                <Label htmlFor={`contacto-${campo.id}`}>
-                  {campo.label}
-                  {campo.required && (
-                    <span className="text-red-500 ml-1">*</span>
-                  )}
-                </Label>
-                <Input
-                  id={`contacto-${campo.id}`}
-                  type={campo.type}
-                  value={valor}
-                  onChange={(e) => manejarCambio(campo.id, e.target.value)}
-                  placeholder={campo.placeholder}
-                  disabled={saving}
-                  className={
-                    tieneError ? "border-red-500 focus:border-red-500" : ""
-                  }
-                />
-                {tieneError && (
-                  <p className="text-sm text-red-600 dark:text-red-400">
-                    {tieneError}
-                  </p>
-                )}
+        {/* Layout con imagen de perfil y campos */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Imagen de Perfil - Columna izquierda */}
+          {userId && (
+            <div className="flex flex-col items-center justify-start space-y-3">
+              <div className="text-center">
+                <h3 className="text-sm font-semibold flex items-center justify-center gap-2 mb-1">
+                  <User className="h-4 w-4 text-orange-600" />
+                  Imagen de Perfil
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Logo de la empresa
+                </p>
               </div>
-            );
-          })}
+              {userLoading ? (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <RefreshCw className="h-5 w-5 animate-spin text-muted-foreground" />
+                  <span className="mt-2 text-xs text-muted-foreground">
+                    Cargando...
+                  </span>
+                </div>
+              ) : (
+                <ProfileImageManager
+                  userId={userId}
+                  tipoUsuario={(userType as any) || "empresa"}
+                  userName={userName || "Empresa"}
+                  size="lg"
+                  showUploadArea={true}
+                  className="w-full"
+                />
+              )}
+            </div>
+          )}
+
+          {/* Campos del contacto - Columnas derecha */}
+          <div
+            className={`${userId ? "lg:col-span-2" : "lg:col-span-3"} grid grid-cols-1 md:grid-cols-2 gap-4`}
+          >
+            {CAMPOS_CONTACTO.map((campo) => {
+              const valor =
+                contactoPrincipal[campo.id as keyof typeof contactoPrincipal];
+              const tieneError = erroresValidacion[campo.id];
+
+              return (
+                <div key={campo.id} className="space-y-2">
+                  <Label htmlFor={`contacto-${campo.id}`}>
+                    {campo.label}
+                    {campo.required && (
+                      <span className="text-red-500 ml-1">*</span>
+                    )}
+                  </Label>
+                  <Input
+                    id={`contacto-${campo.id}`}
+                    type={campo.type}
+                    value={valor}
+                    onChange={(e) => manejarCambio(campo.id, e.target.value)}
+                    placeholder={campo.placeholder}
+                    disabled={saving}
+                    className={
+                      tieneError ? "border-red-500 focus:border-red-500" : ""
+                    }
+                  />
+                  {tieneError && (
+                    <p className="text-sm text-red-600 dark:text-red-400">
+                      {tieneError}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Información adicional */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { apiService } from "@/lib/api/apiService";
 import {
@@ -104,6 +104,13 @@ export function useConfiguracionEmpresa(): UseConfiguracionEmpresaReturn {
       setEstados((prev) => ({ ...prev, loading: false }));
     }
   }, [empresaId, toast]);
+
+  // Cargar datos automáticamente cuando empresaId esté disponible
+  useEffect(() => {
+    if (empresaId && !loadingEmpresaId) {
+      cargarDatosEmpresa();
+    }
+  }, [empresaId, loadingEmpresaId, cargarDatosEmpresa]);
 
   // Función para guardar datos de la empresa
   const guardarDatos = useCallback(async () => {

@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default function DashboardClienteLayout({
+export default function NavServicesLayout({
   children,
 }: {
   children: React.ReactNode;

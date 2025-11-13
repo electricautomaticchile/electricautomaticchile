@@ -90,8 +90,14 @@ export function ConfiguracionForm({
         <CardHeader>
           <CardTitle>Información General</CardTitle>
           <CardDescription>
-            Datos básicos de identificación de la empresa
+            Datos básicos de identificación de la empresa (solo lectura)
           </CardDescription>
+          <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <p className="text-sm text-blue-700 dark:text-blue-300">
+              ℹ️ Estos campos no son editables. Para modificar la información de
+              la empresa, contacte al administrador del sistema.
+            </p>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -118,10 +124,11 @@ export function ConfiguracionForm({
                     value={valor}
                     onChange={(e) => manejarCambio(campo.id, e.target.value)}
                     placeholder={campo.placeholder}
-                    disabled={saving}
-                    className={
+                    disabled={true}
+                    className={`${
                       tieneError ? "border-red-500 focus:border-red-500" : ""
-                    }
+                    } bg-gray-100 dark:bg-gray-800 cursor-not-allowed`}
+                    title="Este campo no es editable. Contacte al administrador para modificarlo."
                   />
                   {tieneError && (
                     <p className="text-sm text-red-600 dark:text-red-400">

@@ -65,6 +65,7 @@ export default function FormularioContacto() {
         email: formData.email,
         empresa: formData.empresa || undefined,
         telefono: formData.telefono || undefined,
+        servicio: "Consulta General",
         mensaje: formData.mensaje,
       };
 

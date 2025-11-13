@@ -1,51 +1,27 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
-import { 
-  Map, 
-  Layers, 
-  MapPin, 
-  AlertTriangle,
-  CheckCircle,
-  RefreshCw,
-  Download,
-  Filter,
-  Search,
-  Zap,
-  Users,
-  TrendingUp,
-  Eye,
-  Settings
-} from 'lucide-react';
+import { Map, AlertTriangle, RefreshCw } from "lucide-react";
+import { LeafletMap } from "./components/LeafletMap";
 
-interface MedidorMapa {
+interface Medidor {
   id: string;
-  customerId: string;
   customerName: string;
   coordinates: { lat: number; lng: number };
   address: string;
-  status: 'active' | 'inactive' | 'suspicious' | 'fraud_detected';
+  status: "active" | "inactive" | "suspicious" | "fraud_detected";
   consumption: number;
-  lastReading: Date;
   anomalies: number;
-  deviceInfo: {
-    serialNumber: string;
-    model: string;
-  };
-}
-
-interface MapaLayer {
-  id: string;
-  name: string;
-  type: 'meters' | 'consumption' | 'anomalies' | 'weather' | 'zones';
-  visible: boolean;
-  color: string;
+  serialNumber: string;
 }
 
 interface MapaInteractivoProps {
@@ -53,137 +29,144 @@ interface MapaInteractivoProps {
 }
 
 export function MapaInteractivo({ reducida = false }: MapaInteractivoProps) {
-  const [medidores, setMedidores] = useState<MedidorMapa[]>([]);
+  const [medidores, setMedidores] = useState<Medidor[]>([]);
   const [loading, setLoading] = useState(true);
-  const [vistaActiva, setVistaActiva] = useState<'mapa' | 'lista' | 'clusters'>('mapa');
-  const [filtroEstado, setFiltroEstado] = useState<string>('todos');
-  const [capasActivas, setCapasActivas] = useState<MapaLayer[]>([]);
-  const [busqueda, setBusqueda] = useState('');
+  const [filtroEstado, setFiltroEstado] = useState<string>("todos");
 
-  // Datos de ejemplo para desarrollo
-  const datosEjemplo: MedidorMapa[] = [
+  // Medidores en Barnechea con coordenadas reales
+  const datosEjemplo: Medidor[] = [
     {
-      id: 'meter_001',
-      customerId: 'cust_001',
-      customerName: 'Juan Pérez',
-      coordinates: { lat: -33.4489, lng: -70.6693 },
-      address: 'Av. Providencia 1234, Santiago',
-      status: 'active',
+      id: "meter_001",
+      customerName: "Residencial Los Trapenses",
+      coordinates: { lat: -33.3589, lng: -70.5089 },
+      address: "Av. Los Trapenses 4567, Barnechea",
+      status: "active",
       consumption: 245.8,
-      lastReading: new Date(Date.now() - 2 * 60 * 60 * 1000),
       anomalies: 0,
-      deviceInfo: { serialNumber: 'EAC001234', model: 'SmartMeter Pro' }
+      serialNumber: "EAC-BRN-001",
     },
     {
-      id: 'meter_002',
-      customerId: 'cust_002',
-      customerName: 'María González',
-      coordinates: { lat: -33.4372, lng: -70.6506 },
-      address: 'Las Condes 567, Santiago',
-      status: 'suspicious',
-      consumption: 189.2,
-      lastReading: new Date(Date.now() - 4 * 60 * 60 * 1000),
-      anomalies: 2,
-      deviceInfo: { serialNumber: 'EAC001235', model: 'SmartMeter Pro' }
-    },
-    {
-      id: 'meter_003',
-      customerId: 'cust_003',
-      customerName: 'Carlos Silva',
-      coordinates: { lat: -33.4569, lng: -70.6483 },
-      address: 'Ñuñoa 890, Santiago',
-      status: 'fraud_detected',
-      consumption: 0,
-      lastReading: new Date(Date.now() - 24 * 60 * 60 * 1000),
-      anomalies: 5,
-      deviceInfo: { serialNumber: 'EAC001236', model: 'SmartMeter Pro' }
-    },
-    {
-      id: 'meter_004',
-      customerId: 'cust_004',
-      customerName: 'Ana Martínez',
-      coordinates: { lat: -33.4378, lng: -70.6504 },
-      address: 'Vitacura 321, Santiago',
-      status: 'active',
+      id: "meter_002",
+      customerName: "Condominio La Dehesa",
+      coordinates: { lat: -33.3645, lng: -70.5234 },
+      address: "Camino La Dehesa 1234, Barnechea",
+      status: "active",
       consumption: 312.5,
-      lastReading: new Date(Date.now() - 1 * 60 * 60 * 1000),
       anomalies: 0,
-      deviceInfo: { serialNumber: 'EAC001237', model: 'SmartMeter Pro' }
-    }
-  ];
-
-  const capasDisponibles: MapaLayer[] = [
-    { id: 'meters', name: 'Medidores', type: 'meters', visible: true, color: '#3b82f6' },
-    { id: 'consumption', name: 'Consumo', type: 'consumption', visible: false, color: '#f59e0b' },
-    { id: 'anomalies', name: 'Anomalías', type: 'anomalies', visible: true, color: '#ef4444' },
-    { id: 'weather', name: 'Clima', type: 'weather', visible: false, color: '#10b981' },
-    { id: 'zones', name: 'Zonas', type: 'zones', visible: false, color: '#8b5cf6' }
+      serialNumber: "EAC-BRN-002",
+    },
+    {
+      id: "meter_003",
+      customerName: "Casa Particular - Sr. Silva",
+      coordinates: { lat: -33.3512, lng: -70.5156 },
+      address: "Av. El Rodeo 890, Barnechea",
+      status: "suspicious",
+      consumption: 89.2,
+      anomalies: 2,
+      serialNumber: "EAC-BRN-003",
+    },
+    {
+      id: "meter_004",
+      customerName: "Edificio Comercial Plaza Norte",
+      coordinates: { lat: -33.3701, lng: -70.5312 },
+      address: "Av. Padre Hurtado 5678, Barnechea",
+      status: "fraud_detected",
+      consumption: 0,
+      anomalies: 5,
+      serialNumber: "EAC-BRN-004",
+    },
+    {
+      id: "meter_005",
+      customerName: "Casa en Construcción Lote 45",
+      coordinates: { lat: -33.3667, lng: -70.5145 },
+      address: "Parcela 45, Los Dominicos, Barnechea",
+      status: "inactive",
+      consumption: 0,
+      anomalies: 0,
+      serialNumber: "EAC-BRN-005",
+    },
+    {
+      id: "meter_006",
+      customerName: "Restaurant El Arrayán",
+      coordinates: { lat: -33.3623, lng: -70.5178 },
+      address: "Av. Manquehue Norte 2345, Barnechea",
+      status: "suspicious",
+      consumption: 156.3,
+      anomalies: 1,
+      serialNumber: "EAC-BRN-006",
+    },
+    {
+      id: "meter_007",
+      customerName: "Oficina Desocupada - Torre B",
+      coordinates: { lat: -33.3734, lng: -70.5289 },
+      address: "Av. Apoquindo 8900, Barnechea",
+      status: "inactive",
+      consumption: 0,
+      anomalies: 0,
+      serialNumber: "EAC-BRN-007",
+    },
+    {
+      id: "meter_008",
+      customerName: "Clínica Veterinaria Los Andes",
+      coordinates: { lat: -33.3556, lng: -70.5267 },
+      address: "Camino El Alba 678, Barnechea",
+      status: "suspicious",
+      consumption: 198.7,
+      anomalies: 1,
+      serialNumber: "EAC-BRN-008",
+    },
+    {
+      id: "meter_009",
+      customerName: "Bodega Industrial San Carlos",
+      coordinates: { lat: -33.3478, lng: -70.5201 },
+      address: "Camino San Carlos 999, Barnechea",
+      status: "fraud_detected",
+      consumption: 0,
+      anomalies: 3,
+      serialNumber: "EAC-BRN-009",
+    },
+    {
+      id: "meter_010",
+      customerName: "Local Comercial Cerrado",
+      coordinates: { lat: -33.3601, lng: -70.5334 },
+      address: "Mall Plaza Los Dominicos 234, Barnechea",
+      status: "inactive",
+      consumption: 0,
+      anomalies: 0,
+      serialNumber: "EAC-BRN-010",
+    },
   ];
 
   useEffect(() => {
-    cargarDatos();
-    setCapasActivas(capasDisponibles);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const cargarDatos = async () => {
-    setLoading(true);
-    
-    try {
-      // Simular llamada a API
-      await new Promise(resolve => setTimeout(resolve, 1500));
+    const cargarDatos = async () => {
+      setLoading(true);
+      await new Promise((resolve) => setTimeout(resolve, 500));
       setMedidores(datosEjemplo);
-    } catch (error) {
-      console.error('Error loading map data:', error);
-    } finally {
       setLoading(false);
-    }
-  };
+    };
+    cargarDatos();
+  }, []);
 
-  const medidoresFiltrados = medidores.filter(medidor => {
-    const matchesStatus = filtroEstado === 'todos' || medidor.status === filtroEstado;
-    const matchesSearch = busqueda === '' || 
-      medidor.customerName.toLowerCase().includes(busqueda.toLowerCase()) ||
-      medidor.address.toLowerCase().includes(busqueda.toLowerCase()) ||
-      medidor.deviceInfo.serialNumber.toLowerCase().includes(busqueda.toLowerCase());
-    
-    return matchesStatus && matchesSearch;
+  const medidoresFiltrados = medidores.filter((m) => {
+    if (filtroEstado === "todos") return true;
+    if (filtroEstado === "anomalias") return m.anomalies > 0;
+    return m.status === filtroEstado;
   });
 
-  const toggleCapa = (capaId: string) => {
-    setCapasActivas(prev => prev.map(capa => 
-      capa.id === capaId ? { ...capa, visible: !capa.visible } : capa
-    ));
-  };
-
-  const getStatusInfo = (status: MedidorMapa['status']) => {
-    switch (status) {
-      case 'active':
-        return { color: 'bg-green-500', text: 'Activo', textColor: 'text-green-600' };
-      case 'inactive':
-        return { color: 'bg-gray-500', text: 'Inactivo', textColor: 'text-gray-600' };
-      case 'suspicious':
-        return { color: 'bg-yellow-500', text: 'Sospechoso', textColor: 'text-yellow-600' };
-      case 'fraud_detected':
-        return { color: 'bg-red-500', text: 'Fraude', textColor: 'text-red-600' };
-    }
-  };
-
-  const getEstadisticas = () => {
-    const total = medidores.length;
-    const activos = medidores.filter(m => m.status === 'active').length;
-    const sospechosos = medidores.filter(m => m.status === 'suspicious').length;
-    const fraudes = medidores.filter(m => m.status === 'fraud_detected').length;
-    const consumoTotal = medidores.reduce((sum, m) => sum + m.consumption, 0);
-    const anomaliasTotal = medidores.reduce((sum, m) => sum + m.anomalies, 0);
-
-    return { total, activos, sospechosos, fraudes, consumoTotal, anomaliasTotal };
+  const stats = {
+    total: medidores.length,
+    activos: medidores.filter((m) => m.status === "active").length,
+    sospechosos: medidores.filter((m) => m.status === "suspicious").length,
+    fraudes: medidores.filter((m) => m.status === "fraud_detected").length,
+    inactivos: medidores.filter((m) => m.status === "inactive").length,
+    anomaliasTotal: medidores.reduce((sum, m) => sum + m.anomalies, 0),
   };
 
   if (loading) {
     return (
-      <Card className={reducida ? "h-64" : ""}>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
             <Map className="h-5 w-5 text-blue-600" />
             Mapa Interactivo
           </CardTitle>
@@ -197,398 +180,230 @@ export function MapaInteractivo({ reducida = false }: MapaInteractivoProps) {
     );
   }
 
-  const stats = getEstadisticas();
-
   if (reducida) {
     return (
-      <Card className="h-64 hover:shadow-lg transition-shadow cursor-pointer">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Map className="h-5 w-5 text-blue-600" />
-            Mapa Interactivo
-          </CardTitle>
-          <CardDescription className="text-xs">
-            {stats.total} medidores monitoreados
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="text-center">
-                <div className="text-lg font-bold text-green-600">
-                  {stats.activos}
-                </div>
-                <p className="text-xs text-muted-foreground">Activos</p>
-              </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-red-600">
-                  {stats.fraudes}
-                </div>
-                <p className="text-xs text-muted-foreground">Fraudes</p>
-              </div>
+      <div className="space-y-3">
+        <div className="grid grid-cols-3 gap-3">
+          <div className="text-center p-3 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200">
+            <div className="text-2xl font-bold text-green-600">
+              {stats.activos}
             </div>
-
-            {stats.anomaliasTotal > 0 && (
-              <div className="flex items-center gap-2 p-2 bg-red-50 dark:bg-red-950/20 rounded-lg">
-                <AlertTriangle className="h-4 w-4 text-red-500" />
-                <span className="text-xs text-red-700 dark:text-red-300">
-                  {stats.anomaliasTotal} anomalías detectadas
-                </span>
-              </div>
-            )}
-
-            <div className="h-12 bg-gradient-to-br from-blue-100 to-green-100 dark:from-blue-900/20 dark:to-green-900/20 rounded-lg flex items-center justify-center">
-              <Map className="h-6 w-6 text-blue-600" />
-            </div>
+            <p className="text-xs text-muted-foreground mt-1">Activos</p>
           </div>
-        </CardContent>
-      </Card>
+          <div className="text-center p-3 rounded-lg bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200">
+            <div className="text-2xl font-bold text-yellow-600">
+              {stats.sospechosos}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Sospechosos</p>
+          </div>
+          <div className="text-center p-3 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200">
+            <div className="text-2xl font-bold text-red-600">
+              {stats.fraudes}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Fraudes</p>
+          </div>
+        </div>
+
+        <div className="relative h-48 rounded-lg overflow-hidden border-2 border-blue-200">
+          <LeafletMap
+            medidores={medidores.map((m) => ({
+              id: m.id,
+              nombre: m.customerName,
+              lat: m.coordinates.lat,
+              lng: m.coordinates.lng,
+              direccion: m.address,
+              estado: m.status,
+              consumo: m.consumption,
+              anomalias: m.anomalies,
+              serial: m.serialNumber,
+            }))}
+            filtro="todos"
+          />
+        </div>
+
+        <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200">
+          <span className="text-sm font-medium">Zona: Barnechea, Santiago</span>
+          <Badge
+            variant="outline"
+            className="bg-green-100 text-green-700 border-green-300"
+          >
+            {stats.total} Medidores
+          </Badge>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-xl flex items-center gap-2">
-                <Map className="h-6 w-6 text-blue-600" />
-                Mapa Interactivo de Red Eléctrica
-              </CardTitle>
-              <CardDescription>
-                Visualización geográfica de medidores con detección de anomalías GPS
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Exportar
-              </Button>
-              <Button variant="outline" size="sm" onClick={cargarDatos}>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Actualizar
-              </Button>
-            </div>
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Map className="h-6 w-6 text-blue-600" />
+              Mapa Interactivo de Red Eléctrica
+            </CardTitle>
+            <CardDescription>
+              Visualización geográfica de medidores en Barnechea
+            </CardDescription>
           </div>
-        </CardHeader>
-        <CardContent>
-          {/* Estadísticas rápidas */}
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
-            <Card className="border-muted">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
-                <p className="text-xs text-muted-foreground">Total Medidores</p>
-              </CardContent>
-            </Card>
-            <Card className="border-muted">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-green-600">{stats.activos}</div>
-                <p className="text-xs text-muted-foreground">Activos</p>
-              </CardContent>
-            </Card>
-            <Card className="border-muted">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-yellow-600">{stats.sospechosos}</div>
-                <p className="text-xs text-muted-foreground">Sospechosos</p>
-              </CardContent>
-            </Card>
-            <Card className="border-muted">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-red-600">{stats.fraudes}</div>
-                <p className="text-xs text-muted-foreground">Fraudes</p>
-              </CardContent>
-            </Card>
-            <Card className="border-muted">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-purple-600">
-                  {(stats.consumoTotal / 1000).toFixed(1)}
-                </div>
-                <p className="text-xs text-muted-foreground">MWh Total</p>
-              </CardContent>
-            </Card>
-            <Card className="border-muted">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-orange-600">{stats.anomaliasTotal}</div>
-                <p className="text-xs text-muted-foreground">Anomalías</p>
-              </CardContent>
-            </Card>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.location.reload()}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Actualizar
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+          <Card
+            className={`cursor-pointer transition-all hover:shadow-lg ${
+              filtroEstado === "todos" ? "ring-2 ring-blue-500" : ""
+            }`}
+            onClick={() => setFiltroEstado("todos")}
+          >
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-blue-600">
+                {stats.total}
+              </div>
+              <p className="text-xs text-muted-foreground">Total</p>
+            </CardContent>
+          </Card>
+          <Card
+            className={`cursor-pointer transition-all hover:shadow-lg ${
+              filtroEstado === "active" ? "ring-2 ring-green-500" : ""
+            }`}
+            onClick={() => setFiltroEstado("active")}
+          >
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {stats.activos}
+              </div>
+              <p className="text-xs text-muted-foreground">Activos</p>
+            </CardContent>
+          </Card>
+          <Card
+            className={`cursor-pointer transition-all hover:shadow-lg ${
+              filtroEstado === "suspicious" ? "ring-2 ring-yellow-500" : ""
+            }`}
+            onClick={() => setFiltroEstado("suspicious")}
+          >
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-yellow-600">
+                {stats.sospechosos}
+              </div>
+              <p className="text-xs text-muted-foreground">Sospechosos</p>
+            </CardContent>
+          </Card>
+          <Card
+            className={`cursor-pointer transition-all hover:shadow-lg ${
+              filtroEstado === "fraud_detected" ? "ring-2 ring-red-500" : ""
+            }`}
+            onClick={() => setFiltroEstado("fraud_detected")}
+          >
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-red-600">
+                {stats.fraudes}
+              </div>
+              <p className="text-xs text-muted-foreground">Fraudes</p>
+            </CardContent>
+          </Card>
+          <Card
+            className={`cursor-pointer transition-all hover:shadow-lg ${
+              filtroEstado === "inactive" ? "ring-2 ring-gray-500" : ""
+            }`}
+            onClick={() => setFiltroEstado("inactive")}
+          >
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-gray-600">
+                {stats.inactivos}
+              </div>
+              <p className="text-xs text-muted-foreground">Inactivos</p>
+            </CardContent>
+          </Card>
+          <Card
+            className={`cursor-pointer transition-all hover:shadow-lg ${
+              filtroEstado === "anomalias" ? "ring-2 ring-orange-500" : ""
+            }`}
+            onClick={() => setFiltroEstado("anomalias")}
+          >
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-orange-600">
+                {stats.anomaliasTotal}
+              </div>
+              <p className="text-xs text-muted-foreground">Anomalías</p>
+            </CardContent>
+          </Card>
+        </div>
 
-          {/* Controles */}
-          <div className="flex flex-wrap gap-4 mb-6">
-            <div className="flex items-center gap-2">
-              <Search className="h-4 w-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Buscar medidor, cliente o dirección..."
-                value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
-                className="px-3 py-2 border border-border rounded-lg text-sm w-64"
-              />
+        {/* Mapa */}
+        <div className="relative h-[600px] rounded-lg overflow-hidden border-2 border-blue-200">
+          <LeafletMap
+            medidores={medidoresFiltrados.map((m) => ({
+              id: m.id,
+              nombre: m.customerName,
+              lat: m.coordinates.lat,
+              lng: m.coordinates.lng,
+              direccion: m.address,
+              estado: m.status,
+              consumo: m.consumption,
+              anomalias: m.anomalies,
+              serial: m.serialNumber,
+            }))}
+            filtro={filtroEstado}
+          />
+
+          {/* Alerta de anomalías */}
+          {stats.anomaliasTotal > 0 && (
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg shadow-xl flex items-center gap-2 animate-pulse z-[1000]">
+              <AlertTriangle className="h-5 w-5" />
+              <span className="text-sm font-bold">
+                {stats.anomaliasTotal} Anomalías Detectadas
+              </span>
             </div>
+          )}
+        </div>
 
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <Select value={filtroEstado} onValueChange={setFiltroEstado}>
-                <SelectTrigger className="w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos</SelectItem>
-                  <SelectItem value="active">Activos</SelectItem>
-                  <SelectItem value="suspicious">Sospechosos</SelectItem>
-                  <SelectItem value="fraud_detected">Fraudes</SelectItem>
-                  <SelectItem value="inactive">Inactivos</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Panel de capas */}
-          <Card className="border-muted mb-6">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Layers className="h-5 w-5 text-blue-600" />
-                Capas del Mapa
+        {/* Lista de anomalías */}
+        {stats.anomaliasTotal > 0 && (
+          <Card className="border-red-200">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2 text-red-600">
+                <AlertTriangle className="h-5 w-5" />
+                Medidores con Anomalías
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {capasActivas.map((capa) => (
-                  <div key={capa.id} className="flex items-center gap-3">
-                    <Switch
-                      checked={capa.visible}
-                      onCheckedChange={() => toggleCapa(capa.id)}
-                    />
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: capa.color }}
-                      ></div>
-                      <span className="text-sm">{capa.name}</span>
+              <div className="space-y-2">
+                {medidoresFiltrados
+                  .filter((m) => m.anomalies > 0)
+                  .map((m) => (
+                    <div
+                      key={m.id}
+                      className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200"
+                    >
+                      <div>
+                        <p className="font-semibold text-sm">
+                          {m.customerName}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {m.address}
+                        </p>
+                      </div>
+                      <Badge variant="destructive">
+                        {m.anomalies} anomalías
+                      </Badge>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </CardContent>
           </Card>
-
-          {/* Tabs de visualización */}
-          <Tabs value={vistaActiva} onValueChange={(value) => setVistaActiva(value as any)}>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="mapa">Vista de Mapa</TabsTrigger>
-              <TabsTrigger value="lista">Lista de Medidores</TabsTrigger>
-              <TabsTrigger value="clusters">Análisis por Clusters</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="mapa" className="space-y-4">
-              <Card>
-                <CardContent className="p-0">
-                  <div className="relative h-96 bg-gradient-to-br from-blue-100 to-green-100 dark:from-blue-900/20 dark:to-green-900/20 rounded-lg overflow-hidden">
-                    {/* Simulación de mapa interactivo */}
-                    <div className="absolute inset-0 p-4">
-                      {medidoresFiltrados.map((medidor, index) => {
-                        const statusInfo = getStatusInfo(medidor.status);
-                        const x = 20 + (index % 4) * 20; // Distribución simulada
-                        const y = 20 + Math.floor(index / 4) * 25;
-                        
-                        return (
-                          <div
-                            key={medidor.id}
-                            className="absolute cursor-pointer group"
-                            style={{ left: `${x}%`, top: `${y}%` }}
-                          >
-                            <div className={`w-4 h-4 rounded-full ${statusInfo.color} animate-pulse`}></div>
-                            
-                            {/* Tooltip */}
-                            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 min-w-48">
-                              <div className="space-y-1">
-                                <p className="font-semibold text-sm">{medidor.customerName}</p>
-                                <p className="text-xs text-muted-foreground">{medidor.address}</p>
-                                <div className="flex items-center gap-2">
-                                  <Badge variant="outline" className={statusInfo.textColor}>
-                                    {statusInfo.text}
-                                  </Badge>
-                                  <span className="text-xs">{medidor.consumption} kWh</span>
-                                </div>
-                                {medidor.anomalies > 0 && (
-                                  <div className="flex items-center gap-1">
-                                    <AlertTriangle className="h-3 w-3 text-red-500" />
-                                    <span className="text-xs text-red-600">
-                                      {medidor.anomalies} anomalías
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Leyenda */}
-                    <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-gray-800/90 p-3 rounded-lg">
-                      <h4 className="font-semibold text-sm mb-2">Leyenda</h4>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                          <span className="text-xs">Activo</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                          <span className="text-xs">Sospechoso</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                          <span className="text-xs">Fraude</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Controles de zoom */}
-                    <div className="absolute top-4 right-4 space-y-2">
-                      <Button size="sm" variant="secondary">+</Button>
-                      <Button size="sm" variant="secondary">-</Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="lista" className="space-y-4">
-              <Card>
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead className="border-b">
-                        <tr>
-                          <th className="text-left p-3">Cliente</th>
-                          <th className="text-left p-3">Dirección</th>
-                          <th className="text-left p-3">Estado</th>
-                          <th className="text-left p-3">Consumo</th>
-                          <th className="text-left p-3">Anomalías</th>
-                          <th className="text-left p-3">Última Lectura</th>
-                          <th className="text-left p-3">Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {medidoresFiltrados.map((medidor) => {
-                          const statusInfo = getStatusInfo(medidor.status);
-                          return (
-                            <tr key={medidor.id} className="border-b hover:bg-muted/50">
-                              <td className="p-3">
-                                <div>
-                                  <p className="font-medium">{medidor.customerName}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {medidor.deviceInfo.serialNumber}
-                                  </p>
-                                </div>
-                              </td>
-                              <td className="p-3">
-                                <p className="text-xs">{medidor.address}</p>
-                              </td>
-                              <td className="p-3">
-                                <Badge variant="outline" className={statusInfo.textColor}>
-                                  {statusInfo.text}
-                                </Badge>
-                              </td>
-                              <td className="p-3">
-                                <span className="font-medium">{medidor.consumption} kWh</span>
-                              </td>
-                              <td className="p-3">
-                                {medidor.anomalies > 0 ? (
-                                  <Badge variant="destructive">
-                                    {medidor.anomalies}
-                                  </Badge>
-                                ) : (
-                                  <CheckCircle className="h-4 w-4 text-green-500" />
-                                )}
-                              </td>
-                              <td className="p-3">
-                                <span className="text-xs">
-                                  {medidor.lastReading.toLocaleString('es-CL')}
-                                </span>
-                              </td>
-                              <td className="p-3">
-                                <div className="flex items-center gap-2">
-                                  <Button size="sm" variant="outline">
-                                    <Eye className="h-3 w-3" />
-                                  </Button>
-                                  <Button size="sm" variant="outline">
-                                    <Settings className="h-3 w-3" />
-                                  </Button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="clusters" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Análisis por Zonas</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="p-4 border rounded-lg">
-                        <h4 className="font-semibold mb-2">Zona Norte</h4>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>Medidores: 15</div>
-                          <div>Consumo: 3.2 MWh</div>
-                          <div>Anomalías: 2</div>
-                          <div>Eficiencia: 94%</div>
-                        </div>
-                      </div>
-                      <div className="p-4 border rounded-lg">
-                        <h4 className="font-semibold mb-2">Zona Centro</h4>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>Medidores: 22</div>
-                          <div>Consumo: 4.8 MWh</div>
-                          <div>Anomalías: 1</div>
-                          <div>Eficiencia: 97%</div>
-                        </div>
-                      </div>
-                      <div className="p-4 border rounded-lg">
-                        <h4 className="font-semibold mb-2">Zona Sur</h4>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>Medidores: 18</div>
-                          <div>Consumo: 3.9 MWh</div>
-                          <div>Anomalías: 4</div>
-                          <div>Eficiencia: 89%</div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Patrones de Consumo</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-64 bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg flex items-center justify-center">
-                      <div className="text-center">
-                        <TrendingUp className="h-12 w-12 text-purple-600 mx-auto mb-4" />
-                        <p className="text-sm text-muted-foreground">
-                          Gráfico de patrones de consumo por zona
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-    </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/card";
 
 export function ConfiguracionEmpresa({ className }: ConfiguracionEmpresaProps) {
-  const { user } = useApi();
+  const { user, isLoading: userLoading } = useApi();
   const {
     datosEmpresa,
     configuracionNotificaciones,
@@ -36,6 +36,9 @@ export function ConfiguracionEmpresa({ className }: ConfiguracionEmpresaProps) {
     isLoading,
     isSaving,
   } = useConfiguracionEmpresa();
+
+  // Obtener el ID del usuario de manera segura
+  const userId = user?.id || (user as any)?._id || "";
 
   // Manejar estados especiales (carga, error, sin empresa)
   const estadoEspecial = (
@@ -82,14 +85,10 @@ export function ConfiguracionEmpresa({ className }: ConfiguracionEmpresaProps) {
 
       {/* Contenido principal con tabs */}
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
             Datos Generales
-          </TabsTrigger>
-          <TabsTrigger value="perfil" className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            Perfil
           </TabsTrigger>
           <TabsTrigger
             value="notificaciones"
@@ -110,12 +109,16 @@ export function ConfiguracionEmpresa({ className }: ConfiguracionEmpresaProps) {
             saving={estados.saving}
           />
 
-          {/* Contacto principal */}
+          {/* Contacto principal con imagen de perfil */}
           <ConfiguracionContacto
             contactoPrincipal={datosEmpresa.contactoPrincipal}
             onContactoChange={actualizarContacto}
             loading={estados.loading}
             saving={estados.saving}
+            userId={userId}
+            userType={user?.type || user?.role || "empresa"}
+            userName={datosEmpresa.nombreEmpresa || user?.name || "Empresa"}
+            userLoading={userLoading}
           />
 
           {/* Botón para guardar datos generales */}
@@ -138,44 +141,6 @@ export function ConfiguracionEmpresa({ className }: ConfiguracionEmpresaProps) {
               )}
             </Button>
           </div>
-        </TabsContent>
-
-        {/* Tab de Perfil */}
-        <TabsContent value="perfil" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5 text-orange-600" />
-                Imagen de Perfil
-              </CardTitle>
-              <CardDescription>
-                Personaliza la imagen de perfil de tu empresa
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col items-center space-y-6">
-                <ProfileImageManager
-                  userId={(user as any)?._id || user?.id || ""}
-                  tipoUsuario={
-                    user?.type ||
-                    user?.role ||
-                    (user as any)?.tipoUsuario ||
-                    "empresa"
-                  }
-                  userName={datosEmpresa.nombreEmpresa || "Empresa"}
-                  size="xl"
-                  showUploadArea={true}
-                  className="w-full max-w-md"
-                />
-                <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-                  <p>
-                    La imagen de perfil aparecerá en el header del dashboard
-                  </p>
-                  <p>y en las comunicaciones de tu empresa.</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
 
         {/* Tab de Notificaciones */}

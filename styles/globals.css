@@ -87,3 +87,24 @@ html.dark {
 html.light {
   color-scheme: light;
 }
+
+/* Leaflet Map Styles */
+@import "leaflet/dist/leaflet.css";
+
+.leaflet-container {
+  font-family: inherit;
+}
+
+.custom-marker {
+  background: transparent;
+  border: none;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.leaflet-popup-content {
+  margin: 12px;
+}

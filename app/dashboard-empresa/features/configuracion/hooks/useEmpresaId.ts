@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import { UseEmpresaIdReturn } from "../types";
 
-// Hook para obtener empresaId del contexto/token
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+
+// Hook para obtener empresaId desde la base de datos
 export function useEmpresaId(): UseEmpresaIdReturn {
   const [empresaId, setEmpresaId] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
@@ -12,79 +14,102 @@ export function useEmpresaId(): UseEmpresaIdReturn {
   const [tokenData, setTokenData] = useState<any>(undefined);
 
   useEffect(() => {
-    const obtenerEmpresaId = () => {
+    const obtenerEmpresaIdDesdeAPI = async () => {
       try {
+        setLoading(true);
         setError(undefined);
 
-        // Primero intentar localStorage - donde guardamos userData después del login
-        const userDataString = localStorage.getItem("userData");
-        if (userDataString) {
-          try {
-            const userData = JSON.parse(userDataString);
-            console.log("📋 UserData encontrado:", userData);
-            setUserData(userData);
-
-            if (userData.id || userData._id) {
-              return {
-                id: userData.id || userData._id,
-                fuente: "localStorage" as const,
-                data: userData,
-              };
-            }
-          } catch (error) {
-            console.error("Error parsing userData:", error);
-            setError("Error al procesar datos de usuario");
-          }
-        }
-
-        // Intentar obtener del token JWT
+        // Obtener el token de autenticación
         const token =
-          localStorage.getItem("token") || localStorage.getItem("auth_token");
-        if (token) {
-          try {
-            const payload = JSON.parse(atob(token.split(".")[1]));
-            console.log("🔐 Token payload:", payload);
-            setTokenData(payload);
+          localStorage.getItem("auth_token") ||
+          localStorage.getItem("token") ||
+          document.cookie
+            .split("; ")
+            .find((row) => row.startsWith("auth_token="))
+            ?.split("=")[1];
 
-            if (payload.empresaId || payload.id || payload.sub) {
-              return {
-                id: payload.empresaId || payload.id || payload.sub,
-                fuente: "token" as const,
-                data: payload,
-              };
-            }
-          } catch (error) {
-            console.error("Error decoding token:", error);
-            setError("Token inválido");
-          }
+        if (!token) {
+          console.warn("⚠️ No hay token de autenticación");
+          setError("No hay sesión activa");
+          setLoading(false);
+          return;
         }
 
-        console.warn("⚠️ No se pudo encontrar empresaId");
-        setError("No se pudo identificar la empresa");
-        return null;
+        // Llamar a la API para obtener el perfil del usuario
+        const response = await fetch(`${API_URL}/auth/me`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log("📋 Perfil obtenido desde API:", data);
+
+        // El perfil puede venir en diferentes formatos según la API
+        const profile = data.data || data.user || data;
+        setUserData(profile);
+
+        // Extraer el empresaId - MongoDB usa _id como ObjectId
+        const id =
+          profile._id?.toString() ||
+          profile.id?.toString() ||
+          profile.empresaId?.toString();
+
+        if (id) {
+          console.log("🏢 EmpresaId obtenido desde API:", id);
+          setEmpresaId(id);
+
+          // Guardar en localStorage para uso futuro
+          localStorage.setItem("user", JSON.stringify(profile));
+        } else {
+          console.warn("⚠️ No se encontró empresaId en el perfil");
+          setError("No se pudo identificar la empresa");
+        }
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "Error desconocido";
+        console.error("❌ Error obteniendo empresaId desde API:", err);
         setError(errorMessage);
-        console.error("Error obteniendo empresaId:", err);
-        return null;
+
+        // Fallback: intentar obtener desde localStorage
+        try {
+          const userDataString =
+            localStorage.getItem("user") || localStorage.getItem("userData");
+
+          if (userDataString) {
+            const userData = JSON.parse(userDataString);
+            console.log(
+              "📋 Usando datos de localStorage como fallback:",
+              userData
+            );
+            setUserData(userData);
+
+            const id =
+              userData._id?.toString() ||
+              userData.id?.toString() ||
+              userData.empresaId?.toString();
+            if (id) {
+              console.log("🏢 EmpresaId obtenido desde localStorage:", id);
+              setEmpresaId(id);
+              setError(undefined);
+            }
+          }
+        } catch (fallbackError) {
+          console.error("Error en fallback:", fallbackError);
+        }
+      } finally {
+        setLoading(false);
       }
     };
 
-    setLoading(true);
-    const resultado = obtenerEmpresaId();
-
-    if (resultado) {
-      console.log(
-        `🏢 EmpresaId obtenido desde ${resultado.fuente}:`,
-        resultado.id
-      );
-      setEmpresaId(resultado.id);
-    } else {
-      setEmpresaId(undefined);
-    }
-
-    setLoading(false);
+    obtenerEmpresaIdDesdeAPI();
   }, []);
 
   return {
