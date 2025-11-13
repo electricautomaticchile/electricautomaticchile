@@ -49,7 +49,7 @@ const PoliticasCondiciones = () => {
         <p>
           Tal como se utiliza en estos Términos y Condiciones, las palabras
           “usted” y “su” se refieren a usted personalmente o, si accede a
-          Electricautomaticchiel en nombre de una persona jurídica o entidad, a
+          Electricautomaticchile en nombre de una persona jurídica o entidad, a
           esa persona jurídica o entidad. La Compañía se reserva el derecho de
           revisar estos Términos y Condiciones en cualquier momento mediante la
           actualización de este documento. Tras dicha actualización, se le
@@ -147,7 +147,9 @@ const PoliticasCondiciones = () => {
           acuerdos relacionados) de software y scripts de terceros utilizados en
           Electricautomaticchile;
         </p>
-        <p><b>Cuenta de usuario y Suscripción</b></p>
+        <p>
+          <b>Cuenta de usuario y Suscripción</b>
+        </p>
         <p>
           Electricautomaticchile requiere que los usuarios se registren mediante
           la creación de cuentas (en adelante cada una de éstas una “Cuenta de
@@ -186,29 +188,35 @@ const PoliticasCondiciones = () => {
           </a>
           .
         </p>
-        <p><b>Seguridad e Inmovilización remota de vehículos</b></p>
         <p>
-          Electricautomaticchile permite hacer seguimiento en línea de los
-          vehículos e inmovilizarlos en caso de robo o emergencias. Bajo ninguna
-          circunstancia Electricautomaticchile hace el rol de aseguradora, por
-          lo que no responde de ninguna de las maneras que haría una aseguradora
-          por los daños o robo que pueda sufrir algún vehículo del cliente.
+          <b>Servicios de Gestión Eléctrica y Conectividad</b>
         </p>
         <p>
-          El servicio está supeditado a la calidad y cobertura de la señal GPRS
-          o señal de telefonía celular y la señal satelital GPS. Drivetech no se
-          responsabiliza por fallas o caídas de sistema producto de una baja o
-          nula señal GPRS o GPS. La calidad y cobertura de la señal GPRS está en
-          directa función de las operadoras de telefonía, mientras que la señal
-          GPS depende de la cobertura de los satélites de esta red.
+          Electricautomaticchile proporciona servicios de monitoreo, control y
+          gestión del suministro eléctrico mediante dispositivos IoT. Bajo
+          ninguna circunstancia Electricautomaticchile actúa como distribuidora
+          eléctrica o aseguradora, por lo que no responde por daños, pérdidas o
+          interrupciones del suministro eléctrico que puedan afectar al cliente.
         </p>
         <p>
-          El uso del sistema Drivetech no genera responsabilidad alguna por
-          parte de Drivetech. Sólo el usuario es responsable del uso adecuado y
-          prudente de los diferentes protocolos de emergencia, como por ejemplo
-          el apagado del vehículo a distancia.
+          El servicio está supeditado a la calidad y cobertura de la señal de
+          telefonía celular (GPRS/4G/5G) y la señal satelital GPS.
+          Electricautomaticchile no se responsabiliza por fallas o caídas del
+          sistema producto de una baja o nula señal de conectividad. La calidad
+          y cobertura de la señal está en directa función de las operadoras de
+          telefonía, mientras que la señal GPS depende de la cobertura de los
+          satélites de esta red.
         </p>
-        <p><b>Propiedad Intelectual</b></p>
+        <p>
+          El uso del sistema Electricautomaticchile no genera responsabilidad
+          alguna por parte de la Compañía. Sólo el usuario es responsable del
+          uso adecuado y prudente de los diferentes protocolos de gestión
+          eléctrica, como por ejemplo el corte y reposición remota del
+          suministro.
+        </p>
+        <p>
+          <b>Propiedad Intelectual</b>
+        </p>
         <p>
           El Sitio, los Productos de Electricautomaticchile y su contenido,
           características y funcionalidad originales son propiedad de la
@@ -223,8 +231,8 @@ const PoliticasCondiciones = () => {
           respectivos terceros licenciantes. Al usar Electricautomaticchile no
           se le ha ofrecido ninguna licencia, cesión, arrendamiento o venta de
           propiedad intelectual. Usted acepta no utilizar la Propiedad
-          Intelectual asociada a Drivetech, o derivados de la misma, incluido el
-          nombre “Electricautomaticchile” o el logotipo de
+          Intelectual asociada a Electricautomaticchile, o derivados de la
+          misma, incluido el nombre “Electricautomaticchile” o el logotipo de
           Electricautomaticchile para cualquier otro propósito que no sea el
           expresamente permitido por estos Términos y Condiciones. La Compañía
           se reserva todos los derechos sobre la Propiedad Intelectual.
@@ -245,7 +253,9 @@ const PoliticasCondiciones = () => {
           servicios de Electricautomaticchile. La Compañía no tiene la
           obligación de pagar por el Contenido del Usuario.
         </p>
-        <p><b>Limitación de daños e indemnización</b></p>
+        <p>
+          <b>Limitación de daños e indemnización</b>
+        </p>
         <p>
           Nuestras Herramientas, productos y servicios y todo el contenido
           incluido se proporcionan “tal cual” sin garantía de ningún tipo, ya
@@ -295,11 +305,13 @@ const PoliticasCondiciones = () => {
           sociedad matriz y filiales, y sus propietarios, funcionarios, agentes,
           socios y empleados, indemnes ante cualquier pérdida, responsabilidad o
           reclamo, realizado por un tercero debido a su incumplimiento o
-          incumplimiento de estos Términos y Condiciones, su uso de Drivetech y
-          su violación de cualquier estatuto, reglamento, ordenanza, código o
-          acuerdo.
+          incumplimiento de estos Términos y Condiciones, su uso de
+          Electricautomaticchile y su violación de cualquier estatuto,
+          reglamento, ordenanza, código o acuerdo.
         </p>
-        <p><b>Resolución de disputas</b></p>
+        <p>
+          <b>Resolución de disputas y Legislación aplicable</b>
+        </p>
         <p>
           Nuestras Herramientas, productos y servicios y todo el contenido
           incluido se proporcionan “tal cual” sin garantía de ningún tipo, ya
@@ -311,9 +323,9 @@ const PoliticasCondiciones = () => {
         <p>
           Electricautomaticchile no se hace responsable por la pérdida que
           pudiera surgir por basarse en información o materiales publicados en
-          Drivetech, o de aquel contenido que sea o pueda ser proporcionada por
-          sus filiales o un tercero, incluso en relación con cualquier
-          imprecisión u omisión en el Sitio y Herramientas de
+          Electricautomaticchile, o de aquel contenido que sea o pueda ser
+          proporcionada por sus filiales o un tercero, incluso en relación con
+          cualquier imprecisión u omisión en el Sitio y Herramientas de
           Electricautomaticchile.
         </p>
         <p>
@@ -349,11 +361,13 @@ const PoliticasCondiciones = () => {
           sociedad matriz y filiales, y sus propietarios, funcionarios, agentes,
           socios y empleados, indemnes ante cualquier pérdida, responsabilidad o
           reclamo, realizado por un tercero debido a su incumplimiento o
-          incumplimiento de estos Términos y Condiciones, su uso de Drivetech y
-          su violación de cualquier estatuto, reglamento, ordenanza, código o
-          acuerdo.
+          incumplimiento de estos Términos y Condiciones, su uso de
+          Electricautomaticchile y su violación de cualquier estatuto,
+          reglamento, ordenanza, código o acuerdo.
         </p>
-        <p><b>Términos adicionales</b></p>
+        <p>
+          <b>Términos adicionales</b>
+        </p>
         <p>
           Estos Términos y Condiciones, junto con la Política de Privacidad
           incorporada aquí como referencia, comprenden el acuerdo completo entre
