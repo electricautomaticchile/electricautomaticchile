@@ -29,6 +29,7 @@ import { apiService } from "@/lib/api/apiService";
 import { useWebSocket } from "@/lib/websocket/useWebSocket";
 import type { ActualizacionPotenciaDispositivo } from "@/lib/websocket/tipos";
 import { Badge } from "@/components/ui/badge";
+import { useApi } from "@/lib/hooks/useApi";
 
 interface ConsumoElectricoProps {
   reducida?: boolean;
@@ -45,8 +46,8 @@ interface DatosConsumo {
   consumoMaximo: number;
   consumoMinimo: number;
   tarifaKwh: number;
-  datosGrafico: any[];
-  resumen: {
+  datosGrafico?: any[];
+  resumen?: {
     dispositivosActivos: number;
     ultimaActualizacion: string;
     tendencia: string;
@@ -55,67 +56,95 @@ interface DatosConsumo {
 
 export function ConsumoElectrico({
   reducida = false,
-  clienteId = "default-client-id",
+  clienteId,
 }: ConsumoElectricoProps) {
+  // Obtener el usuario autenticado
+  const { user } = useApi();
+
+  // Usar el ID del usuario autenticado o el clienteId proporcionado
+  const idCliente =
+    clienteId || (user as any)?._id?.toString() || user?.id?.toString() || null;
   const [periodoSeleccionado, setPeriodoSeleccionado] = useState("mensual");
   const [añoSeleccionado, setAñoSeleccionado] = useState("2023");
   const [mesSeleccionado, setMesSeleccionado] = useState("Noviembre");
   const [datosConsumo, setDatosConsumo] = useState<DatosConsumo | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Estado para datos en tiempo real
-  const [consumoTiempoReal, setConsumoTiempoReal] = useState<number | null>(null);
+  const [consumoTiempoReal, setConsumoTiempoReal] = useState<number | null>(
+    null
+  );
   const [costoTiempoReal, setCostoTiempoReal] = useState<number | null>(null);
-  const [ultimaActualizacionTiempoReal, setUltimaActualizacionTiempoReal] = useState<Date | null>(null);
-  
+  const [ultimaActualizacionTiempoReal, setUltimaActualizacionTiempoReal] =
+    useState<Date | null>(null);
+
   // Hook de WebSocket
   const { estaConectado } = useWebSocket();
-  
+
   /**
    * Manejar actualizaciones de potencia en tiempo real
    */
-  const manejarActualizacionPotencia = useCallback((datos: ActualizacionPotenciaDispositivo) => {
-    console.log('[ConsumoElectrico] Actualización de potencia recibida:', datos);
-    
-    // Actualizar consumo en tiempo real (convertir W a kWh)
-    const consumoKwh = datos.energia || (datos.potenciaActiva / 1000);
-    setConsumoTiempoReal(consumoKwh);
-    
-    // Actualizar costo en tiempo real
-    if (datos.costo !== undefined) {
-      setCostoTiempoReal(datos.costo);
-    } else if (datosConsumo?.tarifaKwh) {
-      // Calcular costo si no viene en los datos
-      setCostoTiempoReal(consumoKwh * datosConsumo.tarifaKwh);
-    }
-    
-    // Actualizar timestamp
-    setUltimaActualizacionTiempoReal(new Date(datos.marcaTiempo));
-    
-    // Actualizar también los datos de consumo si están disponibles
-    if (datosConsumo) {
-      setDatosConsumo({
-        ...datosConsumo,
-        consumoActual: consumoKwh,
-        costoEstimado: datos.costo || (consumoKwh * datosConsumo.tarifaKwh),
-        resumen: {
-          ...datosConsumo.resumen,
-          ultimaActualizacion: datos.marcaTiempo,
-        },
-      });
-    }
-  }, [datosConsumo]);
-  
+  const manejarActualizacionPotencia = useCallback(
+    (datos: ActualizacionPotenciaDispositivo) => {
+      console.log(
+        "[ConsumoElectrico] Actualización de potencia recibida:",
+        datos
+      );
+
+      // Actualizar consumo en tiempo real (convertir W a kWh)
+      const consumoKwh = datos.energia || datos.potenciaActiva / 1000;
+      setConsumoTiempoReal(consumoKwh);
+
+      // Actualizar costo en tiempo real
+      if (datos.costo !== undefined) {
+        setCostoTiempoReal(datos.costo);
+      } else if (datosConsumo?.tarifaKwh) {
+        // Calcular costo si no viene en los datos
+        setCostoTiempoReal(consumoKwh * datosConsumo.tarifaKwh);
+      }
+
+      // Actualizar timestamp
+      setUltimaActualizacionTiempoReal(new Date(datos.marcaTiempo));
+
+      // Actualizar también los datos de consumo si están disponibles
+      if (datosConsumo) {
+        setDatosConsumo({
+          ...datosConsumo,
+          consumoActual: consumoKwh,
+          costoEstimado: datos.costo || consumoKwh * datosConsumo.tarifaKwh,
+          resumen: datosConsumo.resumen
+            ? {
+                ...datosConsumo.resumen,
+                ultimaActualizacion: datos.marcaTiempo,
+              }
+            : {
+                dispositivosActivos: 0,
+                ultimaActualizacion: datos.marcaTiempo,
+                tendencia: "Sin datos",
+              },
+        });
+      }
+    },
+    [datosConsumo]
+  );
+
   // Escuchar eventos de actualización de potencia
   useWebSocket<ActualizacionPotenciaDispositivo>(
-    'dispositivo:actualizacion_potencia',
+    "dispositivo:actualizacion_potencia",
     manejarActualizacionPotencia
   );
 
   // Cargar datos desde la API
   useEffect(() => {
     const cargarDatosConsumo = async () => {
+      // No cargar si no hay un ID de cliente válido
+      if (!idCliente) {
+        setCargando(false);
+        setError("No se pudo identificar al cliente");
+        return;
+      }
+
       try {
         setCargando(true);
         setError(null);
@@ -142,7 +171,7 @@ export function ConsumoElectrico({
         };
 
         const response = await apiService.obtenerEstadisticasConsumoCliente(
-          clienteId,
+          idCliente,
           parametros
         );
 
@@ -160,11 +189,15 @@ export function ConsumoElectrico({
     };
 
     cargarDatosConsumo();
-  }, [clienteId, periodoSeleccionado, añoSeleccionado, mesSeleccionado]);
+  }, [idCliente, periodoSeleccionado, añoSeleccionado, mesSeleccionado]);
 
   // Renderizar gráfico usando los datos de la API
   const renderizarGrafico = () => {
-    if (!datosConsumo || !datosConsumo.datosGrafico.length) {
+    if (
+      !datosConsumo ||
+      !datosConsumo.datosGrafico ||
+      !datosConsumo.datosGrafico.length
+    ) {
       return (
         <div className="h-60 flex items-center justify-center">
           <p className="text-gray-500">No hay datos disponibles</p>
@@ -261,7 +294,10 @@ export function ConsumoElectrico({
             <Zap className="h-5 w-5 text-orange-600" />
             Consumo Eléctrico
             {estaConectado && (
-              <Badge variant="default" className="ml-auto bg-green-500 hover:bg-green-600 text-xs">
+              <Badge
+                variant="default"
+                className="ml-auto bg-green-500 hover:bg-green-600 text-xs"
+              >
                 <Wifi className="h-3 w-3 mr-1" />
                 En Vivo
               </Badge>
@@ -281,11 +317,14 @@ export function ConsumoElectrico({
                 )}
               </div>
               <div className="text-2xl font-bold">
-                {consumoTiempoReal !== null ? consumoTiempoReal.toFixed(2) : datosConsumo.consumoActual} kWh
+                {consumoTiempoReal !== null
+                  ? consumoTiempoReal.toFixed(2)
+                  : datosConsumo.consumoActual}{" "}
+                kWh
               </div>
               <div className="text-sm text-gray-500">
                 <TrendingUp className="h-4 w-4 inline mr-1 text-green-600" />
-                {datosConsumo.resumen.tendencia}
+                {datosConsumo.resumen?.tendencia || "Sin datos"}
               </div>
             </div>
             <div className="space-y-2">
@@ -296,21 +335,27 @@ export function ConsumoElectrico({
                 )}
               </div>
               <div className="text-2xl font-bold">
-                ${(costoTiempoReal !== null ? costoTiempoReal : datosConsumo.costoEstimado).toLocaleString("es-CL")}
+                $
+                {(costoTiempoReal !== null
+                  ? costoTiempoReal
+                  : datosConsumo.costoEstimado || 0
+                ).toLocaleString("es-CL")}
               </div>
               <div className="text-sm text-gray-500">
                 <Clock className="h-4 w-4 inline mr-1" />
-                {datosConsumo.resumen.dispositivosActivos} dispositivos activos
+                {datosConsumo.resumen?.dispositivosActivos || 0} dispositivos
+                activos
               </div>
             </div>
           </div>
 
           <div className="h-28 mt-4">{renderizarGrafico()}</div>
-          
+
           {estaConectado && ultimaActualizacionTiempoReal && (
             <div className="mt-3 text-xs text-green-600 flex items-center gap-1">
               <Wifi className="h-3 w-3" />
-              Última actualización: {ultimaActualizacionTiempoReal.toLocaleTimeString("es-CL")}
+              Última actualización:{" "}
+              {ultimaActualizacionTiempoReal.toLocaleTimeString("es-CL")}
             </div>
           )}
         </CardContent>
@@ -333,7 +378,10 @@ export function ConsumoElectrico({
         <div className="flex items-center gap-3">
           {/* Indicador de tiempo real */}
           {estaConectado ? (
-            <Badge variant="default" className="bg-green-500 hover:bg-green-600 text-sm px-3 py-1">
+            <Badge
+              variant="default"
+              className="bg-green-500 hover:bg-green-600 text-sm px-3 py-1"
+            >
               <Wifi className="h-4 w-4 mr-1" />
               Tiempo Real
             </Badge>
@@ -343,14 +391,16 @@ export function ConsumoElectrico({
               Offline
             </Badge>
           )}
-          
+
           <div className="text-sm text-gray-500 dark:text-gray-400">
             Última actualización:{" "}
             {ultimaActualizacionTiempoReal
               ? ultimaActualizacionTiempoReal.toLocaleTimeString("es-CL")
-              : new Date(
-                  datosConsumo.resumen.ultimaActualizacion
-                ).toLocaleTimeString("es-CL")}
+              : datosConsumo.resumen?.ultimaActualizacion
+                ? new Date(
+                    datosConsumo.resumen.ultimaActualizacion
+                  ).toLocaleTimeString("es-CL")
+                : "Sin datos"}
           </div>
         </div>
       </div>
@@ -367,11 +417,14 @@ export function ConsumoElectrico({
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-orange-600">
-              {consumoTiempoReal !== null ? consumoTiempoReal.toFixed(2) : datosConsumo.consumoActual} kWh
+              {consumoTiempoReal !== null
+                ? consumoTiempoReal.toFixed(2)
+                : datosConsumo.consumoActual}{" "}
+              kWh
             </div>
             <div className="text-sm text-gray-500 mt-1">
               <TrendingUp className="h-4 w-4 inline mr-1 text-green-600" />
-              {datosConsumo.resumen.tendencia}
+              {datosConsumo.resumen?.tendencia || "Sin datos"}
             </div>
             {estaConectado && consumoTiempoReal !== null && (
               <div className="text-xs text-green-600 mt-1">
@@ -392,7 +445,11 @@ export function ConsumoElectrico({
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-orange-600">
-              ${(costoTiempoReal !== null ? costoTiempoReal : datosConsumo.costoEstimado).toLocaleString("es-CL")}
+              $
+              {(costoTiempoReal !== null
+                ? costoTiempoReal
+                : datosConsumo.costoEstimado || 0
+              ).toLocaleString("es-CL")}
             </div>
             <div className="text-sm text-gray-500 mt-1">
               <DollarSign className="h-4 w-4 inline mr-1" />
@@ -418,7 +475,8 @@ export function ConsumoElectrico({
             </div>
             <div className="text-sm text-gray-500 mt-1">
               <Clock className="h-4 w-4 inline mr-1" />
-              {datosConsumo.resumen.dispositivosActivos} dispositivos activos
+              {datosConsumo.resumen?.dispositivosActivos || 0} dispositivos
+              activos
             </div>
           </CardContent>
         </Card>
@@ -542,12 +600,20 @@ export function ConsumoElectrico({
           </h3>
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm">
-              <span className="font-medium text-slate-700 dark:text-slate-300">Tendencia:</span>
-              <span className="text-slate-600 dark:text-slate-400">{datosConsumo.resumen.tendencia}</span>
+              <span className="font-medium text-slate-700 dark:text-slate-300">
+                Tendencia:
+              </span>
+              <span className="text-slate-600 dark:text-slate-400">
+                {datosConsumo.resumen?.tendencia || "Sin datos"}
+              </span>
             </div>
             <div className="flex items-center gap-2 text-sm">
-              <span className="font-medium text-slate-700 dark:text-slate-300">Dispositivos activos:</span>
-              <span className="text-slate-600 dark:text-slate-400">{datosConsumo.resumen.dispositivosActivos}</span>
+              <span className="font-medium text-slate-700 dark:text-slate-300">
+                Dispositivos activos:
+              </span>
+              <span className="text-slate-600 dark:text-slate-400">
+                {datosConsumo.resumen?.dispositivosActivos || 0}
+              </span>
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">
               Los datos se actualizan automáticamente desde sus dispositivos IoT
