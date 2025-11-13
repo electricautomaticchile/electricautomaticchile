@@ -1,5 +1,17 @@
 import React from "react";
-import { Home, Zap, FileText, Clock, AlertCircle, User, HelpCircle, CloudSun, Lightbulb, Wind, MapPin } from "lucide-react";
+import {
+  Home,
+  Zap,
+  FileText,
+  Clock,
+  AlertCircle,
+  User,
+  HelpCircle,
+  CloudSun,
+  Lightbulb,
+  Wind,
+  MapPin,
+} from "lucide-react";
 
 interface NavigationClienteProps {
   onNavigate?: (item: string | null) => void;
@@ -7,20 +19,17 @@ interface NavigationClienteProps {
 }
 
 const navItems = [
-  { id: "resumen", label: "Resumen", icon: Home },
-  { id: "consumo", label: "Consumo", icon: Zap },
-  { id: "pronostico-clima", label: "Pronóstico Clima", icon: CloudSun },
-  { id: "consejos-ahorro", label: "Consejos Ahorro", icon: Lightbulb },
-  { id: "calidad-aire", label: "Calidad del Aire", icon: Wind },
-  { id: "mapa-ubicacion", label: "Ubicación", icon: MapPin },
-  { id: "boletas", label: "Boletas", icon: FileText },
-  { id: "historial", label: "Historial", icon: Clock },
-  { id: "alertas", label: "Alertas", icon: AlertCircle },
+  { id: "resumen", label: "Dashboard", icon: Home },
+  { id: "consumo", label: "Mi Consumo", icon: Zap },
+  { id: "boletas", label: "Pagos", icon: FileText },
   { id: "perfil", label: "Perfil", icon: User },
   { id: "soporte", label: "Soporte", icon: HelpCircle },
 ];
 
-const NavigationCliente: React.FC<NavigationClienteProps> = ({ onNavigate, activeItem }) => {
+const NavigationCliente: React.FC<NavigationClienteProps> = ({
+  onNavigate,
+  activeItem,
+}) => {
   const handleClick = (itemId: string) => {
     if (onNavigate) {
       onNavigate(itemId === "resumen" ? null : itemId);
@@ -31,7 +40,8 @@ const NavigationCliente: React.FC<NavigationClienteProps> = ({ onNavigate, activ
     <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card shadow-sm md:flex sticky top-0 h-screen">
       <nav className="flex flex-col gap-1 p-4 text-sm font-medium overflow-y-auto">
         {navItems.map(({ id, label, icon: Icon }) => {
-          const isActive = activeItem === id || (activeItem === null && id === "resumen");
+          const isActive =
+            activeItem === id || (activeItem === null && id === "resumen");
           return (
             <button
               key={id}

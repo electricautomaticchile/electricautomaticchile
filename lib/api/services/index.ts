@@ -2,7 +2,6 @@
 export { authService } from "./authService";
 export { cotizacionesService } from "./cotizacionesService";
 export { clientesService } from "./clientesService";
-export { usuariosService } from "./usuariosService";
 export { dispositivosService } from "./dispositivosService";
 export { estadisticasService } from "./estadisticasService";
 export { leadMagnetService } from "./leadMagnetService";

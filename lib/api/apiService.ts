@@ -12,7 +12,6 @@
 import { authService } from "./services/authService";
 import { cotizacionesService } from "./services/cotizacionesService";
 import { clientesService } from "./services/clientesService";
-import { usuariosService } from "./services/usuariosService";
 import { dispositivosService } from "./services/dispositivosService";
 import { estadisticasService } from "./services/estadisticasService";
 import { leadMagnetService } from "./services/leadMagnetService";
@@ -66,13 +65,6 @@ class ApiService {
   crearCliente = clientesService.crearCliente.bind(clientesService);
   actualizarCliente = clientesService.actualizarCliente.bind(clientesService);
   eliminarCliente = clientesService.eliminarCliente.bind(clientesService);
-
-  // =================== USUARIOS ===================
-  obtenerUsuarios = usuariosService.obtenerUsuarios.bind(usuariosService);
-  obtenerUsuario = usuariosService.obtenerUsuario.bind(usuariosService);
-  crearUsuario = usuariosService.crearUsuario.bind(usuariosService);
-  actualizarUsuario = usuariosService.actualizarUsuario.bind(usuariosService);
-  eliminarUsuario = usuariosService.eliminarUsuario.bind(usuariosService);
 
   // =================== DISPOSITIVOS IoT ===================
   obtenerDispositivos =
@@ -165,7 +157,6 @@ export {
   authService,
   cotizacionesService,
   clientesService,
-  usuariosService,
   dispositivosService,
   estadisticasService,
   leadMagnetService,

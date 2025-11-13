@@ -29,12 +29,15 @@ import { toast } from "@/components/ui/use-toast";
 import { apiService } from "@/lib/api/apiService";
 
 interface DatosUsuario {
+  _id?: string;
+  id?: string;
   nombre: string;
   numeroCliente: string;
   direccion: string;
   ultimoPago?: string;
   consumoActual?: number;
   email?: string;
+  correo?: string;
   telefono?: string;
 }
 
@@ -84,8 +87,13 @@ export function PerfilUsuario({ datos }: PerfilUsuarioProps) {
         },
       };
 
-      // Usar el número de cliente como ID para la actualización
-      const response = await apiService.actualizarUsuario(
+      // Usar el número de cliente para la actualización (más confiable)
+      if (!datos.numeroCliente) {
+        throw new Error("Número de cliente no disponible");
+      }
+
+      // Usar actualizarCliente en lugar de actualizarUsuario
+      const response = await apiService.actualizarCliente(
         datos.numeroCliente,
         datosActualizacion as any
       );
