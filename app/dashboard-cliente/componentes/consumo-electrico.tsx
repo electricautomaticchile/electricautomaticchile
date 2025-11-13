@@ -26,6 +26,7 @@ import {
   WifiOff,
 } from "lucide-react";
 import { apiService } from "@/lib/api/apiService";
+import { baseService } from "@/lib/api/utils/baseService";
 import { useWebSocket } from "@/lib/websocket/useWebSocket";
 import type { ActualizacionPotenciaDispositivo } from "@/lib/websocket/tipos";
 import { Badge } from "@/components/ui/badge";
@@ -70,6 +71,8 @@ export function ConsumoElectrico({
   const [datosConsumo, setDatosConsumo] = useState<DatosConsumo | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dispositivoAsignado, setDispositivoAsignado] =
+    useState<string>("arduino_uno");
 
   // Estado para datos en tiempo real
   const [consumoTiempoReal, setConsumoTiempoReal] = useState<number | null>(
@@ -134,6 +137,32 @@ export function ConsumoElectrico({
     "dispositivo:actualizacion_potencia",
     manejarActualizacionPotencia
   );
+
+  // Obtener dispositivo asignado al cliente
+  useEffect(() => {
+    const obtenerDispositivoAsignado = async () => {
+      if (!idCliente) return;
+
+      try {
+        const response = await baseService.get<{
+          dispositivoId: string;
+          clienteNombre: string;
+        }>("/clientes/mi-dispositivo");
+
+        if (response.success && response.data) {
+          setDispositivoAsignado(response.data.dispositivoId);
+          console.log(
+            `[ConsumoElectrico] Dispositivo asignado: ${response.data.dispositivoId}`
+          );
+        }
+      } catch (err) {
+        console.error("Error obteniendo dispositivo asignado:", err);
+        // Mantener el valor por defecto "arduino_uno"
+      }
+    };
+
+    obtenerDispositivoAsignado();
+  }, [idCliente]);
 
   // Cargar datos desde la API
   useEffect(() => {
@@ -293,15 +322,25 @@ export function ConsumoElectrico({
           <CardTitle className="text-lg font-bold flex items-center gap-2">
             <Zap className="h-5 w-5 text-orange-600" />
             Consumo Eléctrico
-            {estaConectado && (
-              <Badge
-                variant="default"
-                className="ml-auto bg-green-500 hover:bg-green-600 text-xs"
-              >
-                <Wifi className="h-3 w-3 mr-1" />
-                En Vivo
+            <div className="ml-auto flex items-center gap-2">
+              <Badge variant="outline" className="text-xs">
+                {dispositivoAsignado}
               </Badge>
-            )}
+              {estaConectado ? (
+                <Badge
+                  variant="default"
+                  className="bg-green-500 hover:bg-green-600 text-xs"
+                >
+                  <Wifi className="h-3 w-3 mr-1" />
+                  En Vivo
+                </Badge>
+              ) : (
+                <Badge variant="secondary" className="text-xs">
+                  <WifiOff className="h-3 w-3 mr-1" />
+                  Desconectado
+                </Badge>
+              )}
+            </div>
           </CardTitle>
           <CardDescription>
             Consumo actual y estadísticas en tiempo real
