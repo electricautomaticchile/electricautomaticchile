@@ -1,79 +1,56 @@
-# Frontend - Electric Automatic Chile
+# Electric Automatic Chile - Frontend
 
-Aplicación web construida con Next.js que proporciona la interfaz de usuario del sistema.
+Aplicación web para monitoreo y gestión de consumo eléctrico en tiempo real con dispositivos IoT.
 
-## 🎯 ¿Para qué sirve?
+## 🚀 ¿Qué hace este proyecto?
 
-Este es el **frontend del sistema**. Proporciona:
-- Interfaz de usuario para clientes y administradores
-- Dashboard con datos en tiempo real
-- Gestión de cotizaciones y servicios
-- Visualización de dispositivos IoT
-- Notificaciones en tiempo real vía WebSocket
+Frontend desarrollado en Next.js que permite:
 
-## 🔌 ¿Cómo se conecta con los otros proyectos?
+- **Dashboard de Clientes**: Visualización en tiempo real del consumo eléctrico desde dispositivos Arduino
+- **Dashboard de Empresas**: Gestión de múltiples clientes y sus dispositivos
+- **Dashboard de Superadmin**: Administración completa del sistema
+- **Autenticación JWT**: Sistema seguro de login y gestión de sesiones
+- **WebSocket en tiempo real**: Actualización automática de datos de consumo cada 5 segundos
+- **Gestión de dispositivos IoT**: Asignación y monitoreo de dispositivos Arduino
 
-```
-Frontend (Puerto 3000) ← Tú estás aquí
-    ↓ HTTP/REST          ↓ WebSocket
-Backend API              WebSocket API
-(Puerto 4000)            (Puerto 5000)
-```
+## 🛠️ Tecnologías
 
-- **Frontend → Backend**: Envía peticiones HTTP para todas las operaciones (login, CRUD, etc.)
-- **Frontend ↔ WebSocket**: Mantiene conexión WebSocket para recibir notificaciones y eventos en tiempo real
-- **Usuario**: Interactúa con esta aplicación desde el navegador
+- **Next.js 14** - Framework React con SSR
+- **TypeScript** - Tipado estático
+- **Tailwind CSS** - Estilos
+- **Socket.IO Client** - WebSocket para datos en tiempo real
+- **Zustand** - Gestión de estado global
+- **Recharts** - Gráficos de consumo
 
-## 🚀 Inicio Rápido
+## 📦 Instalación
 
-### 1. Instalar dependencias
 ```bash
 npm install
 ```
 
-### 2. Configurar variables de entorno
-```bash
-cp .env.example .env.local
-# Editar .env.local con tus valores
+## 🔧 Configuración
+
+Crea un archivo `.env.local` con las siguientes variables:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:4000
+NEXT_PUBLIC_WS_URL=http://localhost:5000
+JWT_SECRET=tu_secret_key_aqui
 ```
 
-### 3. Ejecutar en desarrollo
+## 🚀 Desarrollo
+
 ```bash
 npm run dev
 ```
 
-### 4. Build para producción
-```bash
-npm run build
-npm start
-```
+La aplicación estará disponible en `http://localhost:3000`
 
-## 📱 Páginas Principales
+## 📚 Documentación Detallada
 
-- `/` - Página de inicio
-- `/auth/login` - Inicio de sesión
-- `/dashboard` - Dashboard principal
-- `/cotizaciones` - Gestión de cotizaciones
-- `/dispositivos` - Monitoreo de dispositivos IoT
-- `/reportes` - Reportes y analítica
+Para más información sobre deployment, endpoints y configuraciones, consulta la carpeta [`docs/`](./docs/)
 
-## ⚙️ Variables de Entorno Importantes
+## 🔗 Proyectos Relacionados
 
-| Variable | Descripción | Requerida |
-|----------|-------------|-----------|
-| `NEXT_PUBLIC_API_URL` | URL del Backend API | ✅ Sí |
-| `NEXT_PUBLIC_WS_URL` | URL del WebSocket API | ✅ Sí |
-| `NEXTAUTH_SECRET` | Secret para NextAuth | ✅ Sí |
-| `NEXTAUTH_URL` | URL de esta aplicación | ✅ Sí |
-
-## 🔄 WebSocket en Tiempo Real
-
-El frontend se conecta automáticamente al WebSocket API para recibir:
-- Notificaciones instantáneas
-- Actualizaciones de dispositivos IoT
-- Alertas del sistema
-- Cambios en cotizaciones
-
-## 📚 Documentación Adicional
-
-Ver carpeta `docs/` para documentación detallada.
+- [API Backend](../api-electricautomaticchile/)
+- [WebSocket API](../Websocket-api/)

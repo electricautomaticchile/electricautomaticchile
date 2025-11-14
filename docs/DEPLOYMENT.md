@@ -1,95 +1,64 @@
 # Deployment - Frontend
 
-## Vercel (Recomendado)
+## 🚀 Deployment en Producción
 
-### 1. Conectar con GitHub
+### Vercel (Recomendado)
 
-1. Ir a [Vercel](https://vercel.com)
-2. Importar proyecto desde GitHub
-3. Seleccionar el repositorio
+1. Conecta tu repositorio de GitHub a Vercel
+2. Configura las variables de entorno:
+   ```
+   NEXT_PUBLIC_API_URL=https://api.tudominio.com
+   NEXT_PUBLIC_WS_URL=https://ws.tudominio.com
+   JWT_SECRET=tu_secret_key_produccion
+   ```
+3. Deploy automático en cada push a `main`
 
-### 2. Configurar Variables de Entorno
-
-En Vercel Dashboard → Settings → Environment Variables:
-
-```bash
-NEXT_PUBLIC_API_URL=https://api.tudominio.com
-NEXT_PUBLIC_WS_URL=https://ws.tudominio.com
-NEXTAUTH_URL=https://tudominio.com
-NEXTAUTH_SECRET=<nextauth_secret>
-DATABASE_URL=<mongodb_uri>
-```
-
-### 3. Deploy
-
-Vercel desplegará automáticamente en cada push a `main`.
-
-## AWS Amplify
-
-### 1. Conectar con GitHub
-
-1. Ir a AWS Amplify Console
-2. Conectar repositorio
-3. Seleccionar branch `main`
-
-### 2. Build Settings
-
-```yaml
-version: 1
-frontend:
-  phases:
-    preBuild:
-      commands:
-        - npm ci
-    build:
-      commands:
-        - npm run build
-  artifacts:
-    baseDirectory: .next
-    files:
-      - '**/*'
-  cache:
-    paths:
-      - node_modules/**/*
-```
-
-### 3. Variables de Entorno
-
-Configurar en Amplify Console:
-
-```bash
-NEXT_PUBLIC_API_URL=<backend_url>
-NEXT_PUBLIC_WS_URL=<websocket_url>
-NEXTAUTH_URL=<frontend_url>
-NEXTAUTH_SECRET=<secret>
-DATABASE_URL=<mongodb_uri>
-```
-
-## Build Local
+### Build Manual
 
 ```bash
 npm run build
 npm start
 ```
 
-## Variables de Entorno Importantes
+## 🔧 Variables de Entorno
 
-### NEXT_PUBLIC_API_URL
-URL del Backend API. Debe ser accesible desde el navegador.
+### Desarrollo
 
-### NEXT_PUBLIC_WS_URL
-URL del WebSocket API. Debe ser accesible desde el navegador.
-
-### NEXTAUTH_SECRET
-Secret único para NextAuth. Generar con:
-```bash
-openssl rand -base64 32
+```env
+NEXT_PUBLIC_API_URL=http://localhost:4000
+NEXT_PUBLIC_WS_URL=http://localhost:5000
+JWT_SECRET=dev_secret_key_32_caracteres_min
 ```
 
-## Verificación Post-Deployment
+### Producción
 
-1. Abrir la URL del frontend
-2. Verificar que carga correctamente
-3. Intentar login
-4. Verificar conexión WebSocket en DevTools → Network → WS
-5. Verificar que llegan notificaciones en tiempo real
+```env
+NEXT_PUBLIC_API_URL=https://api.electricautomaticchile.com
+NEXT_PUBLIC_WS_URL=https://ws.electricautomaticchile.com
+JWT_SECRET=prod_secret_key_muy_seguro_32_chars
+NODE_ENV=production
+```
+
+## 📦 Build Optimization
+
+El proyecto está configurado con:
+
+- **Code Splitting** automático por Next.js
+- **Image Optimization** con next/image
+- **Font Optimization** con next/font
+- **Bundle Analysis** disponible con `npm run analyze`
+
+## 🔒 Seguridad
+
+- JWT almacenado en cookies httpOnly
+- CORS configurado para dominios específicos
+- Middleware de autenticación en rutas protegidas
+- Validación de tokens en cada request
+
+## 📊 Monitoreo
+
+Recomendaciones:
+
+- Vercel Analytics para métricas de rendimiento
+- Sentry para error tracking
+- LogRocket para session replay
