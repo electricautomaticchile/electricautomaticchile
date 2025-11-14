@@ -55,6 +55,18 @@ interface DatosConsumo {
   };
 }
 
+/**
+ * Formatear costo en pesos chilenos
+ */
+const formatearCostoCLP = (costo: number): string => {
+  return new Intl.NumberFormat("es-CL", {
+    style: "currency",
+    currency: "CLP",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(costo);
+};
+
 export function ConsumoElectrico({
   reducida = false,
   clienteId,
@@ -91,24 +103,42 @@ export function ConsumoElectrico({
   const manejarActualizacionPotencia = useCallback(
     (datos: ActualizacionPotenciaDispositivo) => {
       console.log(
-        "[ConsumoElectrico] Actualización de potencia recibida:",
+        "🔥 [ConsumoElectrico] ¡Actualización de potencia recibida!",
         datos
+      );
+      console.log(
+        "🔥 [ConsumoElectrico] Tipo de datos:",
+        typeof datos,
+        "Keys:",
+        Object.keys(datos)
       );
 
       // Actualizar consumo en tiempo real (convertir W a kWh)
       const consumoKwh = datos.energia || datos.potenciaActiva / 1000;
+      console.log(
+        "🔥 [ConsumoElectrico] Consumo calculado:",
+        consumoKwh,
+        "kWh"
+      );
       setConsumoTiempoReal(consumoKwh);
 
       // Actualizar costo en tiempo real
       if (datos.costo !== undefined) {
+        console.log("🔥 [ConsumoElectrico] Costo recibido:", datos.costo);
         setCostoTiempoReal(datos.costo);
       } else if (datosConsumo?.tarifaKwh) {
         // Calcular costo si no viene en los datos
-        setCostoTiempoReal(consumoKwh * datosConsumo.tarifaKwh);
+        const costoCalculado = consumoKwh * datosConsumo.tarifaKwh;
+        console.log("🔥 [ConsumoElectrico] Costo calculado:", costoCalculado);
+        setCostoTiempoReal(costoCalculado);
       }
 
       // Actualizar timestamp
       setUltimaActualizacionTiempoReal(new Date(datos.marcaTiempo));
+      console.log(
+        "🔥 [ConsumoElectrico] Timestamp actualizado:",
+        datos.marcaTiempo
+      );
 
       // Actualizar también los datos de consumo si están disponibles
       if (datosConsumo) {
@@ -127,16 +157,58 @@ export function ConsumoElectrico({
                 tendencia: "Sin datos",
               },
         });
+        console.log("🔥 [ConsumoElectrico] datosConsumo actualizados");
       }
     },
     [datosConsumo]
   );
 
   // Escuchar eventos de actualización de potencia
-  useWebSocket<ActualizacionPotenciaDispositivo>(
-    "dispositivo:actualizacion_potencia",
-    manejarActualizacionPotencia
-  );
+  const { socket, estaConectado: wsConectado } =
+    useWebSocket<ActualizacionPotenciaDispositivo>(
+      "dispositivo:actualizacion_potencia",
+      manejarActualizacionPotencia
+    );
+
+  // Log de debug
+  useEffect(() => {
+    console.log("🔥 [ConsumoElectrico] Estado WebSocket:", {
+      socketId: socket?.id,
+      conectado: wsConectado,
+      estaConectado,
+    });
+
+    // Escuchar TODOS los eventos para debug
+    if (socket) {
+      const debugHandler = (eventName: string, ...args: any[]) => {
+        console.log("🔥 [ConsumoElectrico] Evento recibido:", eventName, args);
+      };
+
+      // Socket.IO tiene un evento especial para capturar todos los eventos
+      socket.onAny((eventName, ...args) => {
+        console.log(
+          "🔥 [ConsumoElectrico] Evento ANY recibido:",
+          eventName,
+          args
+        );
+
+        // Si es el evento que buscamos, resaltarlo
+        if (eventName === "dispositivo:actualizacion_potencia") {
+          console.log("🎯 [ConsumoElectrico] ¡EVENTO ENCONTRADO!", args);
+        }
+      });
+
+      // También escuchar eventos de sala
+      socket.on("room:joined", (data) => {
+        console.log("🏠 [ConsumoElectrico] Unido a sala:", data);
+      });
+
+      return () => {
+        socket.offAny();
+        socket.off("room:joined");
+      };
+    }
+  }, [socket, wsConectado, estaConectado]);
 
   // Obtener dispositivo asignado al cliente
   useEffect(() => {
@@ -374,11 +446,11 @@ export function ConsumoElectrico({
                 )}
               </div>
               <div className="text-2xl font-bold">
-                $
-                {(costoTiempoReal !== null
-                  ? costoTiempoReal
-                  : datosConsumo.costoEstimado || 0
-                ).toLocaleString("es-CL")}
+                {formatearCostoCLP(
+                  costoTiempoReal !== null
+                    ? costoTiempoReal
+                    : datosConsumo.costoEstimado || 0
+                )}
               </div>
               <div className="text-sm text-gray-500">
                 <Clock className="h-4 w-4 inline mr-1" />
@@ -484,11 +556,11 @@ export function ConsumoElectrico({
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-orange-600">
-              $
-              {(costoTiempoReal !== null
-                ? costoTiempoReal
-                : datosConsumo.costoEstimado || 0
-              ).toLocaleString("es-CL")}
+              {formatearCostoCLP(
+                costoTiempoReal !== null
+                  ? costoTiempoReal
+                  : datosConsumo.costoEstimado || 0
+              )}
             </div>
             <div className="text-sm text-gray-500 mt-1">
               <DollarSign className="h-4 w-4 inline mr-1" />
