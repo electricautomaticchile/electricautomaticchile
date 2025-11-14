@@ -26,6 +26,8 @@ import { ConfiguracionEmpresa } from "./features/configuracion";
 import { DispositivosIoT } from "./features/dispositivos-iot";
 import { MapaInteractivo } from "./features/gestion-geografica/MapaInteractivo";
 import { SistemaAntifraude } from "./features/gestion-geografica/SistemaAntifraude";
+import { GestionTickets } from "./componentes/gestion-tickets";
+import { ticketsService } from "@/lib/api/ticketsService";
 
 import {
   Users,
@@ -40,6 +42,7 @@ import {
   MapPin,
   RefreshCw,
   ArrowRight,
+  Headphones,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -185,11 +188,13 @@ const MobileNavigation = ({
   onClose,
   activeTab,
   onTabChange,
+  ticketsAbiertos,
 }: {
   isOpen: boolean;
   onClose: () => void;
   activeTab: string;
   onTabChange: (tab: string) => void;
+  ticketsAbiertos: number;
 }) => {
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -197,6 +202,12 @@ const MobileNavigation = ({
     { id: "dispositivos", label: "Dispositivos", icon: Battery },
     { id: "mapa-seguridad", label: "Mapa & Seguridad", icon: MapPin },
     { id: "alertas", label: "Alertas", icon: BellRing, badge: "3" },
+    {
+      id: "soporte",
+      label: "Soporte",
+      icon: Headphones,
+      badge: ticketsAbiertos > 0 ? ticketsAbiertos.toString() : undefined,
+    },
     { id: "configuracion", label: "Configuración", icon: Settings },
   ];
 
@@ -257,6 +268,25 @@ export default function DashboardEmpresa() {
   const [mostrarModalPassword, setMostrarModalPassword] = useState(false);
   const [requiereCambioPassword, setRequiereCambioPassword] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [ticketsAbiertos, setTicketsAbiertos] = useState(0);
+
+  // Cargar estadísticas de tickets
+  useEffect(() => {
+    const cargarEstadisticasTickets = async () => {
+      try {
+        const response = await ticketsService.obtenerEstadisticas({});
+        if (response.success && response.data) {
+          setTicketsAbiertos(
+            response.data.porEstado.abiertos + response.data.porEstado.enProceso
+          );
+        }
+      } catch (error) {
+        console.error("Error cargando estadísticas de tickets:", error);
+      }
+    };
+
+    cargarEstadisticasTickets();
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -287,6 +317,8 @@ export default function DashboardEmpresa() {
         return <MapaSeguridadSection />;
       case "alertas":
         return <AlertasSistema />;
+      case "soporte":
+        return <GestionTickets />;
       case "configuracion":
         return <ConfiguracionEmpresa />;
       default:
@@ -328,6 +360,15 @@ export default function DashboardEmpresa() {
                     badge: "3",
                   },
                   {
+                    id: "soporte",
+                    label: "Soporte",
+                    icon: Headphones,
+                    badge:
+                      ticketsAbiertos > 0
+                        ? ticketsAbiertos.toString()
+                        : undefined,
+                  },
+                  {
                     id: "configuracion",
                     label: "Configuración",
                     icon: Settings,
@@ -366,6 +407,7 @@ export default function DashboardEmpresa() {
               onClose={() => setIsMobileMenuOpen(false)}
               activeTab={activeTab}
               onTabChange={setActiveTab}
+              ticketsAbiertos={ticketsAbiertos}
             />
 
             {/* Contenido principal */}
@@ -413,7 +455,7 @@ export default function DashboardEmpresa() {
                     </div>
 
                     {/* KPIs principales mejorados */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                       <KPICard
                         title="Clientes Activos"
                         value={resumenDashboard.clientesActivos}
@@ -431,6 +473,14 @@ export default function DashboardEmpresa() {
                         trendValue={`${Math.round((resumenDashboard.dispositivosActivos / resumenDashboard.dispositivosTotales) * 100)}% operativos`}
                         trend="neutral"
                         colorScheme="green"
+                      />
+                      <KPICard
+                        title="Tickets Pendientes"
+                        value={ticketsAbiertos}
+                        icon={Headphones}
+                        trendValue="Requieren atención"
+                        trend="neutral"
+                        colorScheme="purple"
                       />
                       <KPICard
                         title="Alertas Activas"

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import {
   Card,
   CardContent,
@@ -11,7 +12,19 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Map, AlertTriangle, RefreshCw } from "lucide-react";
-import { LeafletMap } from "./components/LeafletMap";
+
+// Cargar LeafletMap solo en el cliente para evitar errores de SSR
+const LeafletMap = dynamic(
+  () => import("./components/LeafletMap").then((mod) => mod.LeafletMap),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-full flex items-center justify-center bg-muted">
+        <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    ),
+  }
+);
 
 interface Medidor {
   id: string;

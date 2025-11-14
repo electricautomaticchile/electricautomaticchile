@@ -17,6 +17,7 @@ import {
   Menu,
   X,
   Building2,
+  Headphones,
 } from "lucide-react";
 import { useApi } from "@/lib/hooks/useApi";
 import { Logo } from "@/components/logo";
@@ -50,6 +51,12 @@ const menuItems = [
     title: "Reportes",
     href: "/dashboard-empresa/reportes",
     icon: BarChart3,
+    badge: null,
+  },
+  {
+    title: "Soporte",
+    href: "/dashboard-empresa/soporte",
+    icon: Headphones,
     badge: null,
   },
   {

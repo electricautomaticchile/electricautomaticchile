@@ -7,7 +7,7 @@ import { ConsumoElectrico } from "./componentes/consumo-electrico";
 import { EstadoServicio } from "./componentes/estado-servicio";
 import { PagosFacturas } from "./componentes/pagos-facturas";
 import { HistorialConsumo } from "./componentes/historial-consumo";
-import { SoporteUsuario } from "./componentes/soporte-usuario";
+import { SoporteUsuarioNuevo as SoporteUsuario } from "./componentes/soporte-usuario";
 import { PerfilUsuario } from "./componentes/perfil-usuario";
 import { AlertasEnTiempoReal } from "./componentes/alertas-tiempo-real";
 import { PronosticoConsumo } from "./componentes/predicciones-clima/PronosticoConsumo";
