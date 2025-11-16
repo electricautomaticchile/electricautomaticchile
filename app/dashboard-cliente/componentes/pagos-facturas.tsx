@@ -1,114 +1,157 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CreditCard, Download, FileText, CircleDollarSign, AlertCircle, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { CreditCard, Download, Calendar as CalendarIcon, ChevronRight, FileText, CircleDollarSign, AlertCircle } from 'lucide-react';
+import { useApi } from "@/lib/hooks/useApi";
+import { useToast } from "@/components/ui/use-toast";
 
-interface Factura {
-  id: string;
-  fecha: Date;
+interface Boleta {
+  _id: string;
+  clienteId: string;
+  numeroBoleta: string;
   monto: number;
-  estado: 'pendiente' | 'pagada' | 'vencida';
-  consumo: number;
+  fechaEmision: Date;
   fechaVencimiento: Date;
+  estado: 'pendiente' | 'pagada' | 'vencida';
+  consumoKwh: number;
+  periodo: string;
+  fechaPago?: Date;
 }
-
-interface MetodoPago {
-  id: string;
-  tipo: 'tarjeta' | 'transferencia';
-  nombre: string;
-  ultimosDigitos?: string;
-  predeterminado: boolean;
-}
-
-// Datos de ejemplo
-const facturas: Factura[] = [
-  {
-    id: 'FAC-2023-05',
-    fecha: new Date(2023, 4, 15), // 15 Mayo 2023
-    monto: 45800,
-    estado: 'pendiente',
-    consumo: 240.5,
-    fechaVencimiento: new Date(2023, 5, 5), // 5 Junio 2023
-  },
-  {
-    id: 'FAC-2023-04',
-    fecha: new Date(2023, 3, 15), // 15 Abril 2023
-    monto: 42300,
-    estado: 'pagada',
-    consumo: 225.8,
-    fechaVencimiento: new Date(2023, 4, 5), // 5 Mayo 2023
-  },
-  {
-    id: 'FAC-2023-03',
-    fecha: new Date(2023, 2, 15), // 15 Marzo 2023
-    monto: 48200,
-    estado: 'pagada',
-    consumo: 258.1,
-    fechaVencimiento: new Date(2023, 3, 5), // 5 Abril 2023
-  },
-  {
-    id: 'FAC-2023-02',
-    fecha: new Date(2023, 1, 15), // 15 Febrero 2023
-    monto: 51500,
-    estado: 'pagada',
-    consumo: 270.4,
-    fechaVencimiento: new Date(2023, 2, 5), // 5 Marzo 2023
-  },
-  {
-    id: 'FAC-2023-01',
-    fecha: new Date(2023, 0, 15), // 15 Enero 2023
-    monto: 49200,
-    estado: 'pagada',
-    consumo: 262.7,
-    fechaVencimiento: new Date(2023, 1, 5), // 5 Febrero 2023
-  },
-];
-
-const metodosPago: MetodoPago[] = [
-  {
-    id: 'mp-1',
-    tipo: 'tarjeta',
-    nombre: 'Visa terminada en 4587',
-    ultimosDigitos: '4587',
-    predeterminado: true
-  },
-  {
-    id: 'mp-2',
-    tipo: 'tarjeta',
-    nombre: 'Mastercard terminada en 8924',
-    ultimosDigitos: '8924',
-    predeterminado: false
-  },
-  {
-    id: 'mp-3',
-    tipo: 'transferencia',
-    nombre: 'Transferencia bancaria',
-    predeterminado: false
-  }
-];
 
 interface PagosFacturasProps {
   reducida?: boolean;
 }
 
 export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
+  const { user } = useApi();
+  const { toast } = useToast();
   const [tabActiva, setTabActiva] = useState('facturas');
-  const [fechaSeleccionada, setFechaSeleccionada] = useState<Date | undefined>(undefined);
-  const [metodoPagoSeleccionado, setMetodoPagoSeleccionado] = useState(metodosPago[0].id);
+  const [boletas, setBoletas] = useState<Boleta[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [pagando, setPagando] = useState(false);
+  
+  const clienteId = (user as any)?._id?.toString() || user?.id?.toString();
+
+  useEffect(() => {
+    if (clienteId) {
+      cargarBoletas();
+    }
+  }, [clienteId]);
+
+  const cargarBoletas = async () => {
+    try {
+      setCargando(true);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const response = await fetch(`${apiUrl}/api/boletas/cliente/${clienteId}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setBoletas(data.data);
+      }
+    } catch (error) {
+      console.error('Error cargando boletas:', error);
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar las boletas",
+        variant: "destructive",
+      });
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const pagarBoleta = async (boletaId: string) => {
+    try {
+      setPagando(true);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      
+      // Marcar boleta como pagada
+      const response = await fetch(`${apiUrl}/api/boletas/${boletaId}/pagar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Mostrar notificación de pago exitoso
+        toast({
+          title: "✅ Pago exitoso",
+          description: "La boleta ha sido pagada correctamente",
+        });
+        
+        // Recargar boletas para actualizar la vista
+        await cargarBoletas();
+        
+        // Verificar si el servicio fue restablecido automáticamente
+        if (data.servicioRestablecido) {
+          toast({
+            title: "🟢 Servicio restablecido",
+            description: `Su servicio eléctrico ha sido restablecido automáticamente. Boletas vencidas restantes: ${data.boletasVencidasRestantes}`,
+            duration: 5000,
+          });
+        } else if (data.boletasVencidasRestantes > 2) {
+          toast({
+            title: "⚠️ Servicio cortado",
+            description: `Aún tienes ${data.boletasVencidasRestantes} boletas vencidas. Paga al menos ${data.boletasVencidasRestantes - 2} más para restablecer el servicio.`,
+            variant: "destructive",
+            duration: 5000,
+          });
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: data.message || "No se pudo procesar el pago",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error pagando boleta:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo procesar el pago",
+        variant: "destructive",
+      });
+    } finally {
+      setPagando(false);
+    }
+  };
+
+  const descargarPDF = async (boleta: Boleta) => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const response = await fetch(`${apiUrl}/api/boletas/${boleta._id}/pdf`);
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${boleta.numeroBoleta}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (error) {
+      console.error('Error descargando PDF:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo descargar el PDF",
+        variant: "destructive",
+      });
+    }
+  };
   
   const formatoMoneda = (monto: number) => {
     return new Intl.NumberFormat('es-CL', {
       style: 'currency',
-      currency: 'CLP'
+      currency: 'CLP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(monto);
   };
   
@@ -124,6 +167,10 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
         return 'text-gray-600 bg-gray-100 dark:bg-gray-900/20 dark:text-gray-300';
     }
   };
+
+  const boletasVencidas = boletas.filter(b => b.estado === 'vencida');
+  const boletasPagadas = boletas.filter(b => b.estado === 'pagada');
+  const totalDeuda = boletasVencidas.reduce((sum, b) => sum + b.monto, 0);
   
   // Para la versión reducida del componente
   if (reducida) {
@@ -139,27 +186,31 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {facturas.filter(f => f.estado === 'pendiente').length > 0 ? (
+          {cargando ? (
+            <div className="text-center py-4">
+              <Loader2 className="h-6 w-6 animate-spin mx-auto text-orange-600" />
+            </div>
+          ) : boletasVencidas.length > 0 ? (
             <>
               <div className="flex justify-between items-center mb-3">
                 <h3 className="font-medium text-sm text-gray-500 dark:text-gray-400">
-                  Boleta pendiente de pago
+                  {boletasVencidas.length} boleta(s) vencida(s)
                 </h3>
                 <Button variant="outline" size="sm" className="text-sm h-8">
-                  Pagar ahora
+                  Ver todas
                 </Button>
               </div>
               
               <div className="space-y-3">
-                {facturas.filter(f => f.estado === 'pendiente').slice(0, 1).map(factura => (
-                  <div key={factura.id} className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800/50">
+                {boletasVencidas.slice(0, 2).map(boleta => (
+                  <div key={boleta._id} className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800/50">
                     <div className="flex justify-between mb-1">
-                      <div className="font-medium">{factura.id}</div>
-                      <div className="font-bold text-orange-600">{formatoMoneda(factura.monto)}</div>
+                      <div className="font-medium">{boleta.numeroBoleta}</div>
+                      <div className="font-bold text-red-600">{formatoMoneda(boleta.monto)}</div>
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400 flex justify-between">
-                      <div>Vence: {format(factura.fechaVencimiento, 'dd/MM/yyyy')}</div>
-                      <div>{factura.consumo} kWh</div>
+                      <div>Vencida: {format(new Date(boleta.fechaVencimiento), 'dd/MM/yyyy')}</div>
+                      <div>{boleta.consumoKwh} kWh</div>
                     </div>
                   </div>
                 ))}
@@ -171,22 +222,24 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
             </div>
           )}
           
-          <div className="mt-4">
-            <h3 className="font-medium text-sm text-gray-500 dark:text-gray-400 mb-3">
-              Últimos pagos
-            </h3>
-            <div className="space-y-2">
-              {facturas.filter(f => f.estado === 'pagada').slice(0, 2).map(factura => (
-                <div key={factura.id} className="flex justify-between items-center text-sm">
-                  <div className="flex items-center gap-2">
-                    <CircleDollarSign className="h-4 w-4 text-green-600" />
-                    <span>{factura.id}</span>
+          {boletasPagadas.length > 0 && (
+            <div className="mt-4">
+              <h3 className="font-medium text-sm text-gray-500 dark:text-gray-400 mb-3">
+                Últimos pagos
+              </h3>
+              <div className="space-y-2">
+                {boletasPagadas.slice(0, 2).map(boleta => (
+                  <div key={boleta._id} className="flex justify-between items-center text-sm">
+                    <div className="flex items-center gap-2">
+                      <CircleDollarSign className="h-4 w-4 text-green-600" />
+                      <span>{boleta.numeroBoleta}</span>
+                    </div>
+                    <div className="font-medium">{formatoMoneda(boleta.monto)}</div>
                   </div>
-                  <div className="font-medium">{formatoMoneda(factura.monto)}</div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     );
@@ -205,301 +258,245 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
           </p>
         </div>
         
-        {facturas.filter(f => f.estado === 'pendiente').length > 0 && (
-          <Button className="bg-orange-600 hover:bg-orange-700">
-            Pagar boleta pendiente
-          </Button>
+        {boletasVencidas.length > 0 && (
+          <div className="text-right">
+            <p className="text-sm text-gray-500">Deuda total</p>
+            <p className="text-2xl font-bold text-red-600">{formatoMoneda(totalDeuda)}</p>
+            <p className="text-sm text-red-500">{boletasVencidas.length} boleta(s) vencida(s)</p>
+          </div>
         )}
       </div>
 
-      <Tabs defaultValue="facturas" value={tabActiva} onValueChange={setTabActiva}>
-        <TabsList className="mb-4 grid grid-cols-2 gap-4">
-          <TabsTrigger value="facturas" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            <span>Mis Boletas</span>
-          </TabsTrigger>
-          <TabsTrigger value="pagar" className="flex items-center gap-2">
-            <CircleDollarSign className="h-4 w-4" />
-            <span>Realizar Pago</span>
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="facturas" className="space-y-4">
-          {facturas.filter(f => f.estado === 'pendiente').length > 0 && (
+      {cargando ? (
+        <div className="text-center py-12">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto text-orange-600" />
+          <p className="mt-4 text-gray-500">Cargando boletas...</p>
+        </div>
+      ) : (
+        <Tabs defaultValue="facturas" value={tabActiva} onValueChange={setTabActiva}>
+          <TabsList className="mb-4 grid grid-cols-2 gap-4">
+            <TabsTrigger value="facturas" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              <span>Mis Boletas</span>
+            </TabsTrigger>
+            <TabsTrigger value="pagar" className="flex items-center gap-2">
+              <CircleDollarSign className="h-4 w-4" />
+              <span>Realizar Pago</span>
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="facturas" className="space-y-4">
+            {boletasVencidas.length > 0 && (
+              <Card className="border-red-200 dark:border-red-900">
+                <CardHeader>
+                  <CardTitle className="text-red-600">Boletas Vencidas</CardTitle>
+                  <CardDescription>
+                    Tienes {boletasVencidas.length} boleta(s) vencida(s) - Total: {formatoMoneda(totalDeuda)}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {boletasVencidas.map(boleta => (
+                    <div key={boleta._id} className="p-4 rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800/50">
+                      <div className="flex flex-col md:flex-row justify-between gap-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-5 w-5 text-red-600" />
+                            <span className="font-medium">{boleta.numeroBoleta}</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">Periodo</p>
+                              <p className="font-medium">{boleta.periodo}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">Vencimiento</p>
+                              <p className="font-medium text-red-600">{format(new Date(boleta.fechaVencimiento), 'dd/MM/yyyy')}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">Consumo</p>
+                              <p className="font-medium">{boleta.consumoKwh} kWh</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">Estado</p>
+                              <p className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300">
+                                Vencida
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="text-center md:text-right">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Monto</p>
+                          <p className="text-3xl font-bold text-red-600 mb-2">{formatoMoneda(boleta.monto)}</p>
+                          <div className="flex flex-col gap-2">
+                            <Button 
+                              onClick={() => pagarBoleta(boleta._id)}
+                              disabled={pagando}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              {pagando ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Pagar ahora'}
+                            </Button>
+                            <Button variant="outline" onClick={() => descargarPDF(boleta)}>
+                              <Download className="mr-2 h-4 w-4" />
+                              Descargar PDF
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+            
+            {boletasPagadas.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Historial de Boletas Pagadas</CardTitle>
+                  <CardDescription>
+                    Todas sus boletas pagadas
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {boletasPagadas.map(boleta => (
+                      <div key={boleta._id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-900">
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/20">
+                            <FileText className="h-5 w-5 text-green-600" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium">{boleta.numeroBoleta}</p>
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${obtenerColorEstado(boleta.estado)}`}>
+                                Pagada
+                              </span>
+                            </div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400 flex flex-col sm:flex-row gap-2 sm:gap-4">
+                              <span>Periodo: {boleta.periodo}</span>
+                              <span>Consumo: {boleta.consumoKwh} kWh</span>
+                              {boleta.fechaPago && (
+                                <span>Pagada: {format(new Date(boleta.fechaPago), 'dd/MM/yyyy')}</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-col sm:flex-row gap-3 mt-3 sm:mt-0 w-full sm:w-auto">
+                          <div className="text-right sm:mr-4">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Monto</p>
+                            <p className="font-bold text-lg">{formatoMoneda(boleta.monto)}</p>
+                          </div>
+                          <Button variant="outline" size="sm" className="whitespace-nowrap" onClick={() => descargarPDF(boleta)}>
+                            <Download className="mr-2 h-4 w-4" />
+                            PDF
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {boletas.length === 0 && (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <CircleDollarSign className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium mb-2">No hay boletas disponibles</h3>
+                  <p className="text-gray-500">Las boletas aparecerán aquí cuando estén disponibles</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="pagar" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Boleta Pendiente</CardTitle>
+                <CardTitle>Realizar Pago</CardTitle>
                 <CardDescription>
-                  Tienes una factura pendiente de pago
+                  Pague sus boletas vencidas
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                {facturas.filter(f => f.estado === 'pendiente').map(factura => (
-                  <div key={factura.id} className="p-4 rounded-lg border border-orange-200 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-800/50">
-                    <div className="flex flex-col md:flex-row justify-between gap-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-5 w-5 text-orange-600" />
-                          <span className="font-medium">{factura.id}</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Fecha emisión</p>
-                            <p className="font-medium">{format(factura.fecha, 'dd/MM/yyyy')}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Fecha vencimiento</p>
-                            <p className="font-medium">{format(factura.fechaVencimiento, 'dd/MM/yyyy')}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Consumo</p>
-                            <p className="font-medium">{factura.consumo} kWh</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Estado</p>
-                            <p className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
-                              Pendiente
-                            </p>
-                          </div>
+              <CardContent className="space-y-6">
+                {boletasVencidas.length > 0 ? (
+                  <>
+                    <div className="p-4 rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800/50">
+                      <div className="flex items-start gap-2 mb-4">
+                        <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-red-800 dark:text-red-300">Atención</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">
+                            Tienes {boletasVencidas.length} boleta(s) vencida(s). 
+                            {boletasVencidas.length >= 3 && ' Tu servicio está cortado. Paga para restablecerlo.'}
+                          </p>
                         </div>
                       </div>
-                      
-                      <div className="text-center md:text-right">
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Monto a pagar</p>
-                        <p className="text-3xl font-bold text-orange-600 mb-2">{formatoMoneda(factura.monto)}</p>
-                        <div className="flex flex-col gap-2">
-                          <Button onClick={() => setTabActiva('pagar')}>
-                            Pagar ahora
-                          </Button>
-                          <Button variant="outline">
-                            <Download className="mr-2 h-4 w-4" />
-                            Descargar PDF
-                          </Button>
-                        </div>
+                      <div className="flex justify-between mb-2">
+                        <span className="font-medium">Deuda total:</span>
+                        <span className="font-bold text-red-600 text-xl">
+                          {formatoMoneda(totalDeuda)}
+                        </span>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Historial de Boletas</CardTitle>
-              <CardDescription>
-                Todas sus boletas de los últimos meses
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {facturas.map(factura => (
-                  <div key={factura.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-900">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-full bg-gray-100 dark:bg-slate-800">
-                        <FileText className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">{factura.id}</p>
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${obtenerColorEstado(factura.estado)}`}>
-                            {factura.estado === 'pendiente' ? 'Pendiente' : 
-                             factura.estado === 'pagada' ? 'Pagada' : 'Vencida'}
-                          </span>
+
+                    <div className="space-y-4">
+                      <h3 className="font-medium">Boletas a pagar:</h3>
+                      {boletasVencidas.map(boleta => (
+                        <div key={boleta._id} className="flex justify-between items-center p-4 rounded-lg border">
+                          <div>
+                            <p className="font-medium">{boleta.numeroBoleta}</p>
+                            <p className="text-sm text-gray-500">{boleta.periodo} - {boleta.consumoKwh} kWh</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold">{formatoMoneda(boleta.monto)}</p>
+                            <Button 
+                              size="sm" 
+                              onClick={() => pagarBoleta(boleta._id)}
+                              disabled={pagando}
+                              className="mt-2"
+                            >
+                              {pagando ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Pagar'}
+                            </Button>
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400 flex flex-col sm:flex-row gap-2 sm:gap-4">
-                          <span>Emisión: {format(factura.fecha, 'dd/MM/yyyy')}</span>
-                          <span>Consumo: {factura.consumo} kWh</span>
-                        </div>
-                      </div>
+                      ))}
                     </div>
-                    
-                    <div className="flex flex-col sm:flex-row gap-3 mt-3 sm:mt-0 w-full sm:w-auto">
-                      <div className="text-right sm:mr-4">
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Monto</p>
-                        <p className="font-bold text-lg">{formatoMoneda(factura.monto)}</p>
-                      </div>
-                      <Button variant="outline" size="sm" className="whitespace-nowrap">
-                        <Download className="mr-2 h-4 w-4" />
-                        PDF
+
+                    <div className="pt-4 border-t">
+                      <Button 
+                        className="w-full bg-orange-600 hover:bg-orange-700 text-lg py-6"
+                        onClick={async () => {
+                          // Pagar todas las boletas
+                          for (const boleta of boletasVencidas) {
+                            await pagarBoleta(boleta._id);
+                          }
+                        }}
+                        disabled={pagando}
+                      >
+                        {pagando ? (
+                          <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                        ) : null}
+                        Pagar todas las boletas - {formatoMoneda(totalDeuda)}
                       </Button>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="pagar" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Realizar Pago</CardTitle>
-              <CardDescription>
-                Complete la información para realizar su pago
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {facturas.filter(f => f.estado === 'pendiente').length > 0 ? (
-                <>
-                  <div className="space-y-2">
-                    <Label>Boleta a pagar</Label>
-                    <Select defaultValue={facturas.find(f => f.estado === 'pendiente')?.id}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar boleta" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {facturas.filter(f => f.estado === 'pendiente').map(factura => (
-                          <SelectItem key={factura.id} value={factura.id}>
-                            {factura.id} - {formatoMoneda(factura.monto)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="p-4 rounded-lg border border-orange-200 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-800/50">
-                    <div className="flex justify-between mb-2">
-                      <span className="font-medium">Monto a pagar:</span>
-                      <span className="font-bold text-orange-600">
-                        {formatoMoneda(facturas.find(f => f.estado === 'pendiente')?.monto || 0)}
-                      </span>
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="bg-green-100 dark:bg-green-900/20 p-3 rounded-full mx-auto w-16 h-16 flex items-center justify-center mb-4">
+                      <CircleDollarSign className="h-8 w-8 text-green-600" />
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500 dark:text-gray-400">Fecha de vencimiento:</span>
-                      <span>{format(facturas.find(f => f.estado === 'pendiente')?.fechaVencimiento || new Date(), 'dd/MM/yyyy')}</span>
-                    </div>
+                    <h3 className="text-lg font-medium mb-2">No tienes pagos pendientes</h3>
+                    <p className="text-gray-500 dark:text-gray-400 mb-4">
+                      Todas tus boletas han sido pagadas. La próxima boleta estará disponible pronto.
+                    </p>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label>Método de pago</Label>
-                    <Select value={metodoPagoSeleccionado} onValueChange={setMetodoPagoSeleccionado}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar método de pago" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {metodosPago.map(metodo => (
-                          <SelectItem key={metodo.id} value={metodo.id}>
-                            {metodo.nombre} {metodo.predeterminado ? '(Predeterminado)' : ''}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  {metodoPagoSeleccionado === 'mp-3' && (
-                    <div className="p-4 rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800/50">
-                      <div className="flex items-start gap-2">
-                        <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-                        <div>
-                          <p className="font-medium text-blue-800 dark:text-blue-300">Instrucciones para transferencia bancaria</p>
-                          <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-300 space-y-1 mt-1">
-                            <li>Banco: Banco Estado</li>
-                            <li>Titular: Electric Automatic Chile SpA</li>
-                            <li>RUT: 76.123.456-7</li>
-                            <li>Tipo de cuenta: Cuenta Corriente</li>
-                            <li>N° de cuenta: 12345678901</li>
-                            <li>Email: pagos@electricautomaticchile.cl</li>
-                            <li>Asunto: {facturas.find(f => f.estado === 'pendiente')?.id}</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {metodoPagoSeleccionado !== 'mp-3' && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="card-name">Nombre en la tarjeta</Label>
-                        <Input id="card-name" placeholder="Como aparece en la tarjeta" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="card-number">Número de tarjeta</Label>
-                        <Input id="card-number" placeholder="XXXX XXXX XXXX XXXX" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="card-expiry">Fecha de expiración</Label>
-                        <Input id="card-expiry" placeholder="MM/AA" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="card-cvc">Código de seguridad</Label>
-                        <Input id="card-cvc" placeholder="CVC" />
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="save-payment"
-                        className="h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-600"
-                      />
-                      <Label htmlFor="save-payment" className="text-sm">
-                        Guardar método de pago
-                      </Label>
-                    </div>
-                    
-                    <Button className="bg-orange-600 hover:bg-orange-700">
-                      {metodoPagoSeleccionado === 'mp-3' ? 'Confirmar transferencia' : 'Realizar pago'}
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="bg-green-100 dark:bg-green-900/20 p-3 rounded-full mx-auto w-16 h-16 flex items-center justify-center mb-4">
-                    <CircleDollarSign className="h-8 w-8 text-green-600" />
-                  </div>
-                  <h3 className="text-lg font-medium mb-2">No tienes pagos pendientes</h3>
-                  <p className="text-gray-500 dark:text-gray-400 mb-4">
-                    Todas tus boletas han sido pagadas. La próxima boleta estará disponible pronto.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Métodos de Pago Guardados</CardTitle>
-              <CardDescription>
-                Administre sus métodos de pago
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {metodosPago.map(metodo => (
-                  <div 
-                    key={metodo.id} 
-                    className="flex justify-between items-center p-4 rounded-lg border border-gray-200 dark:border-gray-700"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-full bg-gray-100 dark:bg-slate-800">
-                        <CreditCard className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{metodo.nombre}</p>
-                        {metodo.predeterminado && (
-                          <p className="text-xs text-green-600">Método predeterminado</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      {!metodo.predeterminado && (
-                        <Button variant="outline" size="sm">Predeterminar</Button>
-                      )}
-                      <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">Eliminar</Button>
-                    </div>
-                  </div>
-                ))}
-                <Button variant="outline" className="w-full">
-                  Agregar nuevo método de pago
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      )}
     </div>
   );
-} 
+}

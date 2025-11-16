@@ -120,7 +120,13 @@ export function useDispositivosActivos() {
           timestamp: new Date().toISOString()
         });
 
-        setDispositivos(dispositivosBackend);
+        // Mapear _id a id para compatibilidad
+        const dispositivosMapeados = dispositivosBackend.map((d: any) => ({
+          ...d,
+          id: d.id || d._id?.toString() || d.numeroDispositivo || `device-${Math.random()}`,
+        }));
+
+        setDispositivos(dispositivosMapeados);
         const resumen = calcularResumen(dispositivosBackend);
         setResumenDispositivos(resumen);
       } else {
@@ -260,8 +266,9 @@ export function useDispositivosActivos() {
     cargarDispositivos();
   }, [cargarDispositivos]);
 
-  // Efecto para actualización automática
-  useEffect(() => {
+  // Efecto para actualización automática - DESACTIVADO
+  // Ahora solo se actualiza manualmente con el botón de refrescar
+  /* useEffect(() => {
     if (!AUTO_UPDATE_CONFIG.enabled) return;
 
     const interval = setInterval(() => {
@@ -269,7 +276,7 @@ export function useDispositivosActivos() {
     }, AUTO_UPDATE_CONFIG.interval);
 
     return () => clearInterval(interval);
-  }, [cargarDispositivos]);
+  }, [cargarDispositivos]); */
 
   // Efecto para procesar datos de WebSocket - COMENTADO
   /* useEffect(() => {

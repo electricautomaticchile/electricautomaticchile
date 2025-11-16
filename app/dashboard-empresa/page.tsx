@@ -21,9 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { GestionClientes } from "./features/clientes";
 import { DispositivosActivos } from "./features/dispositivos";
 import { AlertasSistema } from "./features/alertas";
-import { ControlArduino } from "./features/control";
 import { ConfiguracionEmpresa } from "./features/configuracion";
-import { DispositivosIoT } from "./features/dispositivos-iot";
 import { MapaInteractivo } from "./features/gestion-geografica/MapaInteractivo";
 import { SistemaAntifraude } from "./features/gestion-geografica/SistemaAntifraude";
 import { GestionTickets } from "./componentes/gestion-tickets";
@@ -142,25 +140,12 @@ const KPICard = ({
   );
 };
 
-// Sección de Dispositivos con tabs
+// Sección de Dispositivos simplificada
 const DispositivosSection = () => {
   return (
-    <Tabs defaultValue="estado" className="w-full">
-      <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="estado">Estado</TabsTrigger>
-        <TabsTrigger value="iot">Dispositivos IoT</TabsTrigger>
-        <TabsTrigger value="arduino">Control Arduino</TabsTrigger>
-      </TabsList>
-      <TabsContent value="estado" className="mt-6">
-        <DispositivosActivos />
-      </TabsContent>
-      <TabsContent value="iot" className="mt-6">
-        <DispositivosIoT />
-      </TabsContent>
-      <TabsContent value="arduino" className="mt-6">
-        <ControlArduino />
-      </TabsContent>
-    </Tabs>
+    <div className="w-full">
+      <DispositivosActivos />
+    </div>
   );
 };
 

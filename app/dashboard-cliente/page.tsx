@@ -14,6 +14,7 @@ import { PronosticoConsumo } from "./componentes/predicciones-clima/PronosticoCo
 import { ConsejosAhorro } from "./componentes/predicciones-clima/ConsejosAhorro";
 import { IndiceCalidadAire } from "./componentes/calidad-aire/IndiceCalidadAire";
 import { MapaBasico } from "./componentes/ubicacion/MapaBasico";
+import { ControlServicio } from "./componentes/control-servicio";
 import HeaderCliente from "./components/layout/header";
 import NavigationCliente from "./components/layout/navigation";
 
@@ -164,6 +165,8 @@ export default function DashboardCliente() {
         );
       case "boletas":
         return <PagosFacturas />;
+      case "servicio":
+        return <ControlServicio />;
       case "perfil":
         return (
           <Tabs defaultValue="datos" className="w-full">

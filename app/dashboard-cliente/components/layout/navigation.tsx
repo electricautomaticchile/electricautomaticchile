@@ -11,6 +11,7 @@ import {
   Lightbulb,
   Wind,
   MapPin,
+  Power,
 } from "lucide-react";
 
 interface NavigationClienteProps {
@@ -21,6 +22,7 @@ interface NavigationClienteProps {
 const navItems = [
   { id: "resumen", label: "Dashboard", icon: Home },
   { id: "consumo", label: "Mi Consumo", icon: Zap },
+  { id: "servicio", label: "Control de Servicio", icon: Power },
   { id: "boletas", label: "Pagos", icon: FileText },
   { id: "perfil", label: "Perfil", icon: User },
   { id: "soporte", label: "Soporte", icon: HelpCircle },
