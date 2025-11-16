@@ -167,6 +167,13 @@ class TicketsService {
   }
 
   /**
+   * Eliminar un ticket
+   */
+  async eliminarTicket(ticketId: string) {
+    return baseService.delete<void>(`/tickets/${ticketId}`);
+  }
+
+  /**
    * Obtener estadísticas de tickets
    */
   async obtenerEstadisticas(filtros?: {

@@ -216,6 +216,47 @@ export function SoporteUsuarioNuevo() {
     }
   };
 
+  const eliminarTicket = async () => {
+    if (!ticketSeleccionado) return;
+
+    // Confirmar eliminación
+    if (
+      !window.confirm(
+        `¿Estás seguro de que deseas eliminar el ticket #${ticketSeleccionado.numeroTicket}? Esta acción no se puede deshacer.`
+      )
+    ) {
+      return;
+    }
+
+    setEnviando(true);
+    try {
+      const response = await ticketsService.eliminarTicket(
+        ticketSeleccionado._id
+      );
+
+      if (response.success) {
+        toast({
+          title: "✅ Ticket eliminado",
+          description: "El ticket ha sido eliminado exitosamente",
+        });
+
+        // Volver a la lista y recargar
+        setTicketSeleccionado(null);
+        cargarTickets();
+      }
+    } catch (error: any) {
+      console.error("Error eliminando ticket:", error);
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message || "No se pudo eliminar el ticket",
+        variant: "destructive",
+      });
+    } finally {
+      setEnviando(false);
+    }
+  };
+
   const formatoEstadoTicket = (estado: string) => {
     const estados: Record<string, { label: string; color: string }> = {
       abierto: { label: "Abierto", color: "bg-blue-100 text-blue-800" },
@@ -307,6 +348,21 @@ export function SoporteUsuarioNuevo() {
                         <ArrowLeft className="h-4 w-4 mr-1" />
                         Volver
                       </Button>
+                      {(ticketSeleccionado.estado === "abierto" ||
+                        ticketSeleccionado.estado === "cerrado") && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={eliminarTicket}
+                          disabled={enviando}
+                        >
+                          {enviando ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            "Eliminar"
+                          )}
+                        </Button>
+                      )}
                     </div>
                     <CardTitle className="flex items-center gap-2">
                       <FileText className="h-5 w-5 text-orange-600" />
