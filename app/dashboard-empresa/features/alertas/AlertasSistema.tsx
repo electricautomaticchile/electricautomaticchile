@@ -13,14 +13,12 @@ import { Trash2, Settings } from "lucide-react";
 export function AlertasSistema({ reducida = false }: AlertasSistemaProps) {
   const {
     // Estados
+    alertas,
     alertaExpandida,
-    busqueda,
-    filtroTipo,
-    filtroEstado,
-    notificacionesFiltradas,
     resumenAlertas,
+    estadosCarga,
+    filtros,
     isConnected,
-    loading,
 
     // Acciones
     toggleAlerta,
@@ -40,11 +38,15 @@ export function AlertasSistema({ reducida = false }: AlertasSistemaProps) {
     clearAll,
   } = useAlertasSistema();
 
+  // Extraer valores de filtros
+  const { busqueda, tipo: filtroTipo, estado: filtroEstado } = filtros;
+  const loading = estadosCarga.alertas || estadosCarga.accion;
+
   // Versión reducida del componente
   if (reducida) {
     return (
       <AlertasSistemaReducido
-        alertas={notificacionesFiltradas}
+        alertas={alertas}
         resumen={resumenAlertas}
         loading={loading}
       />
@@ -83,7 +85,7 @@ export function AlertasSistema({ reducida = false }: AlertasSistemaProps) {
 
         {/* Lista de alertas */}
         <AlertasSistemaLista
-          alertas={notificacionesFiltradas}
+          alertas={alertas}
           alertaExpandida={alertaExpandida}
           loading={loading}
           onToggleAlerta={toggleAlerta}
@@ -97,7 +99,7 @@ export function AlertasSistema({ reducida = false }: AlertasSistemaProps) {
         {/* Footer con acciones globales */}
         <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="text-sm text-gray-500 dark:text-gray-400">
-            Mostrando {notificacionesFiltradas.length} de {resumenAlertas.total} alertas •{" "}
+            Mostrando {alertas.length} de {resumenAlertas.total} alertas •{" "}
             {resumenAlertas.importantes} importantes sin leer •{" "}
             {resumenAlertas.resueltas} resueltas este mes
           </div>

@@ -1,8 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { useNotifications } from "@/hooks/useNotifications";
-// import { useWebSocket } from "@/hooks/useWebSocket"; // COMENTADO
-import { apiService } from "@/lib/api/apiService"; // API REAL
+import { useNotificacionesEmpresa } from "./useNotificacionesEmpresa";
 import {
   ResumenAlertas,
   AlertaSistema,
@@ -10,11 +8,35 @@ import {
   TipoAlerta,
 } from "./types";
 import {
-  RESUMEN_ALERTAS_DEFAULT,
-  CONFIG_ACTUALIZACION,
   MENSAJES_ALERTA,
-  generarAlertaAleatoria,
 } from "./config";
+
+/**
+ * Mapear notificación de MongoDB a formato AlertaSistema
+ */
+function mapearNotificacion(notif: any): AlertaSistema {
+  // Mapear tipo de notificación a tipo de alerta
+  const tipoMap: Record<string, TipoAlerta> = {
+    error: "error",
+    warning: "advertencia",
+    info: "informacion",
+    success: "exito",
+  };
+
+  const fecha = new Date(notif.createdAt);
+
+  return {
+    id: notif._id,
+    tipo: tipoMap[notif.tipo] || "informacion",
+    mensaje: notif.mensaje,
+    fecha: fecha.toLocaleDateString("es-CL"),
+    hora: fecha.toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" }),
+    dispositivo: notif.metadata?.dispositivoId || notif.metadata?.nombreDispositivo,
+    ubicacion: notif.metadata?.area || notif.metadata?.region || notif.metadata?.comuna,
+    importante: notif.prioridad === "urgente" || notif.prioridad === "alta",
+    leida: notif.leida,
+  };
+}
 
 export function useAlertasSistema() {
   // Estados principales
@@ -28,89 +50,75 @@ export function useAlertasSistema() {
     simulacion: false,
   });
 
-  // Hooks externos
+  // Hook de notificaciones en tiempo real
   const {
-    notifications,
-    unreadCount,
-    addNotification,
-    markAsRead,
-    markAllAsRead,
-    removeNotification,
-    clearAll,
-    getUnreadImportant,
-  } = useNotifications();
+    notificaciones,
+    loading: loadingNotificaciones,
+    resumen: resumenNotificaciones,
+    estaConectado,
+    marcarComoLeida,
+    marcarTodasComoLeidas,
+    eliminarNotificacion,
+    recargar,
+  } = useNotificacionesEmpresa();
 
-  // const { isConnected, sendMessage } = useWebSocket(); // COMENTADO
   const { toast } = useToast();
 
-  // Estado de la empresa actual (obtener del contexto o del usuario)
-  const empresaId = "60d5ec49e03e8a2788d3d9d3"; // TODO: Reemplazar con ID de empresa del contexto de autenticación
+  // Mapear notificaciones de MongoDB a formato AlertaSistema
+  const alertasMapeadas = useMemo(
+    () => notificaciones.map(mapearNotificacion),
+    [notificaciones]
+  );
 
-  // Filtrar notificaciones basado en criterios
-  const notificacionesFiltradas = notifications.filter((notificacion) => {
-    const cumpleBusqueda =
-      notificacion.mensaje.toLowerCase().includes(busqueda.toLowerCase()) ||
-      notificacion.dispositivo
-        ?.toLowerCase()
-        .includes(busqueda.toLowerCase()) ||
-      notificacion.ubicacion?.toLowerCase().includes(busqueda.toLowerCase());
+  // Filtrar alertas basado en criterios
+  const notificacionesFiltradas = useMemo(() => {
+    return alertasMapeadas.filter((alerta) => {
+      const cumpleBusqueda =
+        alerta.mensaje.toLowerCase().includes(busqueda.toLowerCase()) ||
+        alerta.dispositivo?.toLowerCase().includes(busqueda.toLowerCase()) ||
+        alerta.ubicacion?.toLowerCase().includes(busqueda.toLowerCase());
 
-    const cumpleTipo =
-      filtroTipo === "todos" || notificacion.tipo === filtroTipo;
+      const cumpleTipo = filtroTipo === "todos" || alerta.tipo === filtroTipo;
 
-    const cumpleEstado =
-      filtroEstado === "todos" ||
-      (filtroEstado === "leidas" && notificacion.leida) ||
-      (filtroEstado === "no_leidas" && !notificacion.leida);
+      const cumpleEstado =
+        filtroEstado === "todos" ||
+        (filtroEstado === "leidas" && alerta.leida) ||
+        (filtroEstado === "no_leidas" && !alerta.leida);
 
-    return cumpleBusqueda && cumpleTipo && cumpleEstado;
-  });
+      return cumpleBusqueda && cumpleTipo && cumpleEstado;
+    });
+  }, [alertasMapeadas, busqueda, filtroTipo, filtroEstado]);
 
   // Calcular resumen de alertas
-  const resumenAlertas: ResumenAlertas = {
-    total: notifications.length,
-    errorCritico: notifications.filter((n) => n.tipo === "error").length,
-    advertencia: notifications.filter((n) => n.tipo === "advertencia").length,
-    informacion: notifications.filter((n) => n.tipo === "informacion").length,
-    exito: notifications.filter((n) => n.tipo === "exito").length,
-    noLeidas: unreadCount,
-    importantes: getUnreadImportant().length,
-    resueltas: notifications.filter((n) => n.leida).length,
-  };
+  const resumenAlertas: ResumenAlertas = useMemo(() => {
+    return {
+      total: alertasMapeadas.length,
+      errorCritico: alertasMapeadas.filter((n) => n.tipo === "error").length,
+      advertencia: alertasMapeadas.filter((n) => n.tipo === "advertencia").length,
+      informacion: alertasMapeadas.filter((n) => n.tipo === "informacion").length,
+      exito: alertasMapeadas.filter((n) => n.tipo === "exito").length,
+      noLeidas: alertasMapeadas.filter((n) => !n.leida).length,
+      importantes: alertasMapeadas.filter((n) => n.importante && !n.leida).length,
+      resueltas: alertasMapeadas.filter((n) => n.leida).length,
+    };
+  }, [alertasMapeadas]);
 
-  // Cargar alertas desde el backend
+  // Recargar alertas (usa el hook de notificaciones)
   const cargarAlertas = useCallback(async () => {
     setEstadosCarga((prev) => ({ ...prev, alertas: true }));
-
     try {
-      const response = await apiService.obtenerAlertasPorEmpresa(
-        empresaId,
-        false
-      );
-
-      if (response.success && response.data?.data) {
-        // Convertir alertas del backend al formato de notificaciones
-        response.data.data.forEach((alerta: any) => {
-          addNotification({
-            tipo: alerta.tipo,
-            mensaje: alerta.mensaje,
-            dispositivo: alerta.dispositivo,
-            ubicacion: alerta.ubicacion,
-            importante: alerta.importante,
-          });
-        });
-      }
+      await recargar();
     } catch (error) {
-      console.error("Error cargando alertas:", error);
+      console.error("Error recargando alertas:", error);
       toast({
         title: "Error",
-        description: "No se pudieron cargar las alertas",
+        description: "No se pudieron recargar las alertas",
         variant: "destructive",
       });
     } finally {
       setEstadosCarga((prev) => ({ ...prev, alertas: false }));
     }
-  }, [empresaId, addNotification, toast]);
+  }, [recargar, toast]);
 
   // Manejar expansión/colapso de alertas
   const toggleAlerta = useCallback(
@@ -120,36 +128,24 @@ export function useAlertasSistema() {
       } else {
         setAlertaExpandida(id);
         // Marcar como leída cuando se expande
-        markAsRead(id);
+        marcarComoLeida(id);
       }
     },
-    [alertaExpandida, markAsRead]
+    [alertaExpandida, marcarComoLeida]
   );
 
-  // Simular nueva alerta (usar API real)
+  // Simular nueva alerta (para testing)
   const simularAlerta = useCallback(async () => {
     setEstadosCarga((prev) => ({ ...prev, simulacion: true }));
 
     try {
-      const response = await apiService.simularAlerta();
+      // Recargar notificaciones para obtener las más recientes
+      await recargar();
 
-      if (response.success && response.data?.data) {
-        const alerta = response.data.data;
-
-        addNotification({
-          tipo: alerta.tipo as TipoAlerta,
-          mensaje: alerta.mensaje,
-          dispositivo: alerta.dispositivo,
-          ubicacion: alerta.ubicacion,
-          importante: alerta.importante,
-        });
-
-        toast({
-          title: "Nueva alerta generada",
-          description: alerta.mensaje,
-          variant: alerta.tipo === "error" ? "destructive" : "default",
-        });
-      }
+      toast({
+        title: "Alertas actualizadas",
+        description: "Se han cargado las últimas notificaciones",
+      });
     } catch (error) {
       toast({
         title: "Error",
@@ -159,29 +155,21 @@ export function useAlertasSistema() {
     } finally {
       setEstadosCarga((prev) => ({ ...prev, simulacion: false }));
     }
-  }, [addNotification, toast]);
+  }, [recargar, toast]);
 
-  // Asignar alerta a técnico (API real)
+  // Asignar alerta a técnico
   const asignarAlerta = useCallback(
     async (alertaId: string) => {
       setEstadosCarga((prev) => ({ ...prev, accion: true }));
 
       try {
-        const response = await apiService.asignarAlerta(alertaId, "TECH001");
+        // Marcar como leída al asignar
+        await marcarComoLeida(alertaId);
 
-        if (response.success) {
-          toast({
-            title: "Alerta asignada",
-            description: MENSAJES_ALERTA.asignacionExitosa,
-          });
-
-          /* if (isConnected) { // COMENTADO
-            sendMessage("assign_alert", {
-              alertId: alertaId,
-              technicianId: "TECH001",
-            });
-          } */
-        }
+        toast({
+          title: "Alerta asignada",
+          description: MENSAJES_ALERTA.asignacionExitosa,
+        });
       } catch (error) {
         toast({
           title: "Error",
@@ -192,32 +180,21 @@ export function useAlertasSistema() {
         setEstadosCarga((prev) => ({ ...prev, accion: false }));
       }
     },
-    [toast]
+    [marcarComoLeida, toast]
   );
 
-  // Resolver alerta (API real)
+  // Resolver alerta
   const resolverAlerta = useCallback(
     async (alertaId: string) => {
       setEstadosCarga((prev) => ({ ...prev, accion: true }));
 
       try {
-        const response = await apiService.resolverAlerta(
-          alertaId,
-          "Resuelta desde dashboard"
-        );
+        await marcarComoLeida(alertaId);
 
-        if (response.success) {
-          markAsRead(alertaId);
-
-          toast({
-            title: "Alerta resuelta",
-            description: MENSAJES_ALERTA.resolucionExitosa,
-          });
-
-          /* if (isConnected) { // COMENTADO
-            sendMessage("resolve_alert", { alertId: alertaId });
-          } */
-        }
+        toast({
+          title: "Alerta resuelta",
+          description: MENSAJES_ALERTA.resolucionExitosa,
+        });
       } catch (error) {
         toast({
           title: "Error",
@@ -228,14 +205,14 @@ export function useAlertasSistema() {
         setEstadosCarga((prev) => ({ ...prev, accion: false }));
       }
     },
-    [markAsRead, toast]
+    [marcarComoLeida, toast]
   );
 
   // Marcar alerta como vista
   const marcarComoVista = useCallback(
     async (alertaId: string) => {
       try {
-        markAsRead(alertaId);
+        await marcarComoLeida(alertaId);
         toast({
           title: "Alerta marcada como vista",
           description: "La alerta ha sido marcada como leída",
@@ -248,22 +225,14 @@ export function useAlertasSistema() {
         });
       }
     },
-    [markAsRead, toast]
+    [marcarComoLeida, toast]
   );
 
-  // Eliminar alerta (API real)
+  // Eliminar alerta
   const eliminarAlerta = useCallback(
     async (alertaId: string) => {
       try {
-        const response = await apiService.eliminarAlerta(alertaId);
-
-        if (response.success) {
-          removeNotification(alertaId);
-          toast({
-            title: "Alerta eliminada",
-            description: MENSAJES_ALERTA.eliminacionExitosa,
-          });
-        }
+        await eliminarNotificacion(alertaId);
       } catch (error) {
         toast({
           title: "Error",
@@ -272,7 +241,7 @@ export function useAlertasSistema() {
         });
       }
     },
-    [removeNotification, toast]
+    [eliminarNotificacion, toast]
   );
 
   // Marcar todas como leídas
@@ -280,15 +249,7 @@ export function useAlertasSistema() {
     setEstadosCarga((prev) => ({ ...prev, accion: true }));
 
     try {
-      // Simular delay para UX
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
-      markAllAsRead();
-
-      toast({
-        title: "Todas las alertas marcadas como leídas",
-        description: `${resumenAlertas.noLeidas} alertas han sido marcadas como leídas`,
-      });
+      await marcarTodasComoLeidas();
     } catch (error) {
       toast({
         title: "Error",
@@ -298,7 +259,7 @@ export function useAlertasSistema() {
     } finally {
       setEstadosCarga((prev) => ({ ...prev, accion: false }));
     }
-  }, [markAllAsRead, toast, resumenAlertas.noLeidas]);
+  }, [marcarTodasComoLeidas, toast]);
 
   // Limpiar filtros
   const limpiarFiltros = useCallback(() => {
@@ -320,21 +281,11 @@ export function useAlertasSistema() {
     setBusqueda(termino);
   }, []);
 
-  // Cargar alertas al montar el componente
-  useEffect(() => {
-    cargarAlertas();
-  }, [cargarAlertas]);
-
-  // Efecto para actualización automática
-  useEffect(() => {
-    if (!CONFIG_ACTUALIZACION.habilitada) return;
-
-    const interval = setInterval(() => {
-      cargarAlertas();
-    }, CONFIG_ACTUALIZACION.intervalo);
-
-    return () => clearInterval(interval);
-  }, [cargarAlertas]);
+  // Limpiar todas las notificaciones
+  const clearAll = useCallback(async () => {
+    // Por ahora solo recarga, en el futuro podría eliminar todas
+    await recargar();
+  }, [recargar]);
 
   // Efecto para limpiar alerta expandida al cambiar filtros
   useEffect(() => {
@@ -343,32 +294,37 @@ export function useAlertasSistema() {
 
   return {
     // Estados
-    alertaExpandida,
-    busqueda,
-    filtroTipo,
-    filtroEstado,
-    estadosCarga,
-    notificacionesFiltradas,
+    alertas: notificacionesFiltradas,
     resumenAlertas,
-    isConnected: false, // Devolver un valor estático
+    alertaExpandida,
+    estadosCarga: {
+      ...estadosCarga,
+      alertas: loadingNotificaciones,
+    },
+    filtros: {
+      busqueda,
+      tipo: filtroTipo,
+      estado: filtroEstado,
+    },
 
-    // Acciones de alerta
-    toggleAlerta,
+    // Acciones principales
+    cargarAlertas,
     simularAlerta,
     asignarAlerta,
     resolverAlerta,
     marcarComoVista,
     eliminarAlerta,
     marcarTodasLeidas,
+    clearAll,
 
-    // Filtros y búsqueda
+    // Navegación y filtros
+    toggleAlerta,
+    limpiarFiltros,
     cambiarFiltroTipo,
     cambiarFiltroEstado,
     cambiarBusqueda,
-    limpiarFiltros,
 
-    // Utilidades
-    clearAll,
-    loading: estadosCarga.alertas || estadosCarga.accion,
+    // Estado de conexión WebSocket
+    isConnected: estaConectado,
   };
 }

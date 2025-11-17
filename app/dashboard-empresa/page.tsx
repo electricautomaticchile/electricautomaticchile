@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { GestionClientes } from "./features/clientes";
 import { DispositivosActivos } from "./features/dispositivos";
 import { AlertasSistema } from "./features/alertas";
+import { useNotificacionesEmpresa } from "./features/alertas/useNotificacionesEmpresa";
 import { ConfiguracionEmpresa } from "./features/configuracion";
 import { MapaInteractivo } from "./features/gestion-geografica/MapaInteractivo";
 import { SistemaAntifraude } from "./features/gestion-geografica/SistemaAntifraude";
@@ -174,19 +175,26 @@ const MobileNavigation = ({
   activeTab,
   onTabChange,
   ticketsAbiertos,
+  notificacionesNoLeidas,
 }: {
   isOpen: boolean;
   onClose: () => void;
   activeTab: string;
   onTabChange: (tab: string) => void;
   ticketsAbiertos: number;
+  notificacionesNoLeidas: number;
 }) => {
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "clientes", label: "Clientes", icon: Users },
     { id: "dispositivos", label: "Dispositivos", icon: Battery },
     { id: "mapa-seguridad", label: "Mapa & Seguridad", icon: MapPin },
-    { id: "alertas", label: "Alertas", icon: BellRing, badge: "3" },
+    { 
+      id: "alertas", 
+      label: "Alertas", 
+      icon: BellRing, 
+      badge: notificacionesNoLeidas > 0 ? notificacionesNoLeidas.toString() : undefined 
+    },
     {
       id: "soporte",
       label: "Soporte",
@@ -254,6 +262,10 @@ export default function DashboardEmpresa() {
   const [requiereCambioPassword, setRequiereCambioPassword] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [ticketsAbiertos, setTicketsAbiertos] = useState(0);
+
+  // Hook de notificaciones para obtener el contador
+  const { resumen } = useNotificacionesEmpresa();
+  const notificacionesNoLeidas = resumen.noLeidas;
 
   // Cargar estadísticas de tickets
   useEffect(() => {
@@ -342,7 +354,7 @@ export default function DashboardEmpresa() {
                     id: "alertas",
                     label: "Alertas",
                     icon: BellRing,
-                    badge: "3",
+                    badge: notificacionesNoLeidas > 0 ? notificacionesNoLeidas.toString() : undefined,
                   },
                   {
                     id: "soporte",
@@ -393,6 +405,7 @@ export default function DashboardEmpresa() {
               activeTab={activeTab}
               onTabChange={setActiveTab}
               ticketsAbiertos={ticketsAbiertos}
+              notificacionesNoLeidas={notificacionesNoLeidas}
             />
 
             {/* Contenido principal */}

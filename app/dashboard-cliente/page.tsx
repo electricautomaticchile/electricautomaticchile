@@ -310,11 +310,6 @@ export default function DashboardCliente() {
                 onCambioEstado={manejarCambioEstado}
               />
             </div>
-
-            {/* Alertas en tiempo real */}
-            <div className="mb-6">
-              <AlertasEnTiempoReal reducida={true} sonidoHabilitado={true} />
-            </div>
           </>
         );
     }
