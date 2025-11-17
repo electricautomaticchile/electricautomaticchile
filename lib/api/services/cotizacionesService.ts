@@ -14,7 +14,7 @@ export class CotizacionesService extends BaseApiService {
     archivo?: string;
     archivoTipo?: string;
   }): Promise<ApiResponse<{ id: string; numero: string; estado: string }>> {
-    return this.makeRequest("/cotizaciones/contacto", {
+    return this.makeRequest("/formulario/contacto", {
       method: "POST",
       body: JSON.stringify(data),
     });
