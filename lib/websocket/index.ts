@@ -47,14 +47,7 @@ export {
   useWebSocketConditional,
 } from './optimizedHooks';
 
-// Exportar componentes optimizados
-export {
-  RealtimeValue,
-  RealtimeChart,
-  ConnectionQualityIndicator,
-  withWebSocketOptimization,
-  useOptimizedList,
-} from './OptimizedComponents';
+// Componentes optimizados eliminados (no se usaban)
 
 // Exportar gestión de memoria
 export {
