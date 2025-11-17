@@ -7,14 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import {
   Zap,
   TrendingUp,
@@ -31,6 +24,7 @@ import { useWebSocket } from "@/lib/websocket/useWebSocket";
 import type { ActualizacionPotenciaDispositivo } from "@/lib/websocket/tipos";
 import { Badge } from "@/components/ui/badge";
 import { useApi } from "@/lib/hooks/useApi";
+import { HistorialConsumoReal } from "./historial-consumo-real";
 
 interface ConsumoElectricoProps {
   reducida?: boolean;
@@ -77,9 +71,6 @@ export function ConsumoElectrico({
   // Usar el ID del usuario autenticado o el clienteId proporcionado
   const idCliente =
     clienteId || (user as any)?._id?.toString() || user?.id?.toString() || null;
-  const [periodoSeleccionado, setPeriodoSeleccionado] = useState("mensual");
-  const [añoSeleccionado, setAñoSeleccionado] = useState("2023");
-  const [mesSeleccionado, setMesSeleccionado] = useState("Noviembre");
   const [datosConsumo, setDatosConsumo] = useState<DatosConsumo | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -126,10 +117,11 @@ export function ConsumoElectrico({
       if (datos.costo !== undefined) {
         console.log("🔥 [ConsumoElectrico] Costo recibido:", datos.costo);
         setCostoTiempoReal(datos.costo);
-      } else if (datosConsumo?.tarifaKwh) {
-        // Calcular costo si no viene en los datos
-        const costoCalculado = consumoKwh * datosConsumo.tarifaKwh;
-        console.log("🔥 [ConsumoElectrico] Costo calculado:", costoCalculado);
+      } else {
+        // Calcular costo si no viene en los datos (usar tarifa por defecto si no hay datosConsumo)
+        const tarifa = datosConsumo?.tarifaKwh || 185;
+        const costoCalculado = consumoKwh * tarifa;
+        console.log("🔥 [ConsumoElectrico] Costo calculado:", costoCalculado, "con tarifa:", tarifa);
         setCostoTiempoReal(costoCalculado);
       }
 
@@ -142,22 +134,29 @@ export function ConsumoElectrico({
 
       // Actualizar también los datos de consumo si están disponibles
       if (datosConsumo) {
+        const tarifa = datosConsumo.tarifaKwh || 185;
+        const consumoPrevio = datosConsumo.consumoActual || 0;
+        const tendencia = consumoKwh > consumoPrevio ? "↑ Aumentando" : 
+                         consumoKwh < consumoPrevio ? "↓ Disminuyendo" : 
+                         "→ Estable";
+        
         setDatosConsumo({
           ...datosConsumo,
           consumoActual: consumoKwh,
-          costoEstimado: datos.costo || consumoKwh * datosConsumo.tarifaKwh,
+          costoEstimado: datos.costo || consumoKwh * tarifa,
           resumen: datosConsumo.resumen
             ? {
                 ...datosConsumo.resumen,
                 ultimaActualizacion: datos.marcaTiempo,
+                tendencia: tendencia,
               }
             : {
-                dispositivosActivos: 0,
+                dispositivosActivos: 1,
                 ultimaActualizacion: datos.marcaTiempo,
-                tendencia: "Sin datos",
+                tendencia: tendencia,
               },
         });
-        console.log("🔥 [ConsumoElectrico] datosConsumo actualizados");
+        console.log("🔥 [ConsumoElectrico] datosConsumo actualizados con tendencia:", tendencia);
       }
     },
     [datosConsumo]
@@ -180,10 +179,6 @@ export function ConsumoElectrico({
 
     // Escuchar TODOS los eventos para debug
     if (socket) {
-      const debugHandler = (eventName: string, ...args: any[]) => {
-        console.log("🔥 [ConsumoElectrico] Evento recibido:", eventName, args);
-      };
-
       // Socket.IO tiene un evento especial para capturar todos los eventos
       socket.onAny((eventName, ...args) => {
         console.log(
@@ -236,7 +231,7 @@ export function ConsumoElectrico({
     obtenerDispositivoAsignado();
   }, [idCliente]);
 
-  // Cargar datos desde la API
+  // Cargar datos básicos desde la API
   useEffect(() => {
     const cargarDatosConsumo = async () => {
       // No cargar si no hay un ID de cliente válido
@@ -251,24 +246,8 @@ export function ConsumoElectrico({
         setError(null);
 
         const parametros = {
-          periodo: periodoSeleccionado as "mensual" | "diario" | "horario",
-          año: parseInt(añoSeleccionado),
-          ...(periodoSeleccionado === "diario" && {
-            mes: [
-              "Enero",
-              "Febrero",
-              "Marzo",
-              "Abril",
-              "Mayo",
-              "Junio",
-              "Julio",
-              "Agosto",
-              "Septiembre",
-              "Octubre",
-              "Noviembre",
-              "Diciembre",
-            ].indexOf(mesSeleccionado),
-          }),
+          periodo: "mensual" as "mensual" | "diario" | "horario",
+          año: new Date().getFullYear(),
         };
 
         const response = await apiService.obtenerEstadisticasConsumoCliente(
@@ -290,55 +269,9 @@ export function ConsumoElectrico({
     };
 
     cargarDatosConsumo();
-  }, [idCliente, periodoSeleccionado, añoSeleccionado, mesSeleccionado]);
+  }, [idCliente]);
 
-  // Renderizar gráfico usando los datos de la API
-  const renderizarGrafico = () => {
-    if (
-      !datosConsumo ||
-      !datosConsumo.datosGrafico ||
-      !datosConsumo.datosGrafico.length
-    ) {
-      return (
-        <div className="h-60 flex items-center justify-center">
-          <p className="text-gray-500">No hay datos disponibles</p>
-        </div>
-      );
-    }
 
-    const datos = datosConsumo.datosGrafico;
-    const maxConsumo = Math.max(...datos.map((d) => d.consumo));
-
-    return (
-      <div className="h-60 flex items-end space-x-2 mt-4">
-        {datos.map((dato, index) => {
-          const altura = maxConsumo > 0 ? (dato.consumo / maxConsumo) * 100 : 0;
-          let etiqueta = "";
-
-          if ("mes" in dato) {
-            etiqueta = dato.mes.substring(0, 3);
-          } else if ("dia" in dato) {
-            etiqueta = dato.dia.substring(0, 3);
-          } else if ("hora" in dato) {
-            etiqueta = dato.hora;
-          }
-
-          return (
-            <div key={index} className="flex flex-col items-center flex-1">
-              <div
-                className="w-full bg-orange-500 rounded-t-sm transition-all hover:bg-orange-600"
-                style={{ height: `${altura}%` }}
-                title={`${etiqueta}: ${dato.consumo} kWh`}
-              ></div>
-              <div className="text-xs mt-1 text-gray-600 truncate w-full text-center">
-                {etiqueta}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
 
   // Loading state
   if (cargando) {
@@ -384,7 +317,18 @@ export function ConsumoElectrico({
     );
   }
 
-  if (!datosConsumo) return null;
+  // Permitir mostrar datos en tiempo real incluso si datosConsumo no está cargado
+  const datosParaMostrar = datosConsumo || {
+    consumoActual: consumoTiempoReal || 0,
+    costoEstimado: costoTiempoReal || 0,
+    consumoPromedio: 0,
+    tarifaKwh: 185,
+    resumen: {
+      dispositivosActivos: 0,
+      ultimaActualizacion: ultimaActualizacionTiempoReal?.toISOString() || new Date().toISOString(),
+      tendencia: consumoTiempoReal !== null ? "Datos en tiempo real" : "Sin datos",
+    },
+  };
 
   // Para la versión reducida del componente
   if (reducida) {
@@ -430,12 +374,14 @@ export function ConsumoElectrico({
               <div className="text-2xl font-bold">
                 {consumoTiempoReal !== null
                   ? consumoTiempoReal.toFixed(2)
-                  : datosConsumo.consumoActual}{" "}
+                  : datosParaMostrar.consumoActual}{" "}
                 kWh
               </div>
               <div className="text-sm text-gray-500">
                 <TrendingUp className="h-4 w-4 inline mr-1 text-green-600" />
-                {datosConsumo.resumen?.tendencia || "Sin datos"}
+                {estaConectado && consumoTiempoReal !== null 
+                  ? (datosConsumo?.resumen?.tendencia || "Datos en vivo")
+                  : (datosParaMostrar.resumen?.tendencia || "Sin datos")}
               </div>
             </div>
             <div className="space-y-2">
@@ -449,18 +395,16 @@ export function ConsumoElectrico({
                 {formatearCostoCLP(
                   costoTiempoReal !== null
                     ? costoTiempoReal
-                    : datosConsumo.costoEstimado || 0
+                    : datosParaMostrar.costoEstimado || 0
                 )}
               </div>
               <div className="text-sm text-gray-500">
                 <Clock className="h-4 w-4 inline mr-1" />
-                {datosConsumo.resumen?.dispositivosActivos || 0} dispositivos
+                {datosParaMostrar.resumen?.dispositivosActivos || 0} dispositivos
                 activos
               </div>
             </div>
           </div>
-
-          <div className="h-28 mt-4">{renderizarGrafico()}</div>
 
           {estaConectado && ultimaActualizacionTiempoReal && (
             <div className="mt-3 text-xs text-green-600 flex items-center gap-1">
@@ -507,7 +451,7 @@ export function ConsumoElectrico({
             Última actualización:{" "}
             {ultimaActualizacionTiempoReal
               ? ultimaActualizacionTiempoReal.toLocaleTimeString("es-CL")
-              : datosConsumo.resumen?.ultimaActualizacion
+              : datosConsumo?.resumen?.ultimaActualizacion
                 ? new Date(
                     datosConsumo.resumen.ultimaActualizacion
                   ).toLocaleTimeString("es-CL")
@@ -530,12 +474,14 @@ export function ConsumoElectrico({
             <div className="text-3xl font-bold text-orange-600">
               {consumoTiempoReal !== null
                 ? consumoTiempoReal.toFixed(2)
-                : datosConsumo.consumoActual}{" "}
+                : datosParaMostrar.consumoActual}{" "}
               kWh
             </div>
             <div className="text-sm text-gray-500 mt-1">
               <TrendingUp className="h-4 w-4 inline mr-1 text-green-600" />
-              {datosConsumo.resumen?.tendencia || "Sin datos"}
+              {estaConectado && consumoTiempoReal !== null 
+                ? (datosConsumo?.resumen?.tendencia || "Datos en vivo")
+                : (datosParaMostrar.resumen?.tendencia || "Sin datos")}
             </div>
             {estaConectado && consumoTiempoReal !== null && (
               <div className="text-xs text-green-600 mt-1">
@@ -559,12 +505,12 @@ export function ConsumoElectrico({
               {formatearCostoCLP(
                 costoTiempoReal !== null
                   ? costoTiempoReal
-                  : datosConsumo.costoEstimado || 0
+                  : datosParaMostrar.costoEstimado || 0
               )}
             </div>
             <div className="text-sm text-gray-500 mt-1">
               <DollarSign className="h-4 w-4 inline mr-1" />
-              Tarifa: ${datosConsumo.tarifaKwh}/kWh
+              Tarifa: ${datosParaMostrar.tarifaKwh}/kWh
             </div>
             {estaConectado && costoTiempoReal !== null && (
               <div className="text-xs text-green-600 mt-1">
@@ -582,126 +528,19 @@ export function ConsumoElectrico({
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-orange-600">
-              {datosConsumo.consumoPromedio} kWh
+              {datosParaMostrar.consumoPromedio} kWh
             </div>
             <div className="text-sm text-gray-500 mt-1">
               <Clock className="h-4 w-4 inline mr-1" />
-              {datosConsumo.resumen?.dispositivosActivos || 0} dispositivos
+              {datosParaMostrar.resumen?.dispositivosActivos || 0} dispositivos
               activos
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs
-        defaultValue="mensual"
-        className="mb-4"
-        onValueChange={setPeriodoSeleccionado}
-      >
-        <div className="flex justify-between items-center mb-4">
-          <TabsList>
-            <TabsTrigger value="mensual">Mensual</TabsTrigger>
-            <TabsTrigger value="diario">Diario</TabsTrigger>
-            <TabsTrigger value="horario">Por Hora</TabsTrigger>
-          </TabsList>
-
-          <div className="flex space-x-2">
-            {periodoSeleccionado === "mensual" && (
-              <Select defaultValue="2023" onValueChange={setAñoSeleccionado}>
-                <SelectTrigger className="w-[100px]">
-                  <SelectValue placeholder="Año" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="2021">2021</SelectItem>
-                  <SelectItem value="2022">2022</SelectItem>
-                  <SelectItem value="2023">2023</SelectItem>
-                  <SelectItem value="2024">2024</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-
-            {periodoSeleccionado === "diario" && (
-              <Select
-                defaultValue="Noviembre"
-                onValueChange={setMesSeleccionado}
-              >
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="Mes" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[
-                    "Enero",
-                    "Febrero",
-                    "Marzo",
-                    "Abril",
-                    "Mayo",
-                    "Junio",
-                    "Julio",
-                    "Agosto",
-                    "Septiembre",
-                    "Octubre",
-                    "Noviembre",
-                    "Diciembre",
-                  ].map((mes) => (
-                    <SelectItem key={mes} value={mes}>
-                      {mes}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
-        </div>
-
-        <TabsContent value={periodoSeleccionado} className="mt-0">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">
-                Consumo{" "}
-                {periodoSeleccionado === "mensual"
-                  ? `Mensual ${añoSeleccionado}`
-                  : periodoSeleccionado === "diario"
-                    ? `Diario ${mesSeleccionado} ${añoSeleccionado}`
-                    : "Por Hora"}
-              </CardTitle>
-              <CardDescription>
-                {periodoSeleccionado === "mensual"
-                  ? "Consumo y costos por mes"
-                  : periodoSeleccionado === "diario"
-                    ? "Consumo por día de la semana"
-                    : "Patrón típico de consumo en 24 horas"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {renderizarGrafico()}
-
-              <div className="grid grid-cols-3 gap-4 mt-8">
-                <div className="bg-gray-50 dark:bg-slate-900 p-3 rounded-lg">
-                  <div className="text-sm text-gray-500">Máximo Consumo</div>
-                  <div className="text-xl font-bold">
-                    {datosConsumo.consumoMaximo} kWh
-                  </div>
-                  <div className="text-xs text-gray-500">Período actual</div>
-                </div>
-                <div className="bg-gray-50 dark:bg-slate-900 p-3 rounded-lg">
-                  <div className="text-sm text-gray-500">Promedio</div>
-                  <div className="text-xl font-bold">
-                    {datosConsumo.consumoPromedio} kWh
-                  </div>
-                  <div className="text-xs text-gray-500">Período actual</div>
-                </div>
-                <div className="bg-gray-50 dark:bg-slate-900 p-3 rounded-lg">
-                  <div className="text-sm text-gray-500">Mínimo Consumo</div>
-                  <div className="text-xl font-bold">
-                    {datosConsumo.consumoMinimo} kWh
-                  </div>
-                  <div className="text-xs text-gray-500">Período actual</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {/* Historial de Consumo Real */}
+      <HistorialConsumoReal clienteId={idCliente} />
 
       <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900 border-blue-200 dark:border-slate-700">
         <CardContent className="p-6">
@@ -715,7 +554,7 @@ export function ConsumoElectrico({
                 Tendencia:
               </span>
               <span className="text-slate-600 dark:text-slate-400">
-                {datosConsumo.resumen?.tendencia || "Sin datos"}
+                {datosParaMostrar.resumen?.tendencia || "Sin datos"}
               </span>
             </div>
             <div className="flex items-center gap-2 text-sm">
@@ -723,7 +562,7 @@ export function ConsumoElectrico({
                 Dispositivos activos:
               </span>
               <span className="text-slate-600 dark:text-slate-400">
-                {datosConsumo.resumen?.dispositivosActivos || 0}
+                {datosParaMostrar.resumen?.dispositivosActivos || 0}
               </span>
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">

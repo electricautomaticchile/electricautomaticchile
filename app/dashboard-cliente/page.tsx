@@ -6,7 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ConsumoElectrico } from "./componentes/consumo-electrico";
 import { EstadoServicio } from "./componentes/estado-servicio";
 import { PagosFacturas } from "./componentes/pagos-facturas";
-import { HistorialConsumo } from "./componentes/historial-consumo";
 import { SoporteUsuarioNuevo as SoporteUsuario } from "./componentes/soporte-usuario";
 import { PerfilUsuario } from "./componentes/perfil-usuario";
 import { MapaBasico } from "./componentes/ubicacion/MapaBasico";
@@ -137,18 +136,7 @@ export default function DashboardCliente() {
     switch (componenteActivo) {
       case "consumo":
         return (
-          <Tabs defaultValue="actual" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="actual">Consumo Actual</TabsTrigger>
-              <TabsTrigger value="historial">Historial</TabsTrigger>
-            </TabsList>
-            <TabsContent value="actual" className="mt-6">
-              <ConsumoElectrico />
-            </TabsContent>
-            <TabsContent value="historial" className="mt-6">
-              <HistorialConsumo />
-            </TabsContent>
-          </Tabs>
+          <ConsumoElectrico />
         );
       case "boletas":
         return <PagosFacturas />;
