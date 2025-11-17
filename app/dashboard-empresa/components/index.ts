@@ -9,7 +9,6 @@ export { AlertasSistema } from "../features/alertas";
 export { DispositivosActivos } from "../features/dispositivos";
 export { EstadisticasConsumo } from "../features/estadisticas";
 export { ConfiguracionEmpresa } from "../features/configuracion";
-export { ConsumoSectorial } from "../features/consumo";
 export { ControlArduino } from "../features/control";
 
 // Exportar componentes de clientes

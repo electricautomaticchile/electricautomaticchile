@@ -9,10 +9,6 @@ import { PagosFacturas } from "./componentes/pagos-facturas";
 import { HistorialConsumo } from "./componentes/historial-consumo";
 import { SoporteUsuarioNuevo as SoporteUsuario } from "./componentes/soporte-usuario";
 import { PerfilUsuario } from "./componentes/perfil-usuario";
-import { AlertasEnTiempoReal } from "./componentes/alertas-tiempo-real";
-import { PronosticoConsumo } from "./componentes/predicciones-clima/PronosticoConsumo";
-import { ConsejosAhorro } from "./componentes/predicciones-clima/ConsejosAhorro";
-import { IndiceCalidadAire } from "./componentes/calidad-aire/IndiceCalidadAire";
 import { MapaBasico } from "./componentes/ubicacion/MapaBasico";
 import { ControlServicio } from "./componentes/control-servicio";
 import { NotificacionesCliente } from "./componentes/notificaciones-cliente";
@@ -142,25 +138,15 @@ export default function DashboardCliente() {
       case "consumo":
         return (
           <Tabs defaultValue="actual" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="actual">Consumo Actual</TabsTrigger>
               <TabsTrigger value="historial">Historial</TabsTrigger>
-              <TabsTrigger value="consejos">Consejos</TabsTrigger>
             </TabsList>
             <TabsContent value="actual" className="mt-6">
               <ConsumoElectrico />
             </TabsContent>
             <TabsContent value="historial" className="mt-6">
               <HistorialConsumo />
-            </TabsContent>
-            <TabsContent value="consejos" className="mt-6">
-              <ConsejosAhorro
-                condicionesClimaticas={{
-                  temperatura: 25,
-                  humedad: 65,
-                  descripcion: "Parcialmente nublado",
-                }}
-              />
             </TabsContent>
           </Tabs>
         );
@@ -189,20 +175,7 @@ export default function DashboardCliente() {
       case "notificaciones":
         return <NotificacionesCliente />;
       case "soporte":
-        return (
-          <Tabs defaultValue="ayuda" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="ayuda">Centro de Ayuda</TabsTrigger>
-              <TabsTrigger value="alertas">Alertas</TabsTrigger>
-            </TabsList>
-            <TabsContent value="ayuda" className="mt-6">
-              <SoporteUsuario />
-            </TabsContent>
-            <TabsContent value="alertas" className="mt-6">
-              <AlertasEnTiempoReal />
-            </TabsContent>
-          </Tabs>
-        );
+        return <SoporteUsuario />;
       case "resumen":
       case null:
       default:
@@ -290,10 +263,10 @@ export default function DashboardCliente() {
                 <ConsumoElectrico reducida={true} />
               </div>
               <div
-                onClick={() => setComponenteActivo("soporte")}
+                onClick={() => setComponenteActivo("notificaciones")}
                 className="cursor-pointer"
               >
-                <AlertasEnTiempoReal reducida={true} />
+                <NotificacionesCliente />
               </div>
             </div>
 
