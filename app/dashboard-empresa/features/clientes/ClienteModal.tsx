@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Dialog,
@@ -50,9 +49,6 @@ export function ClienteModal({
     rut: "",
     tipoCliente: "particular" as "particular" | "empresa",
     empresa: "",
-    planSeleccionado: "",
-    montoMensual: 0,
-    notas: "",
   });
 
   const { toast } = useToast();
@@ -125,9 +121,6 @@ export function ClienteModal({
         rut: cliente.rut || "",
         tipoCliente: cliente.tipoCliente || "particular",
         empresa: cliente.empresa || "",
-        planSeleccionado: cliente.planSeleccionado || "",
-        montoMensual: cliente.montoMensual || 0,
-        notas: cliente.notas || "",
       });
     } else {
       setFormData({
@@ -139,9 +132,6 @@ export function ClienteModal({
         rut: "",
         tipoCliente: "particular",
         empresa: "",
-        planSeleccionado: "",
-        montoMensual: 0,
-        notas: "",
       });
     }
   }, [cliente, isOpen]);
@@ -286,44 +276,6 @@ export function ClienteModal({
                 disabled={isLoading}
               />
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="planSeleccionado">Plan</Label>
-              <Select
-                value={formData.planSeleccionado}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, planSeleccionado: value })
-                }
-                disabled={isLoading}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar plan" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="basico">Básico</SelectItem>
-                  <SelectItem value="premium">Premium</SelectItem>
-                  <SelectItem value="enterprise">Enterprise</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="montoMensual">Monto Mensual ($)</Label>
-              <Input
-                id="montoMensual"
-                type="number"
-                min="0"
-                value={formData.montoMensual}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    montoMensual: Number(e.target.value),
-                  })
-                }
-                placeholder="0"
-                disabled={isLoading}
-              />
-            </div>
           </div>
 
           <div className="space-y-2">
@@ -335,20 +287,6 @@ export function ClienteModal({
                 setFormData({ ...formData, direccion: e.target.value })
               }
               placeholder="Dirección completa"
-              disabled={isLoading}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="notas">Notas</Label>
-            <Textarea
-              id="notas"
-              value={formData.notas}
-              onChange={(e) =>
-                setFormData({ ...formData, notas: e.target.value })
-              }
-              placeholder="Notas adicionales..."
-              rows={3}
               disabled={isLoading}
             />
           </div>

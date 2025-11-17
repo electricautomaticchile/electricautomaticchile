@@ -79,12 +79,9 @@ export interface ICliente {
   esActivo?: boolean;
   activo?: boolean;
   passwordTemporal?: string;
-  planSeleccionado?: string;
-  montoMensual?: number;
   fechaRegistro?: string;
   fechaActivacion?: string;
   ultimoAcceso?: string;
-  notas?: string;
 }
 
 import { UserRole, UserType } from "@/types/user";
