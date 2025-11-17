@@ -2,7 +2,7 @@
 
 export interface IFiltrosReporte {
   // Filtros generales
-  formato?: "excel" | "csv";
+  formato?: "excel" | "csv" | "pdf";
   fechaDesde?: string;
   fechaHasta?: string;
 
@@ -37,7 +37,7 @@ export interface IConfigReporte {
     | "dispositivos"
     | "estadisticas"
     | "consumo-sectorial";
-  formato: "excel" | "csv";
+  formato: "excel" | "csv" | "pdf";
   filtros?: IFiltrosReporte;
   empresaId?: string;
 }

@@ -180,7 +180,7 @@ export function ReporteExportMenu({
 interface ReporteExportSimpleProps {
   onExportarExcel: () => void;
   onExportarCSV: () => void;
-  onExportarPDF: () => void;
+  onExportarPDF?: () => void;
   isExporting?: boolean;
   disabled?: boolean;
   className?: string;
@@ -212,7 +212,9 @@ export function ReporteExportSimple({
             onExportarCSV();
             break;
           case "pdf":
-            onExportarPDF();
+            if (onExportarPDF) {
+              onExportarPDF();
+            }
             break;
         }
       }}

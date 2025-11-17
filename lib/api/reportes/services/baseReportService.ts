@@ -129,8 +129,8 @@ export abstract class BaseReportService {
       errors.push("Tipo de reporte es requerido");
     }
 
-    if (!config.formato || !["excel", "csv"].includes(config.formato)) {
-      errors.push("Formato debe ser 'excel' o 'csv'");
+    if (!config.formato || !["excel", "csv", "pdf"].includes(config.formato)) {
+      errors.push("Formato debe ser 'excel', 'csv' o 'pdf'");
     }
 
     if (!config.titulo || config.titulo.trim().length === 0) {

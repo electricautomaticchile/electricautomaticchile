@@ -94,8 +94,6 @@ export class CotizacionesService extends BaseApiService {
     id: string,
     datos: {
       passwordTemporal?: string;
-      planSeleccionado?: string;
-      montoMensual?: number;
     }
   ): Promise<ApiResponse<any>> {
     return this.makeRequest(`/cotizaciones/${id}/convertir-cliente`, {

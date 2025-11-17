@@ -150,10 +150,10 @@ export function ClientesTabla({
                     <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-16 animate-pulse"></div>
                   </TableCell>
                   <TableCell>
-                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-12 animate-pulse"></div>
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-16 animate-pulse"></div>
                   </TableCell>
                   <TableCell>
-                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-16 animate-pulse"></div>
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20 animate-pulse"></div>
                   </TableCell>
                   {showActions && (
                     <TableCell>
@@ -200,7 +200,6 @@ export function ClientesTabla({
               <TableHead>Cliente</TableHead>
               <TableHead>Contacto</TableHead>
               <TableHead>Tipo</TableHead>
-              <TableHead>Plan</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead>Registro</TableHead>
               {showActions && <TableHead className="w-[50px]"></TableHead>}
@@ -273,26 +272,6 @@ export function ClientesTabla({
                       ? "Empresa"
                       : "Particular"}
                   </Badge>
-                </TableCell>
-
-                {/* Plan */}
-                <TableCell>
-                  <div className="text-sm">
-                    {cliente.planSeleccionado ? (
-                      <div className="space-y-1">
-                        <div className="font-medium capitalize text-gray-900 dark:text-gray-100">
-                          {cliente.planSeleccionado}
-                        </div>
-                        {cliente.montoMensual && cliente.montoMensual > 0 && (
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            ${cliente.montoMensual.toLocaleString()}/mes
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">Sin plan</span>
-                    )}
-                  </div>
                 </TableCell>
 
                 {/* Estado */}

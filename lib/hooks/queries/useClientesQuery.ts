@@ -272,10 +272,7 @@ export function useClientesStats(
         empresas: clientes.filter((c) => c.tipoCliente === "empresa").length,
         particulares: clientes.filter((c) => c.tipoCliente === "particular")
           .length,
-        ingresosMensuales: clientes.reduce(
-          (sum, c) => sum + (c.montoMensual || 0),
-          0
-        ),
+        ingresosMensuales: 0, // Campo removido del modelo
       };
     },
     staleTime: 1000 * 60 * 5, // 5 minutos

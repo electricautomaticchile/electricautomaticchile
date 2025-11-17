@@ -231,7 +231,7 @@ export function GestionClientes({ reducida = false }: GestionClientesProps) {
   };
 
   // Manejar exportación de reportes
-  const handleExportar = async (formato: "excel" | "csv") => {
+  const handleExportar = async (formato: "excel" | "csv" | "pdf") => {
     const filtros = {
       ...(filtroTipo !== "todos" && { tipoCliente: filtroTipo }),
       ...(filtroCiudad !== "todos" && { ciudad: filtroCiudad }),
@@ -357,6 +357,7 @@ export function GestionClientes({ reducida = false }: GestionClientesProps) {
             onRefresh={handleRefresh}
             onExportarExcel={() => handleExportar("excel")}
             onExportarCSV={() => handleExportar("csv")}
+            onExportarPDF={() => handleExportar("pdf")}
             isRefreshing={isRefetching}
             totalClientes={estadisticas.totalClientes}
             clientesFiltrados={clientesFiltrados.length}

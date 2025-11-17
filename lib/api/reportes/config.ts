@@ -27,6 +27,7 @@ export const REPORTE_CONFIG = {
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     },
     csv: { extension: "csv", mimeType: "text/csv" },
+    pdf: { extension: "pdf", mimeType: "application/pdf" },
   },
 };
 

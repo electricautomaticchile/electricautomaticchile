@@ -137,7 +137,7 @@ export class DownloadUtils {
   // Generar nombre de archivo con timestamp
   static generarNombreArchivo(
     prefijo: string,
-    formato: "excel" | "csv",
+    formato: "excel" | "csv" | "pdf",
     incluirTimestamp: boolean = true
   ): string {
     const extension = REPORTE_CONFIG.formats[formato].extension;
@@ -223,8 +223,8 @@ export class DownloadUtils {
       errors.push("Tipo de reporte es requerido");
     }
 
-    if (!config.formato || !["excel", "csv"].includes(config.formato)) {
-      errors.push("Formato debe ser 'excel' o 'csv'");
+    if (!config.formato || !["excel", "csv", "pdf"].includes(config.formato)) {
+      errors.push("Formato debe ser 'excel', 'csv' o 'pdf'");
     }
 
     if (config.filtros?.fechaDesde && config.filtros?.fechaHasta) {
