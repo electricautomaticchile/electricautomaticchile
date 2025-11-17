@@ -66,26 +66,38 @@ export function DispositivosActivosTabla({
   useEffect(() => {
     if (!dispositivoSeleccionado) return;
 
+    console.log(`⏰ Iniciando actualización automática cada 1 minuto para ${dispositivoSeleccionado}`);
+    
     const interval = setInterval(() => {
+      console.log(`🔄 Actualizando datos automáticamente...`);
       cargarConsumoYCosto(dispositivoSeleccionado);
     }, 60000); // 60 segundos = 1 minuto
 
-    return () => clearInterval(interval);
+    return () => {
+      console.log(`⏹️ Deteniendo actualización automática`);
+      clearInterval(interval);
+    };
   }, [dispositivoSeleccionado]);
 
   // Cargar datos de todos los dispositivos al inicio y cada 1 minuto
   useEffect(() => {
     if (dispositivos.length === 0) return;
 
+    console.log(`⏰ Iniciando actualización automática de ${dispositivos.length} dispositivos cada 1 minuto`);
+    
     // Cargar inmediatamente
     cargarDatosTodosDispositivos();
 
     // Actualizar cada 1 minuto
     const interval = setInterval(() => {
+      console.log(`🔄 Actualizando datos de todos los dispositivos automáticamente...`);
       cargarDatosTodosDispositivos();
     }, 60000); // 60 segundos = 1 minuto
 
-    return () => clearInterval(interval);
+    return () => {
+      console.log(`⏹️ Deteniendo actualización automática de dispositivos`);
+      clearInterval(interval);
+    };
   }, [dispositivos]);
 
   const cargarEstadoServicio = async (clienteId: string) => {
