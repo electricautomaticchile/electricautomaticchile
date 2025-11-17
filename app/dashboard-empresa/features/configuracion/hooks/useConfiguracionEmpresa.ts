@@ -125,7 +125,9 @@ export function useConfiguracionEmpresa(): UseConfiguracionEmpresaReturn {
 
     try {
       setEstados((prev) => ({ ...prev, saving: true }));
-      console.log("💾 Guardando datos de empresa:", datosEmpresa);
+      console.log("💾 [useConfiguracionEmpresa] Iniciando guardado...");
+      console.log("📋 [useConfiguracionEmpresa] Empresa ID:", empresaId);
+      console.log("📋 [useConfiguracionEmpresa] Datos actuales:", datosEmpresa);
 
       const datosParaActualizar: DatosActualizacionEmpresa = {
         nombreEmpresa: datosEmpresa.nombreEmpresa,
@@ -144,17 +146,24 @@ export function useConfiguracionEmpresa(): UseConfiguracionEmpresaReturn {
         },
       };
 
+      console.log("📤 [useConfiguracionEmpresa] Datos a enviar:", datosParaActualizar);
+
       const response = await apiService.actualizarEmpresa(
         empresaId,
         datosParaActualizar
       );
 
+      console.log("📥 [useConfiguracionEmpresa] Respuesta recibida:", response);
+
       if (response.success) {
         toast({
-          title: "Configuración guardada",
+          title: "✅ Configuración guardada",
           description: MENSAJES_SISTEMA.guardado.empresa,
         });
-        console.log("✅ Empresa actualizada:", response.data);
+        console.log("✅ [useConfiguracionEmpresa] Empresa actualizada exitosamente:", response.data);
+        
+        // Recargar datos para confirmar cambios
+        await cargarDatosEmpresa();
       } else {
         throw new Error(response.error || "Error desconocido");
       }
@@ -163,16 +172,16 @@ export function useConfiguracionEmpresa(): UseConfiguracionEmpresaReturn {
         error instanceof Error
           ? error.message
           : MENSAJES_SISTEMA.error.guardado;
-      console.error("❌ Error guardando datos:", error);
+      console.error("❌ [useConfiguracionEmpresa] Error guardando datos:", error);
       toast({
-        title: "Error",
+        title: "Error al guardar",
         description: errorMsg,
         variant: "destructive",
       });
     } finally {
       setEstados((prev) => ({ ...prev, saving: false }));
     }
-  }, [empresaId, datosEmpresa, configuracionNotificaciones, toast]);
+  }, [empresaId, datosEmpresa, configuracionNotificaciones, toast, cargarDatosEmpresa]);
 
   // Función para guardar notificaciones
   const guardarNotificaciones = useCallback(async () => {
