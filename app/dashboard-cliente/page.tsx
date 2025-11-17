@@ -15,6 +15,7 @@ import { ConsejosAhorro } from "./componentes/predicciones-clima/ConsejosAhorro"
 import { IndiceCalidadAire } from "./componentes/calidad-aire/IndiceCalidadAire";
 import { MapaBasico } from "./componentes/ubicacion/MapaBasico";
 import { ControlServicio } from "./componentes/control-servicio";
+import { NotificacionesCliente } from "./componentes/notificaciones-cliente";
 import HeaderCliente from "./components/layout/header";
 import NavigationCliente from "./components/layout/navigation";
 
@@ -185,6 +186,8 @@ export default function DashboardCliente() {
             </TabsContent>
           </Tabs>
         );
+      case "notificaciones":
+        return <NotificacionesCliente />;
       case "soporte":
         return (
           <Tabs defaultValue="ayuda" className="w-full">
