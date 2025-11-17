@@ -118,8 +118,8 @@ export function ConsumoElectrico({
         console.log("🔥 [ConsumoElectrico] Costo recibido:", datos.costo);
         setCostoTiempoReal(datos.costo);
       } else {
-        // Calcular costo si no viene en los datos (usar tarifa por defecto si no hay datosConsumo)
-        const tarifa = datosConsumo?.tarifaKwh || 185;
+        // Calcular costo si no viene en los datos (usar tarifa por defecto)
+        const tarifa = 185;
         const costoCalculado = consumoKwh * tarifa;
         console.log("🔥 [ConsumoElectrico] Costo calculado:", costoCalculado, "con tarifa:", tarifa);
         setCostoTiempoReal(costoCalculado);
@@ -132,21 +132,25 @@ export function ConsumoElectrico({
         datos.marcaTiempo
       );
 
-      // Actualizar también los datos de consumo si están disponibles
-      if (datosConsumo) {
-        const tarifa = datosConsumo.tarifaKwh || 185;
-        const consumoPrevio = datosConsumo.consumoActual || 0;
+      // Actualizar datosConsumo usando el estado más reciente
+      setDatosConsumo((prevDatos) => {
+        if (!prevDatos) return prevDatos;
+        
+        const tarifa = prevDatos.tarifaKwh || 185;
+        const consumoPrevio = prevDatos.consumoActual || 0;
         const tendencia = consumoKwh > consumoPrevio ? "↑ Aumentando" : 
                          consumoKwh < consumoPrevio ? "↓ Disminuyendo" : 
                          "→ Estable";
         
-        setDatosConsumo({
-          ...datosConsumo,
+        console.log("🔥 [ConsumoElectrico] Actualizando datosConsumo con tendencia:", tendencia);
+        
+        return {
+          ...prevDatos,
           consumoActual: consumoKwh,
           costoEstimado: datos.costo || consumoKwh * tarifa,
-          resumen: datosConsumo.resumen
+          resumen: prevDatos.resumen
             ? {
-                ...datosConsumo.resumen,
+                ...prevDatos.resumen,
                 ultimaActualizacion: datos.marcaTiempo,
                 tendencia: tendencia,
               }
@@ -155,11 +159,10 @@ export function ConsumoElectrico({
                 ultimaActualizacion: datos.marcaTiempo,
                 tendencia: tendencia,
               },
-        });
-        console.log("🔥 [ConsumoElectrico] datosConsumo actualizados con tendencia:", tendencia);
-      }
+        };
+      });
     },
-    [datosConsumo]
+    [] // Sin dependencias para evitar recreación del callback
   );
 
   // Escuchar eventos de actualización de potencia
