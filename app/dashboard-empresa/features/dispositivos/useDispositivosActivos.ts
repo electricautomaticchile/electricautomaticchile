@@ -120,14 +120,26 @@ export function useDispositivosActivos() {
           timestamp: new Date().toISOString()
         });
 
-        // Mapear _id a id para compatibilidad
+        // Mapear dispositivos del backend al formato esperado por el frontend
         const dispositivosMapeados = dispositivosBackend.map((d: any) => ({
-          ...d,
-          id: d.id || d._id?.toString() || d.numeroDispositivo || `device-${Math.random()}`,
+          id: d._id?.toString() || d.id,
+          nombre: d.nombre || "Dispositivo sin nombre",
+          numeroDispositivo: d.numeroDispositivo || d.id,
+          estado: d.estado || "inactivo",
+          ubicacion: d.ubicacion || "Sin ubicación",
+          consumoActual: d.ultimaLectura?.energia || 0,
+          bateria: 100, // Valor por defecto si no está disponible
+          senal: 85, // Valor por defecto si no está disponible
+          ultimaTransmision: d.ultimaConexion ? new Date(d.ultimaConexion).toLocaleString("es-CL") : "Nunca",
+          temperaturaOperacion: d.ultimaLectura?.temperatura || 0,
+          cliente: d.cliente || null,
+          empresa: d.empresa || null,
+          tipoConexion: d.tipoConexion || "wifi",
+          firmware: d.firmware || "1.0.0",
         }));
 
-        setDispositivos(dispositivosMapeados);
-        const resumen = calcularResumen(dispositivosBackend);
+        setDispositivos(dispositivosMapeados as Dispositivo[]);
+        const resumen = calcularResumen(dispositivosMapeados);
         setResumenDispositivos(resumen);
       } else {
         // Fallback a simulación si la API falla o devuelve datos inválidos

@@ -13,13 +13,8 @@
     "test:unit": "jest --testPathPattern=\"__tests__/(components|utils|hooks)\" --verbose",
     "test:integration": "jest --testPathPattern=\"__tests__/(pages|middleware)\" --verbose",
     "test:auth": "jest --testPathPattern=\"auth\" --verbose",
-    "test:ui": "jest --testPathPattern=\"components/ui\" --verbose",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "generate-secret": "node scripts/generate-secret.js",
-    "validate-security": "node scripts/validate-security.js",
-    "check-env": "node scripts/check-env.js",
-    "analyze": "cross-env ANALYZE=true next build",
-    "clean": "rimraf .next out node_modules"
+    "test:ui": "jest --testPathPattern=\"components/ui\" --verbose"
+    
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.10.0",

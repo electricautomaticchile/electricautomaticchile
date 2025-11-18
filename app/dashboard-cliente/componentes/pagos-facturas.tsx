@@ -7,6 +7,7 @@ import { CreditCard, Download, FileText, CircleDollarSign, AlertCircle, Loader2 
 import { format } from 'date-fns';
 import { useApi } from "@/lib/hooks/useApi";
 import { useToast } from "@/components/ui/use-toast";
+import { baseService } from "@/lib/api/utils/baseService";
 
 interface Boleta {
   _id: string;
@@ -44,12 +45,10 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
   const cargarBoletas = async () => {
     try {
       setCargando(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const response = await fetch(`${apiUrl}/api/boletas/cliente/${clienteId}`);
-      const data = await response.json();
+      const response = await baseService.get(`/boletas/cliente/${clienteId}`);
       
-      if (data.success) {
-        setBoletas(data.data);
+      if (response.success) {
+        setBoletas(response.data as Boleta[]);
       }
     } catch (error) {
       console.error('Error cargando boletas:', error);
@@ -66,15 +65,9 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
   const pagarBoleta = async (boletaId: string) => {
     try {
       setPagando(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       
       // Marcar boleta como pagada
-      const response = await fetch(`${apiUrl}/api/boletas/${boletaId}/pagar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      
-      const data = await response.json();
+      const data = await baseService.put(`/boletas/${boletaId}/pagar`, {}) as any;
       
       if (data.success) {
         // Mostrar notificación de pago exitoso
