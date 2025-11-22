@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -69,15 +69,7 @@ export function SoporteUsuarioNuevo() {
     console.log("🔍 Debug Cliente:", { clienteId, user, tabActiva });
   }, [clienteId, user, tabActiva]);
 
-  // Cargar tickets del cliente
-  useEffect(() => {
-    console.log("🔄 useEffect ejecutado:", { clienteId, tabActiva });
-    if (clienteId && tabActiva === "tickets") {
-      cargarTickets();
-    }
-  }, [clienteId, tabActiva]);
-
-  const cargarTickets = async () => {
+  const cargarTickets = useCallback(async () => {
     if (!clienteId) return;
 
     setCargando(true);
@@ -107,7 +99,15 @@ export function SoporteUsuarioNuevo() {
     } finally {
       setCargando(false);
     }
-  };
+  }, [clienteId, toast]);
+
+  // Cargar tickets del cliente
+  useEffect(() => {
+    console.log("🔄 useEffect ejecutado:", { clienteId, tabActiva });
+    if (clienteId && tabActiva === "tickets") {
+      cargarTickets();
+    }
+  }, [clienteId, tabActiva, cargarTickets]);
 
   const crearNuevoTicket = async () => {
     if (
@@ -350,19 +350,19 @@ export function SoporteUsuarioNuevo() {
                       </Button>
                       {(ticketSeleccionado.estado === "abierto" ||
                         ticketSeleccionado.estado === "cerrado") && (
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={eliminarTicket}
-                          disabled={enviando}
-                        >
-                          {enviando ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            "Eliminar"
-                          )}
-                        </Button>
-                      )}
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={eliminarTicket}
+                            disabled={enviando}
+                          >
+                            {enviando ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              "Eliminar"
+                            )}
+                          </Button>
+                        )}
                     </div>
                     <CardTitle className="flex items-center gap-2">
                       <FileText className="h-5 w-5 text-orange-600" />
@@ -439,11 +439,10 @@ export function SoporteUsuarioNuevo() {
                   {ticketSeleccionado.respuestas.map((respuesta) => (
                     <div
                       key={respuesta._id}
-                      className={`p-4 rounded-lg ${
-                        respuesta.autorTipo === "cliente"
-                          ? "bg-blue-50 dark:bg-blue-950/30 ml-8 border border-blue-200 dark:border-blue-800"
-                          : "bg-gray-50 dark:bg-gray-800/50 mr-8 border border-gray-200 dark:border-gray-700"
-                      }`}
+                      className={`p-4 rounded-lg ${respuesta.autorTipo === "cliente"
+                        ? "bg-blue-50 dark:bg-blue-950/30 ml-8 border border-blue-200 dark:border-blue-800"
+                        : "bg-gray-50 dark:bg-gray-800/50 mr-8 border border-gray-200 dark:border-gray-700"
+                        }`}
                     >
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-semibold text-sm text-foreground">

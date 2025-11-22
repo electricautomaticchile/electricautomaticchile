@@ -72,7 +72,7 @@ export function HistorialConsumoReal({ reducida = false, clienteId }: HistorialC
         // Calcular fechas según el período
         const hasta = new Date();
         let desde = new Date();
-        
+
         switch (periodoSeleccionado) {
           case "hora":
             desde = new Date(hasta.getTime() - 24 * 60 * 60 * 1000); // Últimas 24 horas
@@ -144,7 +144,6 @@ export function HistorialConsumoReal({ reducida = false, clienteId }: HistorialC
 
           console.log("📊 Datos transformados:", {
             total: datosTransformados.length,
-            ultimoValor: ultimoValor,
             energiaTotal: datosTransformados.reduce((sum, d) => sum + d.energia, 0),
             costoTotal: datosTransformados.reduce((sum, d) => sum + d.costo, 0),
           });
@@ -160,7 +159,7 @@ export function HistorialConsumoReal({ reducida = false, clienteId }: HistorialC
     };
 
     cargarHistorial();
-    
+
     // Recargar cada 60 segundos (1 minuto) para evitar parpadeos molestos
     const intervalo = setInterval(cargarHistorial, 60000);
     return () => clearInterval(intervalo);
@@ -179,8 +178,8 @@ export function HistorialConsumoReal({ reducida = false, clienteId }: HistorialC
   const costoTotal = datosHistoricos.reduce((sum, d) => sum + (d.costo || 0), 0);
   const energiaPromedio = datosHistoricos.length > 0 ? energiaTotal / datosHistoricos.length : 0;
   const potenciaMaxima = Math.max(...datosHistoricos.map(d => d.potenciaMaxima || 0), 0);
-  const potenciaPromedio = datosHistoricos.length > 0 
-    ? datosHistoricos.reduce((sum, d) => sum + (d.potenciaPromedio || 0), 0) / datosHistoricos.length 
+  const potenciaPromedio = datosHistoricos.length > 0
+    ? datosHistoricos.reduce((sum, d) => sum + (d.potenciaPromedio || 0), 0) / datosHistoricos.length
     : 0;
   const voltajePromedio = datosHistoricos.length > 0
     ? datosHistoricos.reduce((sum, d) => sum + (d.voltaje || 0), 0) / datosHistoricos.length

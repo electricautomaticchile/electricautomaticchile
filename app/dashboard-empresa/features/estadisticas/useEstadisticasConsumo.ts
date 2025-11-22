@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "@/components/ui/use-toast";
+import { useUserId, useIsAuthenticated } from "@/lib/store/useAppStore";
 import { estadisticasService } from "@/lib/api/services/estadisticasService";
 import { reportesService } from "@/lib/api/services/reportesService";
 import {
@@ -24,11 +25,17 @@ export function useEstadisticasConsumo() {
   const [resumenEstadisticas, setResumenEstadisticas] =
     useState<EstadisticasResumen>(ESTADISTICAS_RESUMEN_DEFAULT);
 
+  // Obtener usuario autenticado usando selectores primitivos optimizados
+  const userId = useUserId();
+  const isAuthenticated = useIsAuthenticated();
+
   // Log de debugging para verificar inicialización
   console.log("useEstadisticasConsumo: estado inicializado", {
     loading,
     resumenEstadisticasDefined: !!resumenEstadisticas,
     resumenEstadisticasConsumoMensual: resumenEstadisticas?.consumoMensual,
+    userId,
+    isAuthenticated,
   });
 
   const [estadoExportacion, setEstadoExportacion] = useState<EstadoExportacion>(
@@ -47,10 +54,22 @@ export function useEstadisticasConsumo() {
     try {
       console.log("useEstadisticasConsumo: iniciando carga de datos", {
         periodo,
+        userId,
       });
       setLoading(true);
 
-      const clienteId = "60d5ec49e03e8a2788d3d9d3"; // TODO: obtener del contexto de autenticación
+      if (!isAuthenticated || !userId) {
+        console.warn(
+          "useEstadisticasConsumo: Usuario no autenticado, usando datos simulados"
+        );
+        const datosSimulados = generarDatosConsumo(periodo as TipoExportacion);
+        setDatosConsumo(datosSimulados);
+        setResumenEstadisticas(ESTADISTICAS_RESUMEN_DEFAULT);
+        setLoading(false);
+        return;
+      }
+
+      const clienteId = userId; // ✅ USAR ID DEL USUARIO AUTENTICADO
       const response =
         await estadisticasService.obtenerEstadisticasConsumoCliente(clienteId, {
           periodo: periodo as any,
@@ -58,23 +77,23 @@ export function useEstadisticasConsumo() {
 
       if (response.success && response.data) {
         const responseData = response.data as any;
-        
+
         // Validar que los datos tengan la estructura esperada
-        const datos = Array.isArray(responseData.datos) 
+        const datos = Array.isArray(responseData.datos)
           ? responseData.datos as DatoConsumo[]
           : [];
-        
+
         const resumen = responseData.resumen && typeof responseData.resumen === 'object'
           ? responseData.resumen as EstadisticasResumen
           : ESTADISTICAS_RESUMEN_DEFAULT;
-        
+
         console.log("useEstadisticasConsumo: datos cargados desde API", {
           success: response.success,
           datosLength: datos.length,
           resumenDefined: !!resumen,
           timestamp: new Date().toISOString()
         });
-        
+
         setDatosConsumo(datos);
         setResumenEstadisticas(resumen);
       } else {
@@ -88,12 +107,12 @@ export function useEstadisticasConsumo() {
       }
     } catch (error) {
       console.error("Error cargando estadísticas:", error);
-      
+
       // Usar datos simulados en caso de error
       const datosSimulados = generarDatosConsumo(periodo as TipoExportacion);
       setDatosConsumo(datosSimulados);
       setResumenEstadisticas(ESTADISTICAS_RESUMEN_DEFAULT);
-      
+
       toast({
         title: "❌ Error de Carga",
         description: "No se pudieron cargar las estadísticas de consumo.",
@@ -102,7 +121,7 @@ export function useEstadisticasConsumo() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userId, isAuthenticated]);
 
   // Manejar exportación de estadísticas
   const handleExportarEstadisticas = useCallback(

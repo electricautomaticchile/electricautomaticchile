@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -45,62 +45,17 @@ export function DispositivosActivosTabla({
     null
   );
   const [cargandoEstado, setCargandoEstado] = useState(false);
-  
+
   // Estado para consumo y costo en tiempo real (del modal)
   const [consumoTiempoReal, setConsumoTiempoReal] = useState<number | null>(null);
   const [costoTiempoReal, setCostoTiempoReal] = useState<number | null>(null);
   const [ultimaActualizacion, setUltimaActualizacion] = useState<Date | null>(null);
-  
+
   // Estado para consumo y costo de todos los dispositivos (para las cards)
   const [datosDispositivos, setDatosDispositivos] = useState<Map<string, { consumo: number; costo: number }>>(new Map());
 
-  // Cargar estado del servicio cuando se selecciona un dispositivo
-  useEffect(() => {
-    if (dispositivoSeleccionado) {
-      cargarEstadoServicio(dispositivoSeleccionado);
-      cargarConsumoYCosto(dispositivoSeleccionado);
-    }
-  }, [dispositivoSeleccionado]);
-
-  // Actualizar consumo y costo del modal cada 1 minuto
-  useEffect(() => {
-    if (!dispositivoSeleccionado) return;
-
-    console.log(`⏰ Iniciando actualización automática cada 1 minuto para ${dispositivoSeleccionado}`);
-    
-    const interval = setInterval(() => {
-      console.log(`🔄 Actualizando datos automáticamente...`);
-      cargarConsumoYCosto(dispositivoSeleccionado);
-    }, 60000); // 60 segundos = 1 minuto
-
-    return () => {
-      console.log(`⏹️ Deteniendo actualización automática`);
-      clearInterval(interval);
-    };
-  }, [dispositivoSeleccionado]);
-
-  // Cargar datos de todos los dispositivos al inicio y cada 1 minuto
-  useEffect(() => {
-    if (dispositivos.length === 0) return;
-
-    console.log(`⏰ Iniciando actualización automática de ${dispositivos.length} dispositivos cada 1 minuto`);
-    
-    // Cargar inmediatamente
-    cargarDatosTodosDispositivos();
-
-    // Actualizar cada 1 minuto
-    const interval = setInterval(() => {
-      console.log(`🔄 Actualizando datos de todos los dispositivos automáticamente...`);
-      cargarDatosTodosDispositivos();
-    }, 60000); // 60 segundos = 1 minuto
-
-    return () => {
-      console.log(`⏹️ Deteniendo actualización automática de dispositivos`);
-      clearInterval(interval);
-    };
-  }, [dispositivos]);
-
-  const cargarEstadoServicio = async (clienteId: string) => {
+  // Cargar estado del servicio
+  const cargarEstadoServicio = useCallback(async (clienteId: string) => {
     setCargandoEstado(true);
     try {
       const response = await servicioElectricoService.obtenerEstado(clienteId);
@@ -117,29 +72,30 @@ export function DispositivosActivosTabla({
     } finally {
       setCargandoEstado(false);
     }
-  };
+  }, [toast]);
 
-  const cargarConsumoYCosto = async (dispositivoId: string) => {
+  // Cargar consumo y costo
+  const cargarConsumoYCosto = useCallback(async (dispositivoId: string) => {
     try {
       console.log(`🔄 Cargando consumo y costo para dispositivo: ${dispositivoId}`);
-      
+
       // Obtener datos del dispositivo desde la API usando el _id
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       const url = `${apiUrl}/api/dispositivos/${dispositivoId}`;
-      
+
       console.log(`📡 Haciendo fetch a: ${url}`);
-      
+
       const response = await fetch(url);
       const data = await response.json();
-      
+
       console.log(`📥 Respuesta recibida:`, data);
-      
+
       if (data.success && data.data?.ultimaLectura) {
         const { energia, costo } = data.data.ultimaLectura;
         setConsumoTiempoReal(energia || 0);
         setCostoTiempoReal(costo || 0);
         setUltimaActualizacion(new Date());
-        
+
         console.log(`✅ Consumo y costo actualizados para ${dispositivoId}:`, {
           energia,
           costo,
@@ -151,12 +107,13 @@ export function DispositivosActivosTabla({
     } catch (error) {
       console.error("❌ Error cargando consumo y costo:", error);
     }
-  };
+  }, []);
 
-  const cargarDatosTodosDispositivos = async () => {
+  // Cargar datos de todos los dispositivos
+  const cargarDatosTodosDispositivos = useCallback(async () => {
     try {
       console.log(`🔄 Cargando datos de ${dispositivos.length} dispositivos...`);
-      
+
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       const nuevosDatos = new Map<string, { consumo: number; costo: number }>();
 
@@ -165,7 +122,7 @@ export function DispositivosActivosTabla({
         try {
           const response = await fetch(`${apiUrl}/api/dispositivos/${dispositivo.id}`);
           const data = await response.json();
-          
+
           if (data.success && data.data?.ultimaLectura) {
             const { energia, costo } = data.data.ultimaLectura;
             nuevosDatos.set(dispositivo.id, {
@@ -180,12 +137,58 @@ export function DispositivosActivosTabla({
 
       await Promise.all(promesas);
       setDatosDispositivos(nuevosDatos);
-      
+
       console.log(`✅ Datos cargados para ${nuevosDatos.size} dispositivos`);
     } catch (error) {
       console.error("❌ Error cargando datos de dispositivos:", error);
     }
-  };
+  }, [dispositivos]);
+
+  // Cargar estado del servicio cuando se selecciona un dispositivo
+  useEffect(() => {
+    if (dispositivoSeleccionado) {
+      cargarEstadoServicio(dispositivoSeleccionado);
+      cargarConsumoYCosto(dispositivoSeleccionado);
+    }
+  }, [dispositivoSeleccionado, cargarEstadoServicio, cargarConsumoYCosto]);
+
+  // Actualizar consumo y costo del modal cada 1 minuto
+  useEffect(() => {
+    if (!dispositivoSeleccionado) return;
+
+    console.log(`⏰ Iniciando actualización automática cada 1 minuto para ${dispositivoSeleccionado}`);
+
+    const interval = setInterval(() => {
+      console.log(`🔄 Actualizando datos automáticamente...`);
+      cargarConsumoYCosto(dispositivoSeleccionado);
+    }, 60000); // 60 segundos = 1 minuto
+
+    return () => {
+      console.log(`⏹️ Deteniendo actualización automática`);
+      clearInterval(interval);
+    };
+  }, [dispositivoSeleccionado, cargarConsumoYCosto]);
+
+  // Cargar datos de todos los dispositivos al inicio y cada 1 minuto
+  useEffect(() => {
+    if (dispositivos.length === 0) return;
+
+    console.log(`⏰ Iniciando actualización automática de ${dispositivos.length} dispositivos cada 1 minuto`);
+
+    // Cargar inmediatamente
+    cargarDatosTodosDispositivos();
+
+    // Actualizar cada 1 minuto
+    const interval = setInterval(() => {
+      console.log(`🔄 Actualizando datos de todos los dispositivos automáticamente...`);
+      cargarDatosTodosDispositivos();
+    }, 60000); // 60 segundos = 1 minuto
+
+    return () => {
+      console.log(`⏹️ Deteniendo actualización automática de dispositivos`);
+      clearInterval(interval);
+    };
+  }, [dispositivos, cargarDatosTodosDispositivos]);
 
   const abrirDetalles = (dispositivoId: string) => {
     console.log("🔍 Abriendo detalles del dispositivo:", dispositivoId);
@@ -243,13 +246,12 @@ export function DispositivosActivosTabla({
         <Card
           key={dispositivo.id || `dispositivo-${index}`}
           onClick={() => abrirDetalles(dispositivo.id)}
-          className={`transition-all duration-200 hover:shadow-lg cursor-pointer ${
-            dispositivo.estado === "alerta"
-              ? "border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10"
-              : dispositivo.estado === "inactivo"
-                ? "border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/10"
-                : "border-gray-200 dark:border-gray-700"
-          }`}
+          className={`transition-all duration-200 hover:shadow-lg cursor-pointer ${dispositivo.estado === "alerta"
+            ? "border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10"
+            : dispositivo.estado === "inactivo"
+              ? "border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/10"
+              : "border-gray-200 dark:border-gray-700"
+            }`}
         >
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between">

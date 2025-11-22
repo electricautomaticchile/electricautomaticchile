@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
+import { shallow } from "zustand/shallow";
 
 // Tipos para el store
 interface User {
@@ -205,8 +206,8 @@ export const useAppStore = create<AppStore>()(
               ),
               selectedDevice:
                 state.selectedDevice &&
-                (state.selectedDevice._id === deviceId ||
-                  state.selectedDevice.idDispositivo === deviceId)
+                  (state.selectedDevice._id === deviceId ||
+                    state.selectedDevice.idDispositivo === deviceId)
                   ? { ...state.selectedDevice, ...updates }
                   : state.selectedDevice,
             }),
@@ -224,8 +225,8 @@ export const useAppStore = create<AppStore>()(
               ),
               selectedDevice:
                 state.selectedDevice &&
-                (state.selectedDevice._id === deviceId ||
-                  state.selectedDevice.idDispositivo === deviceId)
+                  (state.selectedDevice._id === deviceId ||
+                    state.selectedDevice.idDispositivo === deviceId)
                   ? null
                   : state.selectedDevice,
             }),
@@ -384,16 +385,22 @@ export const useAppStore = create<AppStore>()(
   )
 );
 
-// Hooks selectores para optimizar re-renders
-export const useAuth = () =>
-  useAppStore((state) => ({
-    user: state.user,
-    isAuthenticated: state.isAuthenticated,
-    token: state.token,
-    login: state.login,
-    logout: state.logout,
-    updateUser: state.updateUser,
-  }));
+// Hooks selectores OPTIMIZADOS
+// Usamos selectores específicos que solo retornan valores primitivos para evitar re-renders
+export const useAuth = () => {
+  const user = useAppStore((state) => state.user);
+  const isAuthenticated = useAppStore((state) => state.isAuthenticated);
+  const token = useAppStore((state) => state.token);
+  const login = useAppStore((state) => state.login);
+  const logout = useAppStore((state) => state.logout);
+  const updateUser = useAppStore((state) => state.updateUser);
+
+  return { user, isAuthenticated, token, login, logout, updateUser };
+};
+
+// Selectores específicos para valores primitivos (MÁS EFICIENTES - USAR ESTOS)
+export const useUserId = () => useAppStore((state) => state.user?.id);
+export const useIsAuthenticated = () => useAppStore((state) => state.isAuthenticated);
 
 export const useDevices = () =>
   useAppStore((state) => ({

@@ -6,6 +6,7 @@ import { useState, useEffect, useMemo } from "react";
 import { EmpresaRoute } from "@/components/auth/protected-route";
 import { CambioPasswordModal } from "@/components/ui/cambio-password-modal";
 import { ProveedorWebSocket } from "@/lib/websocket/ProveedorWebSocket";
+import { NotificacionesProvider, useNotificaciones } from "./context/NotificacionesContext";
 import { EncabezadoEmpresa } from "./components/layout/header";
 import {
   Card,
@@ -21,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { GestionClientes } from "./features/clientes";
 import { DispositivosActivos } from "./features/dispositivos";
 import { AlertasSistema } from "./features/alertas";
-import { useNotificacionesEmpresa } from "./features/alertas/useNotificacionesEmpresa";
+
 import { ConfiguracionEmpresa } from "./features/configuracion";
 import { MapaInteractivo } from "./features/gestion-geografica/MapaInteractivo";
 import { SistemaAntifraude } from "./features/gestion-geografica/SistemaAntifraude";
@@ -189,11 +190,11 @@ const MobileNavigation = ({
     { id: "clientes", label: "Clientes", icon: Users },
     { id: "dispositivos", label: "Dispositivos", icon: Battery },
     { id: "mapa-seguridad", label: "Mapa & Seguridad", icon: MapPin },
-    { 
-      id: "alertas", 
-      label: "Alertas", 
-      icon: BellRing, 
-      badge: notificacionesNoLeidas > 0 ? notificacionesNoLeidas.toString() : undefined 
+    {
+      id: "alertas",
+      label: "Alertas",
+      icon: BellRing,
+      badge: notificacionesNoLeidas > 0 ? notificacionesNoLeidas.toString() : undefined
     },
     {
       id: "soporte",
@@ -233,11 +234,10 @@ const MobileNavigation = ({
                     onTabChange(item.id);
                     onClose();
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    isActive
-                      ? "bg-orange-500 text-white shadow-md"
-                      : "text-muted-foreground hover:bg-accent hover:text-orange-400"
-                  }`}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isActive
+                    ? "bg-orange-500 text-white shadow-md"
+                    : "text-muted-foreground hover:bg-accent hover:text-orange-400"
+                    }`}
                 >
                   <Icon className="h-5 w-5" />
                   <span className="flex-1 text-left">{item.label}</span>
@@ -256,15 +256,16 @@ const MobileNavigation = ({
   );
 };
 
-export default function DashboardEmpresa() {
+// Componente interno que usa el contexto
+function DashboardContent() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [mostrarModalPassword, setMostrarModalPassword] = useState(false);
   const [requiereCambioPassword, setRequiereCambioPassword] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [ticketsAbiertos, setTicketsAbiertos] = useState(0);
 
-  // Hook de notificaciones para obtener el contador
-  const { resumen } = useNotificacionesEmpresa();
+  // Usar el hook de contexto en lugar de llamar useNotificacionesEmpresa directamente
+  const { resumen } = useNotificaciones();
   const notificacionesNoLeidas = resumen.noLeidas;
 
   // Cargar estadísticas de tickets
@@ -377,11 +378,10 @@ export default function DashboardEmpresa() {
                     <button
                       key={item.id}
                       onClick={() => setActiveTab(item.id)}
-                      className={`flex items-center gap-3 rounded-lg px-4 py-3 transition-all ${
-                        isActive
-                          ? "bg-orange-500 text-white shadow-md"
-                          : "text-muted-foreground hover:bg-accent hover:text-orange-400"
-                      }`}
+                      className={`flex items-center gap-3 rounded-lg px-4 py-3 transition-all ${isActive
+                        ? "bg-orange-500 text-white shadow-md"
+                        : "text-muted-foreground hover:bg-accent hover:text-orange-400"
+                        }`}
                     >
                       <Icon className="h-5 w-5" />
                       <span>{item.label}</span>
@@ -616,5 +616,14 @@ export default function DashboardEmpresa() {
         />
       </ProveedorWebSocket>
     </EmpresaRoute>
+  );
+}
+
+// Componente principal que provee el contexto
+export default function DashboardEmpresa() {
+  return (
+    <NotificacionesProvider>
+      <DashboardContent />
+    </NotificacionesProvider>
   );
 }

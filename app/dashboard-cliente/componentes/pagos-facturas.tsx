@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
@@ -33,20 +33,14 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
   const [boletas, setBoletas] = useState<Boleta[]>([]);
   const [cargando, setCargando] = useState(true);
   const [pagando, setPagando] = useState(false);
-  
+
   const clienteId = (user as any)?._id?.toString() || user?.id?.toString();
 
-  useEffect(() => {
-    if (clienteId) {
-      cargarBoletas();
-    }
-  }, [clienteId]);
-
-  const cargarBoletas = async () => {
+  const cargarBoletas = useCallback(async () => {
     try {
       setCargando(true);
       const response = await baseService.get(`/boletas/cliente/${clienteId}`);
-      
+
       if (response.success) {
         setBoletas(response.data as Boleta[]);
       }
@@ -60,25 +54,31 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
     } finally {
       setCargando(false);
     }
-  };
+  }, [clienteId, toast]);
+
+  useEffect(() => {
+    if (clienteId) {
+      cargarBoletas();
+    }
+  }, [clienteId, cargarBoletas]);
 
   const pagarBoleta = async (boletaId: string) => {
     try {
       setPagando(true);
-      
+
       // Marcar boleta como pagada
       const data = await baseService.put(`/boletas/${boletaId}/pagar`, {}) as any;
-      
+
       if (data.success) {
         // Mostrar notificación de pago exitoso
         toast({
           title: "✅ Pago exitoso",
           description: "La boleta ha sido pagada correctamente",
         });
-        
+
         // Recargar boletas para actualizar la vista
         await cargarBoletas();
-        
+
         // Verificar si el servicio fue restablecido automáticamente
         if (data.servicioRestablecido) {
           toast({
@@ -117,7 +117,7 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       const response = await fetch(`${apiUrl}/api/boletas/${boleta._id}/pdf`);
-      
+
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -138,7 +138,7 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
       });
     }
   };
-  
+
   const formatoMoneda = (monto: number) => {
     return new Intl.NumberFormat('es-CL', {
       style: 'currency',
@@ -147,7 +147,7 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
       maximumFractionDigits: 0,
     }).format(monto);
   };
-  
+
   const obtenerColorEstado = (estado: string) => {
     switch (estado) {
       case 'pendiente':
@@ -164,7 +164,7 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
   const boletasVencidas = boletas.filter(b => b.estado === 'vencida');
   const boletasPagadas = boletas.filter(b => b.estado === 'pagada');
   const totalDeuda = boletasVencidas.reduce((sum, b) => sum + b.monto, 0);
-  
+
   // Para la versión reducida del componente
   if (reducida) {
     return (
@@ -193,7 +193,7 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
                   Ver todas
                 </Button>
               </div>
-              
+
               <div className="space-y-3">
                 {boletasVencidas.slice(0, 2).map(boleta => (
                   <div key={boleta._id} className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800/50">
@@ -214,7 +214,7 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
               <p className="text-sm text-gray-500 dark:text-gray-400">No tiene boletas pendientes</p>
             </div>
           )}
-          
+
           {boletasPagadas.length > 0 && (
             <div className="mt-4">
               <h3 className="font-medium text-sm text-gray-500 dark:text-gray-400 mb-3">
@@ -250,7 +250,7 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
             Administre sus boletas y realice pagos
           </p>
         </div>
-        
+
         {boletasVencidas.length > 0 && (
           <div className="text-right">
             <p className="text-sm text-gray-500">Deuda total</p>
@@ -277,7 +277,7 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
               <span>Realizar Pago</span>
             </TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="facturas" className="space-y-4">
             {boletasVencidas.length > 0 && (
               <Card className="border-red-200 dark:border-red-900">
@@ -317,12 +317,12 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="text-center md:text-right">
                           <p className="text-sm text-gray-500 dark:text-gray-400">Monto</p>
                           <p className="text-3xl font-bold text-red-600 mb-2">{formatoMoneda(boleta.monto)}</p>
                           <div className="flex flex-col gap-2">
-                            <Button 
+                            <Button
                               onClick={() => pagarBoleta(boleta._id)}
                               disabled={pagando}
                               className="bg-red-600 hover:bg-red-700"
@@ -341,7 +341,7 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
                 </CardContent>
               </Card>
             )}
-            
+
             {boletasPagadas.length > 0 && (
               <Card>
                 <CardHeader>
@@ -374,7 +374,7 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="flex flex-col sm:flex-row gap-3 mt-3 sm:mt-0 w-full sm:w-auto">
                           <div className="text-right sm:mr-4">
                             <p className="text-sm text-gray-500 dark:text-gray-400">Monto</p>
@@ -402,7 +402,7 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
               </Card>
             )}
           </TabsContent>
-          
+
           <TabsContent value="pagar" className="space-y-6">
             <Card>
               <CardHeader>
@@ -420,7 +420,7 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
                         <div>
                           <p className="font-medium text-red-800 dark:text-red-300">Atención</p>
                           <p className="text-sm text-gray-600 dark:text-gray-300">
-                            Tienes {boletasVencidas.length} boleta(s) vencida(s). 
+                            Tienes {boletasVencidas.length} boleta(s) vencida(s).
                             {boletasVencidas.length >= 3 && ' Tu servicio está cortado. Paga para restablecerlo.'}
                           </p>
                         </div>
@@ -443,8 +443,8 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
                           </div>
                           <div className="text-right">
                             <p className="font-bold">{formatoMoneda(boleta.monto)}</p>
-                            <Button 
-                              size="sm" 
+                            <Button
+                              size="sm"
                               onClick={() => pagarBoleta(boleta._id)}
                               disabled={pagando}
                               className="mt-2"
@@ -457,7 +457,7 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
                     </div>
 
                     <div className="pt-4 border-t">
-                      <Button 
+                      <Button
                         className="w-full bg-orange-600 hover:bg-orange-700 text-lg py-6"
                         onClick={async () => {
                           // Pagar todas las boletas

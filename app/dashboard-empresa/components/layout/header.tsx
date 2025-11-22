@@ -206,36 +206,35 @@ export function EncabezadoEmpresa({
                 ) : (
                   notifications.slice(0, 5).map((notificacion, index) => {
                     const IconoTipo =
-                      notificacion.tipo === "error"
+                      notificacion.type === "error"
                         ? AlertTriangle
-                        : notificacion.tipo === "exito"
+                        : notificacion.type === "success"
                           ? CheckCircle2
                           : BellRing;
                     const colorTipo =
-                      notificacion.tipo === "error"
+                      notificacion.type === "error"
                         ? "border-l-red-500"
-                        : notificacion.tipo === "advertencia"
+                        : notificacion.type === "warning"
                           ? "border-l-amber-500"
-                          : notificacion.tipo === "exito"
+                          : notificacion.type === "success"
                             ? "border-l-green-500"
                             : "border-l-blue-500";
                     const colorTexto =
-                      notificacion.tipo === "error"
+                      notificacion.type === "error"
                         ? "text-red-700 dark:text-red-400"
-                        : notificacion.tipo === "advertencia"
+                        : notificacion.type === "warning"
                           ? "text-amber-700 dark:text-amber-400"
-                          : notificacion.tipo === "exito"
+                          : notificacion.type === "success"
                             ? "text-green-700 dark:text-green-400"
                             : "text-blue-700 dark:text-blue-400";
 
                     return (
                       <div
                         key={notificacion.id}
-                        className={`p-3 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 border-l-4 ${colorTipo} cursor-pointer transition-colors ${
-                          !notificacion.leida
+                        className={`p-3 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 border-l-4 ${colorTipo} cursor-pointer transition-colors ${!notificacion.read
                             ? "bg-orange-50 dark:bg-orange-900/10"
                             : ""
-                        }`}
+                          }`}
                         onClick={() => markAsRead(notificacion.id)}
                       >
                         <div className="flex items-start gap-2">
@@ -246,26 +245,21 @@ export function EncabezadoEmpresa({
                             <div
                               className={`font-medium ${colorTexto} flex items-center gap-2`}
                             >
-                              {notificacion.mensaje}
-                              {!notificacion.leida && (
+                              {notificacion.message}
+                              {!notificacion.read && (
                                 <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0" />
                               )}
                             </div>
                             <div className="text-gray-600 dark:text-gray-300 text-xs mt-1 flex items-center gap-2">
-                              {notificacion.dispositivo && (
+                              {notificacion.deviceId && (
                                 <span>
-                                  Dispositivo: {notificacion.dispositivo}
-                                </span>
-                              )}
-                              {notificacion.ubicacion && (
-                                <span className="truncate">
-                                  {notificacion.ubicacion}
+                                  Dispositivo: {notificacion.deviceId}
                                 </span>
                               )}
                             </div>
                             <div className="text-xs text-gray-400 mt-1 flex items-center gap-1">
                               <Clock className="h-3 w-3" />
-                              {notificacion.fecha} - {notificacion.hora}
+                              {new Date(notificacion.timestamp).toLocaleDateString()} - {new Date(notificacion.timestamp).toLocaleTimeString()}
                             </div>
                           </div>
                         </div>

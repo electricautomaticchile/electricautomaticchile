@@ -291,7 +291,8 @@ export function useNotificacionesEmpresa() {
       cargarNotificaciones();
       cargarEstadisticas();
     }
-  }, [empresaId, cargarNotificaciones, cargarEstadisticas]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [empresaId]);
 
   // Calcular resumen
   const resumen = {

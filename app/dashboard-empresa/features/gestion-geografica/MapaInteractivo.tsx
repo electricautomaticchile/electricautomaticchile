@@ -41,114 +41,116 @@ interface MapaInteractivoProps {
   reducida?: boolean;
 }
 
+// Medidores en Barnechea con coordenadas reales
+const datosEjemplo: Medidor[] = [
+  {
+    id: "meter_001",
+    customerName: "Residencial Los Trapenses",
+    coordinates: { lat: -33.3589, lng: -70.5089 },
+    address: "Av. Los Trapenses 4567, Barnechea",
+    status: "active",
+    consumption: 245.8,
+    anomalies: 0,
+    serialNumber: "EAC-BRN-001",
+  },
+  {
+    id: "meter_002",
+    customerName: "Condominio La Dehesa",
+    coordinates: { lat: -33.3645, lng: -70.5234 },
+    address: "Camino La Dehesa 1234, Barnechea",
+    status: "active",
+    consumption: 312.5,
+    anomalies: 0,
+    serialNumber: "EAC-BRN-002",
+  },
+  {
+    id: "meter_003",
+    customerName: "Casa Particular - Sr. Silva",
+    coordinates: { lat: -33.3512, lng: -70.5156 },
+    address: "Av. El Rodeo 890, Barnechea",
+    status: "suspicious",
+    consumption: 89.2,
+    anomalies: 2,
+    serialNumber: "EAC-BRN-003",
+  },
+  {
+    id: "meter_004",
+    customerName: "Edificio Comercial Plaza Norte",
+    coordinates: { lat: -33.3701, lng: -70.5312 },
+    address: "Av. Padre Hurtado 5678, Barnechea",
+    status: "fraud_detected",
+    consumption: 0,
+    anomalies: 5,
+    serialNumber: "EAC-BRN-004",
+  },
+  {
+    id: "meter_005",
+    customerName: "Casa en Construcción Lote 45",
+    coordinates: { lat: -33.3667, lng: -70.5145 },
+    address: "Parcela 45, Los Dominicos, Barnechea",
+    status: "inactive",
+    consumption: 0,
+    anomalies: 0,
+    serialNumber: "EAC-BRN-005",
+  },
+  {
+    id: "meter_006",
+    customerName: "Restaurant El Arrayán",
+    coordinates: { lat: -33.3623, lng: -70.5178 },
+    address: "Av. Manquehue Norte 2345, Barnechea",
+    status: "suspicious",
+    consumption: 156.3,
+    anomalies: 1,
+    serialNumber: "EAC-BRN-006",
+  },
+  {
+    id: "meter_007",
+    customerName: "Oficina Desocupada - Torre B",
+    coordinates: { lat: -33.3734, lng: -70.5289 },
+    address: "Av. Apoquindo 8900, Barnechea",
+    status: "inactive",
+    consumption: 0,
+    anomalies: 0,
+    serialNumber: "EAC-BRN-007",
+  },
+  {
+    id: "meter_008",
+    customerName: "Clínica Veterinaria Los Andes",
+    coordinates: { lat: -33.3556, lng: -70.5267 },
+    address: "Camino El Alba 678, Barnechea",
+    status: "suspicious",
+    consumption: 198.7,
+    anomalies: 1,
+    serialNumber: "EAC-BRN-008",
+  },
+  {
+    id: "meter_009",
+    customerName: "Bodega Industrial San Carlos",
+    coordinates: { lat: -33.3478, lng: -70.5201 },
+    address: "Camino San Carlos 999, Barnechea",
+    status: "fraud_detected",
+    consumption: 0,
+    anomalies: 3,
+    serialNumber: "EAC-BRN-009",
+  },
+  {
+    id: "meter_010",
+    customerName: "Local Comercial Cerrado",
+    coordinates: { lat: -33.3601, lng: -70.5334 },
+    address: "Mall Plaza Los Dominicos 234, Barnechea",
+    status: "inactive",
+    consumption: 0,
+    anomalies: 0,
+    serialNumber: "EAC-BRN-010",
+  },
+];
+
 export function MapaInteractivo({ reducida = false }: MapaInteractivoProps) {
   const [medidores, setMedidores] = useState<Medidor[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtroEstado, setFiltroEstado] = useState<string>("todos");
 
-  // Medidores en Barnechea con coordenadas reales
-  const datosEjemplo: Medidor[] = [
-    {
-      id: "meter_001",
-      customerName: "Residencial Los Trapenses",
-      coordinates: { lat: -33.3589, lng: -70.5089 },
-      address: "Av. Los Trapenses 4567, Barnechea",
-      status: "active",
-      consumption: 245.8,
-      anomalies: 0,
-      serialNumber: "EAC-BRN-001",
-    },
-    {
-      id: "meter_002",
-      customerName: "Condominio La Dehesa",
-      coordinates: { lat: -33.3645, lng: -70.5234 },
-      address: "Camino La Dehesa 1234, Barnechea",
-      status: "active",
-      consumption: 312.5,
-      anomalies: 0,
-      serialNumber: "EAC-BRN-002",
-    },
-    {
-      id: "meter_003",
-      customerName: "Casa Particular - Sr. Silva",
-      coordinates: { lat: -33.3512, lng: -70.5156 },
-      address: "Av. El Rodeo 890, Barnechea",
-      status: "suspicious",
-      consumption: 89.2,
-      anomalies: 2,
-      serialNumber: "EAC-BRN-003",
-    },
-    {
-      id: "meter_004",
-      customerName: "Edificio Comercial Plaza Norte",
-      coordinates: { lat: -33.3701, lng: -70.5312 },
-      address: "Av. Padre Hurtado 5678, Barnechea",
-      status: "fraud_detected",
-      consumption: 0,
-      anomalies: 5,
-      serialNumber: "EAC-BRN-004",
-    },
-    {
-      id: "meter_005",
-      customerName: "Casa en Construcción Lote 45",
-      coordinates: { lat: -33.3667, lng: -70.5145 },
-      address: "Parcela 45, Los Dominicos, Barnechea",
-      status: "inactive",
-      consumption: 0,
-      anomalies: 0,
-      serialNumber: "EAC-BRN-005",
-    },
-    {
-      id: "meter_006",
-      customerName: "Restaurant El Arrayán",
-      coordinates: { lat: -33.3623, lng: -70.5178 },
-      address: "Av. Manquehue Norte 2345, Barnechea",
-      status: "suspicious",
-      consumption: 156.3,
-      anomalies: 1,
-      serialNumber: "EAC-BRN-006",
-    },
-    {
-      id: "meter_007",
-      customerName: "Oficina Desocupada - Torre B",
-      coordinates: { lat: -33.3734, lng: -70.5289 },
-      address: "Av. Apoquindo 8900, Barnechea",
-      status: "inactive",
-      consumption: 0,
-      anomalies: 0,
-      serialNumber: "EAC-BRN-007",
-    },
-    {
-      id: "meter_008",
-      customerName: "Clínica Veterinaria Los Andes",
-      coordinates: { lat: -33.3556, lng: -70.5267 },
-      address: "Camino El Alba 678, Barnechea",
-      status: "suspicious",
-      consumption: 198.7,
-      anomalies: 1,
-      serialNumber: "EAC-BRN-008",
-    },
-    {
-      id: "meter_009",
-      customerName: "Bodega Industrial San Carlos",
-      coordinates: { lat: -33.3478, lng: -70.5201 },
-      address: "Camino San Carlos 999, Barnechea",
-      status: "fraud_detected",
-      consumption: 0,
-      anomalies: 3,
-      serialNumber: "EAC-BRN-009",
-    },
-    {
-      id: "meter_010",
-      customerName: "Local Comercial Cerrado",
-      coordinates: { lat: -33.3601, lng: -70.5334 },
-      address: "Mall Plaza Los Dominicos 234, Barnechea",
-      status: "inactive",
-      consumption: 0,
-      anomalies: 0,
-      serialNumber: "EAC-BRN-010",
-    },
-  ];
+
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -274,9 +276,8 @@ export function MapaInteractivo({ reducida = false }: MapaInteractivoProps) {
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
           <Card
-            className={`cursor-pointer transition-all hover:shadow-lg ${
-              filtroEstado === "todos" ? "ring-2 ring-blue-500" : ""
-            }`}
+            className={`cursor-pointer transition-all hover:shadow-lg ${filtroEstado === "todos" ? "ring-2 ring-blue-500" : ""
+              }`}
             onClick={() => setFiltroEstado("todos")}
           >
             <CardContent className="p-4 text-center">
@@ -287,9 +288,8 @@ export function MapaInteractivo({ reducida = false }: MapaInteractivoProps) {
             </CardContent>
           </Card>
           <Card
-            className={`cursor-pointer transition-all hover:shadow-lg ${
-              filtroEstado === "active" ? "ring-2 ring-green-500" : ""
-            }`}
+            className={`cursor-pointer transition-all hover:shadow-lg ${filtroEstado === "active" ? "ring-2 ring-green-500" : ""
+              }`}
             onClick={() => setFiltroEstado("active")}
           >
             <CardContent className="p-4 text-center">
@@ -300,9 +300,8 @@ export function MapaInteractivo({ reducida = false }: MapaInteractivoProps) {
             </CardContent>
           </Card>
           <Card
-            className={`cursor-pointer transition-all hover:shadow-lg ${
-              filtroEstado === "suspicious" ? "ring-2 ring-yellow-500" : ""
-            }`}
+            className={`cursor-pointer transition-all hover:shadow-lg ${filtroEstado === "suspicious" ? "ring-2 ring-yellow-500" : ""
+              }`}
             onClick={() => setFiltroEstado("suspicious")}
           >
             <CardContent className="p-4 text-center">
@@ -313,9 +312,8 @@ export function MapaInteractivo({ reducida = false }: MapaInteractivoProps) {
             </CardContent>
           </Card>
           <Card
-            className={`cursor-pointer transition-all hover:shadow-lg ${
-              filtroEstado === "fraud_detected" ? "ring-2 ring-red-500" : ""
-            }`}
+            className={`cursor-pointer transition-all hover:shadow-lg ${filtroEstado === "fraud_detected" ? "ring-2 ring-red-500" : ""
+              }`}
             onClick={() => setFiltroEstado("fraud_detected")}
           >
             <CardContent className="p-4 text-center">
@@ -326,9 +324,8 @@ export function MapaInteractivo({ reducida = false }: MapaInteractivoProps) {
             </CardContent>
           </Card>
           <Card
-            className={`cursor-pointer transition-all hover:shadow-lg ${
-              filtroEstado === "inactive" ? "ring-2 ring-gray-500" : ""
-            }`}
+            className={`cursor-pointer transition-all hover:shadow-lg ${filtroEstado === "inactive" ? "ring-2 ring-gray-500" : ""
+              }`}
             onClick={() => setFiltroEstado("inactive")}
           >
             <CardContent className="p-4 text-center">
@@ -339,9 +336,8 @@ export function MapaInteractivo({ reducida = false }: MapaInteractivoProps) {
             </CardContent>
           </Card>
           <Card
-            className={`cursor-pointer transition-all hover:shadow-lg ${
-              filtroEstado === "anomalias" ? "ring-2 ring-orange-500" : ""
-            }`}
+            className={`cursor-pointer transition-all hover:shadow-lg ${filtroEstado === "anomalias" ? "ring-2 ring-orange-500" : ""
+              }`}
             onClick={() => setFiltroEstado("anomalias")}
           >
             <CardContent className="p-4 text-center">

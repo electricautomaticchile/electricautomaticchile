@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -38,13 +38,7 @@ export function ControlServicio() {
 
   const clienteId = (user as any)?._id?.toString() || user?.id?.toString();
 
-  useEffect(() => {
-    if (clienteId) {
-      cargarEstado();
-    }
-  }, [clienteId]);
-
-  const cargarEstado = async () => {
+  const cargarEstado = useCallback(async () => {
     if (!clienteId) return;
 
     setCargando(true);
@@ -63,7 +57,13 @@ export function ControlServicio() {
     } finally {
       setCargando(false);
     }
-  };
+  }, [clienteId, toast]);
+
+  useEffect(() => {
+    if (clienteId) {
+      cargarEstado();
+    }
+  }, [clienteId, cargarEstado]);
 
   const restablecerServicio = async () => {
     if (!clienteId || !estadoServicio) return;
@@ -143,11 +143,10 @@ export function ControlServicio() {
               </CardDescription>
             </div>
             <Badge
-              className={`text-lg px-4 py-2 ${
-                esActivo
-                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                  : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-              }`}
+              className={`text-lg px-4 py-2 ${esActivo
+                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                }`}
             >
               {esActivo ? "✓ Activo" : "✗ Cortado"}
             </Badge>
@@ -196,18 +195,16 @@ export function ControlServicio() {
           {/* Alertas y Acciones */}
           {esCortado && (
             <Alert
-              className={`${
-                estadoServicio.puedeRestablecer
-                  ? "bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800"
-                  : "bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800"
-              }`}
+              className={`${estadoServicio.puedeRestablecer
+                ? "bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800"
+                : "bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800"
+                }`}
             >
               <AlertCircle
-                className={`h-4 w-4 ${
-                  estadoServicio.puedeRestablecer
-                    ? "text-blue-600"
-                    : "text-red-600"
-                }`}
+                className={`h-4 w-4 ${estadoServicio.puedeRestablecer
+                  ? "text-blue-600"
+                  : "text-red-600"
+                  }`}
               />
               <AlertDescription>
                 {estadoServicio.puedeRestablecer ? (

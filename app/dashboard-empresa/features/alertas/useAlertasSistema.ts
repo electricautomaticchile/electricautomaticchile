@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { useNotificacionesEmpresa } from "./useNotificacionesEmpresa";
+import { useNotificaciones } from "../../context/NotificacionesContext";
 import {
   ResumenAlertas,
   AlertaSistema,
@@ -60,7 +60,7 @@ export function useAlertasSistema() {
     marcarTodasComoLeidas,
     eliminarNotificacion,
     recargar,
-  } = useNotificacionesEmpresa();
+  } = useNotificaciones();
 
   const { toast } = useToast();
 

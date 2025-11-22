@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -76,16 +76,7 @@ export function GestionTickets() {
     console.log("🔍 Debug Empresa:", { empresaId, user });
   }, [empresaId, user]);
 
-  // Cargar tickets y estadísticas
-  useEffect(() => {
-    console.log("🔄 useEffect ejecutado:", { empresaId, filtros });
-    if (empresaId) {
-      cargarTickets();
-      cargarEstadisticas();
-    }
-  }, [empresaId, filtros.estado, filtros.categoria, filtros.prioridad]);
-
-  const cargarTickets = async () => {
+  const cargarTickets = useCallback(async () => {
     if (!empresaId) return;
 
     setCargando(true);
@@ -131,9 +122,9 @@ export function GestionTickets() {
     } finally {
       setCargando(false);
     }
-  };
+  }, [empresaId, filtros, toast]);
 
-  const cargarEstadisticas = async () => {
+  const cargarEstadisticas = useCallback(async () => {
     if (!empresaId) return;
 
     try {
@@ -144,7 +135,16 @@ export function GestionTickets() {
     } catch (error) {
       console.error("Error cargando estadísticas:", error);
     }
-  };
+  }, [empresaId]);
+
+  // Cargar tickets y estadísticas
+  useEffect(() => {
+    console.log("🔄 useEffect ejecutado:", { empresaId, filtros });
+    if (empresaId) {
+      cargarTickets();
+      cargarEstadisticas();
+    }
+  }, [empresaId, cargarTickets, cargarEstadisticas, filtros]);
 
   const enviarRespuesta = async () => {
     if (!mensajeRespuesta.trim() || !ticketSeleccionado) return;
@@ -251,28 +251,28 @@ export function GestionTickets() {
 
   const formatoEstado = (estado: string) => {
     const estados: Record<string, { label: string; color: string; icon: any }> =
-      {
-        abierto: {
-          label: "Abierto",
-          color: "bg-blue-100 text-blue-800",
-          icon: AlertCircle,
-        },
-        "en-proceso": {
-          label: "En Proceso",
-          color: "bg-yellow-100 text-yellow-800",
-          icon: Clock,
-        },
-        resuelto: {
-          label: "Resuelto",
-          color: "bg-green-100 text-green-800",
-          icon: CheckCircle2,
-        },
-        cerrado: {
-          label: "Cerrado",
-          color: "bg-gray-100 text-gray-800",
-          icon: CheckCircle2,
-        },
-      };
+    {
+      abierto: {
+        label: "Abierto",
+        color: "bg-blue-100 text-blue-800",
+        icon: AlertCircle,
+      },
+      "en-proceso": {
+        label: "En Proceso",
+        color: "bg-yellow-100 text-yellow-800",
+        icon: Clock,
+      },
+      resuelto: {
+        label: "Resuelto",
+        color: "bg-green-100 text-green-800",
+        icon: CheckCircle2,
+      },
+      cerrado: {
+        label: "Cerrado",
+        color: "bg-gray-100 text-gray-800",
+        icon: CheckCircle2,
+      },
+    };
     return (
       estados[estado] || {
         label: estado,
@@ -487,11 +487,10 @@ export function GestionTickets() {
               {ticketSeleccionado.respuestas.map((respuesta) => (
                 <div
                   key={respuesta._id}
-                  className={`p-4 rounded-lg ${
-                    respuesta.autorTipo === "cliente"
-                      ? "bg-blue-50 dark:bg-blue-950/30 mr-8 border border-blue-200 dark:border-blue-800"
-                      : "bg-orange-50 dark:bg-orange-950/30 ml-8 border border-orange-200 dark:border-orange-800"
-                  }`}
+                  className={`p-4 rounded-lg ${respuesta.autorTipo === "cliente"
+                    ? "bg-blue-50 dark:bg-blue-950/30 mr-8 border border-blue-200 dark:border-blue-800"
+                    : "bg-orange-50 dark:bg-orange-950/30 ml-8 border border-orange-200 dark:border-orange-800"
+                    }`}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
