@@ -91,12 +91,6 @@ export function DispositivosActivosTabla({
         setConsumoTiempoReal(energia || 0);
         setCostoTiempoReal(costo || 0);
         setUltimaActualizacion(new Date());
-
-          energia,
-          costo,
-          timestamp: new Date().toISOString()
-        });
-      } else {
       }
     } catch (error) {
     }

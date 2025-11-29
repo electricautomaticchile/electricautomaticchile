@@ -85,8 +85,7 @@ export default function Component() {
           <SheetContent side="left">
             <Link href="/" className="flex flex-col items-center gap-2">
               <Logo
-                width={180}
-                height={100}
+                showText={true}
                 className="transition-transform duration-300 group-hover:scale-125"
               />
             </Link>
@@ -137,8 +136,7 @@ export default function Component() {
             prefetch={false}
           >
             <Logo
-              width={300}
-              height={100}
+              showText={true}
               className="transition-transform duration-300 group-hover:scale-125"
             />
           </Link>

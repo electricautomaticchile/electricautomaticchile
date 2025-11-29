@@ -111,13 +111,6 @@ export function useDispositivosActivos() {
           : Array.isArray(responseData)
           ? (responseData as unknown as Dispositivo[])
           : [];
-        
-          success: response.success,
-          hasDispositivos: !!responseData.dispositivos,
-          isArray: Array.isArray(dispositivosBackend),
-          count: dispositivosBackend.length,
-          timestamp: new Date().toISOString()
-        });
 
         // Mapear dispositivos del backend al formato esperado por el frontend
         const dispositivosMapeados = dispositivosBackend.map((d: any) => ({
@@ -142,11 +135,6 @@ export function useDispositivosActivos() {
         setResumenDispositivos(resumen);
       } else {
         // Fallback a simulación si la API falla o devuelve datos inválidos
-          success: response.success,
-          hasData: !!response.data,
-          dataType: typeof response.data
-        });
-        
         const dispositivosSimulados = generarDispositivosSimulados();
         setDispositivos(dispositivosSimulados);
 

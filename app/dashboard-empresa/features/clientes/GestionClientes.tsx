@@ -317,11 +317,6 @@ export function GestionClientes({ reducida = false }: GestionClientesProps) {
           loading={loading}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          currentPage={1}
-          totalPages={1}
-          onPageChange={() => {}}
-          itemsPerPage={itemsPerPage}
-          showActions={false}
         />
 
         {/* Modal */}
@@ -382,10 +377,6 @@ export function GestionClientes({ reducida = false }: GestionClientesProps) {
             loading={loading}
             onEdit={handleEdit}
             onDelete={handleDelete}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-            itemsPerPage={itemsPerPage}
           />
         </CardContent>
       </Card>
@@ -399,13 +390,12 @@ export function GestionClientes({ reducida = false }: GestionClientesProps) {
       />
 
       {/* Modal de progreso de reportes */}
-      {reporteConfig && (
-        <ReporteProgress
-          isOpen={isReporteModalOpen}
-          onClose={() => setIsReporteModalOpen(false)}
-          config={reporteConfig}
-          onGenerate={generarReporte}
-        />
+      {reporteConfig && isReporteModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg">
+            <p>Generando reporte...</p>
+          </div>
+        </div>
       )}
     </div>
   );

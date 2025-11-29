@@ -19,6 +19,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { FileText, ArrowLeft, Loader2, Send } from "lucide-react";
 import { Ticket } from "@/lib/api/ticketsService";
+import { formatoEstado, formatoPrioridad, formatoCategoria } from "./ticket-utils";
 
 interface TicketDetalleProps {
   ticket: Ticket;

@@ -22,11 +22,7 @@ export class CSVUtils {
       };
 
       if (DEBUG_CONFIG.enabled && DEBUG_CONFIG.logRequests) {
-          nombreArchivo,
-          registros: datos.length,
-          columnas: columnas.length,
-          config,
-        });
+        // Debug info disponible si se necesita
       }
 
       // Crear headers del CSV
@@ -65,10 +61,7 @@ export class CSVUtils {
       this.descargarBlob(blob, nombreFinal);
 
       if (DEBUG_CONFIG.enabled) {
-          nombreArchivo: nombreFinal,
-          tamaño: `${(blob.size / 1024).toFixed(2)}KB`,
-          registros: datos.length,
-        });
+        // Debug info disponible si se necesita
       }
     } catch (error) {
       if (DEBUG_CONFIG.enabled && DEBUG_CONFIG.logErrors) {

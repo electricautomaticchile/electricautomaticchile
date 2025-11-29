@@ -92,10 +92,6 @@ const LoginContent = () => {
         password: password,
       });
 
-        "📡 Respuesta completa del backend:",
-        JSON.stringify(response, null, 2)
-      );
-
       if (response.success && response.data) {
 
         // Verificar si requiere cambio de contraseña
@@ -110,15 +106,9 @@ const LoginContent = () => {
           // Redirigir al dashboard pero con flag de cambio de contraseña
           const targetUrl = callbackUrl || "/dashboard-empresa";
 
-            "🔗 Redirigiendo con cambio de contraseña requerido:",
-            targetUrl
-          );
-
           try {
             await new Promise((resolve) => setTimeout(resolve, 100));
             await router.push(targetUrl);
-              "✅ Router.push ejecutado (requiere cambio de contraseña)"
-            );
           } catch (routerError) {
             window.location.href = targetUrl;
           }
@@ -131,13 +121,6 @@ const LoginContent = () => {
         const tipoUsuario =
           response.data.user.type || (response.data.user as any).tipoUsuario;
         const role = response.data.user.role;
-
-          tipoUsuario,
-          role,
-          nombre: response.data.user.name || (response.data.user as any).nombre,
-          fullUserData: response.data.user,
-          responseData: response.data,
-        });
 
         let redirectPath = "/dashboard-empresa"; // default
 
@@ -159,9 +142,6 @@ const LoginContent = () => {
         }
 
         // Redirección INMEDIATA usando window.location para mayor confiabilidad
-          "🚀 Ejecutando redirección inmediata con window.location..."
-        );
-
         // Usar window.location.href directamente para garantizar la redirección
         setTimeout(() => {
           window.location.href = targetUrl;

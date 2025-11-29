@@ -9,10 +9,14 @@ import {
 } from "../config";
 
 // Servicio base para todos los reportes
-export abstract class BaseReportService {
-  // Método abstracto que cada servicio debe implementar
-  protected abstract getEndpoint(): string;
-  protected abstract getReportPrefix(): string;
+export class BaseReportService {
+  // Método que cada servicio debe implementar
+  protected getEndpoint(): string {
+    throw new Error("getEndpoint() debe ser implementado por la clase hija");
+  }
+  protected getReportPrefix(): string {
+    throw new Error("getReportPrefix() debe ser implementado por la clase hija");
+  }
 
   // Generar reporte con configuración
   async generarReporte(
@@ -29,9 +33,7 @@ export abstract class BaseReportService {
       }
 
       if (DEBUG_CONFIG.enabled && DEBUG_CONFIG.logRequests) {
-          `📊 [${this.getReportPrefix()}] Generando reporte:`,
-          config
-        );
+        // Debug info disponible si se necesita
       }
 
       // Progress: Iniciando
@@ -72,14 +74,11 @@ export abstract class BaseReportService {
       });
 
       if (DEBUG_CONFIG.enabled) {
-          `✅ [${this.getReportPrefix()}] Reporte generado exitosamente`
-        );
+        // Debug info disponible si se necesita
       }
     } catch (error) {
       if (DEBUG_CONFIG.enabled && DEBUG_CONFIG.logErrors) {
-          `❌ [${this.getReportPrefix()}] Error generando reporte:`,
-          error
-        );
+        // Debug info disponible si se necesita
       }
 
       // Progress: Error

@@ -80,9 +80,6 @@ export function useEmpresaId(): UseEmpresaIdReturn {
 
           if (userDataString) {
             const userData = JSON.parse(userDataString);
-              "📋 Usando datos de localStorage como fallback:",
-              userData
-            );
             setUserData(userData);
 
             const id =

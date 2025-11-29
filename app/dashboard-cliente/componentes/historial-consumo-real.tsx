@@ -142,10 +142,6 @@ export function HistorialConsumoReal({ reducida = false, clienteId }: HistorialC
             });
           }
 
-            total: datosTransformados.length,
-            energiaTotal: datosTransformados.reduce((sum, d) => sum + d.energia, 0),
-            costoTotal: datosTransformados.reduce((sum, d) => sum + d.costo, 0),
-          });
           setDatosHistoricos(datosTransformados);
           setUltimaActualizacion(new Date());
         }

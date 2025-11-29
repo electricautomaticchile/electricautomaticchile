@@ -30,12 +30,7 @@ export function useEstadisticasConsumo() {
   const isAuthenticated = useIsAuthenticated();
 
   // Log de debugging para verificar inicialización
-    loading,
-    resumenEstadisticasDefined: !!resumenEstadisticas,
-    resumenEstadisticasConsumoMensual: resumenEstadisticas?.consumoMensual,
-    userId,
-    isAuthenticated,
-  });
+  // Debug info disponible si se necesita
 
   const [estadoExportacion, setEstadoExportacion] = useState<EstadoExportacion>(
     {
@@ -51,14 +46,9 @@ export function useEstadisticasConsumo() {
   // Cargar datos de consumo
   const cargarDatos = useCallback(async (periodo: string) => {
     try {
-        periodo,
-        userId,
-      });
       setLoading(true);
 
       if (!isAuthenticated || !userId) {
-          "useEstadisticasConsumo: Usuario no autenticado, usando datos simulados"
-        );
         const datosSimulados = generarDatosConsumo(periodo as TipoExportacion);
         setDatosConsumo(datosSimulados);
         setResumenEstadisticas(ESTADISTICAS_RESUMEN_DEFAULT);
@@ -84,18 +74,9 @@ export function useEstadisticasConsumo() {
           ? responseData.resumen as EstadisticasResumen
           : ESTADISTICAS_RESUMEN_DEFAULT;
 
-          success: response.success,
-          datosLength: datos.length,
-          resumenDefined: !!resumen,
-          timestamp: new Date().toISOString()
-        });
-
         setDatosConsumo(datos);
         setResumenEstadisticas(resumen);
       } else {
-          success: response.success,
-          hasData: !!response.data
-        });
         const datosSimulados = generarDatosConsumo(periodo as TipoExportacion);
         setDatosConsumo(datosSimulados);
         setResumenEstadisticas(ESTADISTICAS_RESUMEN_DEFAULT);

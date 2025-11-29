@@ -209,9 +209,6 @@ export function marcarTodasComoLeidas(emitir: (evento: string, datos: any) => vo
   try {
     const notificacionesNoLeidas = obtenerNotificacionesNoLeidas();
 
-      `[ManejadorNotificaciones] Marcando ${notificacionesNoLeidas.length} notificaciones como leídas`
-    );
-
     // Emitir evento al servidor para cada notificación
     notificacionesNoLeidas.forEach((notif) => {
       emitir('notificacion:marcar-leida', {
@@ -239,9 +236,6 @@ export function limpiarNotificacionesAntiguas(): void {
         return ahora - fechaNotif > sietesDias;
       })
       .map((e) => e.datos.id);
-
-      `[ManejadorNotificaciones] Limpiando ${notificacionesAntiguasIds.length} notificaciones antiguas`
-    );
 
     // Aquí podrías implementar lógica para eliminar del store
     // Por ahora solo loggeamos

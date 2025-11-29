@@ -243,9 +243,6 @@ export function ProveedorWebSocket({
     const token = TokenManager.getToken();
 
     if (token && !estaConectado && estadoConexion === "desconectado") {
-        "[ProveedorWebSocket] Token detectado, conectando automáticamente..."
-      );
-
       administradorRef.current
         .conectar(token)
         .then(() => {
@@ -315,8 +312,6 @@ export function ProveedorWebSocket({
    */
   const reconectar = useCallback(() => {
     if (!administradorRef.current) {
-        "[ProveedorWebSocket] No hay administrador disponible para reconectar"
-      );
       return;
     }
 
@@ -354,8 +349,6 @@ export function ProveedorWebSocket({
    */
   const desconectar = useCallback(() => {
     if (!administradorRef.current) {
-        "[ProveedorWebSocket] No hay administrador disponible para desconectar"
-      );
       return;
     }
 

@@ -7,11 +7,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Activity, RefreshCw, Settings } from "lucide-react";
-import {
-  ReporteExportMenu,
-  FormatoExportacion,
-  TipoReporte,
-} from "@/components/ui/reporte-export-menu";
+import { ReporteExportSimple } from "@/components/ui/reporte-export-menu";
+
+type FormatoExportacion = "excel" | "csv" | "pdf";
+type TipoReporte = "consumo" | "estadisticas";
 import { EstadisticasAccionesProps } from "./types";
 import { PERIODOS_DISPONIBLES } from "./config";
 
@@ -85,12 +84,12 @@ export function EstadisticasConsumoAcciones({
       {/* Controles de exportación y acciones */}
       <div className="flex items-center gap-3">
         {/* Nuevo componente unificado de exportación */}
-        <ReporteExportMenu
-          opciones={opcionesExportacion}
-          onExportar={handleExportacion}
+        <ReporteExportSimple
+          onExportarExcel={() => handleExportacion("mensual" as TipoReporte, "excel")}
+          onExportarCSV={() => handleExportacion("mensual" as TipoReporte, "csv")}
+          onExportarPDF={() => handleExportacion("mensual" as TipoReporte, "pdf")}
           isExporting={estaExportando}
           disabled={loading}
-          buttonText="Exportar Estadísticas"
           className="min-w-[160px]"
         />
 

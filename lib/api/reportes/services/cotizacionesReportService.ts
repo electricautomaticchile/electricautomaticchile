@@ -63,10 +63,6 @@ export class CotizacionesReportService extends BaseReportService {
     onProgress?: IProgressCallback
   ): Promise<void> {
     try {
-        "📊 [COTIZACIONES] Descargando reporte de cotizaciones:",
-        config
-      );
-
       onProgress?.({
         step: "init",
         percentage: 0,

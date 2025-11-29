@@ -14,8 +14,5 @@ const configSchema = z.object({
 
 // Log de configuración (solo en desarrollo)
 if (process.env.NODE_ENV === "development") {
-    baseUrl: API_BASE_URL,
-    apiUrl: API_URL,
-    version: API_VERSION,
-  });
+  // Config info disponible si se necesita
 }

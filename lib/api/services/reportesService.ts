@@ -356,9 +356,6 @@ class ReportesService {
     config: any,
     onProgress?: any
   ): Promise<void> {
-      "⚠️  Método legacy: descargarReporteEstadisticas - Considera usar el nuevo sistema modular"
-    );
-
     try {
       const params = new URLSearchParams();
       if (config.formato) params.append("formato", config.formato);
@@ -392,9 +389,6 @@ class ReportesService {
     config: any,
     onProgress?: any
   ): Promise<void> {
-      "⚠️  Método legacy: descargarReporteConsumoSectorial - Considera usar el nuevo sistema modular"
-    );
-
     try {
       const params = new URLSearchParams();
       if (config.formato) params.append("formato", config.formato);
@@ -419,9 +413,6 @@ class ReportesService {
         onProgress
       );
     } catch (error) {
-        "❌ Error descargando reporte de consumo sectorial:",
-        error
-      );
       throw new Error("Error al descargar reporte de consumo sectorial");
     }
   }
@@ -472,9 +463,6 @@ class ReportesService {
         onProgress
       );
     } catch (error) {
-        "❌ Error descargando reporte PDF de consumo sectorial:",
-        error
-      );
       throw new Error("Error al descargar reporte PDF de consumo sectorial");
     }
   }

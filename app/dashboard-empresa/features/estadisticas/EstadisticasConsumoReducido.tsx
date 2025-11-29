@@ -26,10 +26,6 @@ export function EstadisticasConsumoReducido({
   }
 
   if (!resumen) {
-      loading,
-      datosLength: datos?.length ?? 0,
-      timestamp: new Date().toISOString(),
-    });
     return (
       <div className="bg-background p-4 rounded-lg border border-gray-200 dark:border-gray-700">
         <div className="text-center text-gray-500 dark:text-gray-400">
@@ -41,11 +37,7 @@ export function EstadisticasConsumoReducido({
   }
 
   // Log de debugging para renderizado exitoso
-    loading,
-    resumenDefined: !!resumen,
-    datosLength: datos?.length ?? 0,
-    consumoMensual: resumen?.consumoMensual,
-  });
+  // Debug info disponible si se necesita
 
   // Crear objeto seguro con fallbacks
   const resumenSeguro = {

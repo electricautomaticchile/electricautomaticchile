@@ -16,8 +16,7 @@ export default function Component() {
               prefetch={false}
             >
               <Logo
-                width={300}
-                height={100}
+                showText={true}
                 className="transition-transform duration-300 group-hover:scale-125"
               />
               <span className="text-lg font-semibold transition-colors hover:text-orange-500"></span>

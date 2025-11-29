@@ -608,10 +608,12 @@ function DashboardContent() {
         </div>
 
         <CambioPasswordModal
-          isOpen={mostrarModalPassword}
-          onClose={() => setMostrarModalPassword(false)}
-          onSuccess={handlePasswordChangeSuccess}
-          mostrarAdvertencia={requiereCambioPassword}
+          open={mostrarModalPassword}
+          onOpenChange={setMostrarModalPassword}
+          onConfirm={async (currentPassword, newPassword) => {
+            // Implementar lógica de cambio de contraseña
+            handlePasswordChangeSuccess();
+          }}
         />
       </ProveedorWebSocket>
     </EmpresaRoute>

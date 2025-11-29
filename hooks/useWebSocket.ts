@@ -114,8 +114,6 @@ export function useWebSocket(options: UseWebSocketOptions) {
     const scheduleReconnect = useCallback(() => {
         if (!reconnection) return;
         if (reconnectAttemptsRef.current >= maxReconnectionAttempts) {
-                `[WebSocket] Máximo de reintentos alcanzado (${maxReconnectionAttempts})`
-            );
             setState((prev) => ({
                 ...prev,
                 reconnecting: false,
@@ -133,9 +131,6 @@ export function useWebSocket(options: UseWebSocketOptions) {
             reconnecting: true,
             reconnectAttempts: reconnectAttemptsRef.current,
         }));
-
-            `[WebSocket] Reintentando conexión en ${delay}ms (intento ${reconnectAttemptsRef.current}/${maxReconnectionAttempts})`
-        );
 
         onReconnectAttempt?.(reconnectAttemptsRef.current);
 

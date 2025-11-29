@@ -93,21 +93,8 @@ export function ConsumoElectrico({
    */
   const manejarActualizacionPotencia = useCallback(
     (datos: ActualizacionPotenciaDispositivo) => {
-        "🔥 [ConsumoElectrico] ¡Actualización de potencia recibida!",
-        datos
-      );
-        "🔥 [ConsumoElectrico] Tipo de datos:",
-        typeof datos,
-        "Keys:",
-        Object.keys(datos)
-      );
-
       // Actualizar consumo en tiempo real (convertir W a kWh)
       const consumoKwh = datos.energia || datos.potenciaActiva / 1000;
-        "🔥 [ConsumoElectrico] Consumo calculado:",
-        consumoKwh,
-        "kWh"
-      );
       setConsumoTiempoReal(consumoKwh);
 
       // Actualizar costo en tiempo real
@@ -122,9 +109,6 @@ export function ConsumoElectrico({
 
       // Actualizar timestamp
       setUltimaActualizacionTiempoReal(new Date(datos.marcaTiempo));
-        "🔥 [ConsumoElectrico] Timestamp actualizado:",
-        datos.marcaTiempo
-      );
 
       // Actualizar datosConsumo usando el estado más reciente
       setDatosConsumo((prevDatos) => {
@@ -167,20 +151,10 @@ export function ConsumoElectrico({
 
   // Log de debug
   useEffect(() => {
-      socketId: socket?.id,
-      conectado: wsConectado,
-      estaConectado,
-    });
-
     // Escuchar TODOS los eventos para debug
     if (socket) {
       // Socket.IO tiene un evento especial para capturar todos los eventos
       socket.onAny((eventName, ...args) => {
-          "🔥 [ConsumoElectrico] Evento ANY recibido:",
-          eventName,
-          args
-        );
-
         // Si es el evento que buscamos, resaltarlo
         if (eventName === "dispositivo:actualizacion_potencia") {
         }
@@ -210,8 +184,6 @@ export function ConsumoElectrico({
 
         if (response.success && response.data) {
           setDispositivoAsignado(response.data.dispositivoId);
-            `[ConsumoElectrico] Dispositivo asignado: ${response.data.dispositivoId}`
-          );
         }
       } catch (err) {
         // Mantener el valor por defecto "arduino_uno"

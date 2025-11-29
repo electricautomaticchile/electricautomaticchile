@@ -113,7 +113,7 @@ export function BarraNavegacionLateral() {
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center gap-3 p-6 border-b border-gray-200">
-            <Logo width={32} height={32} />
+            <Logo showText={false} />
             <div className="flex-1">
               <h1 className="text-lg font-semibold text-gray-900">
                 Electric Automatic

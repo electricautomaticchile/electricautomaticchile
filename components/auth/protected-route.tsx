@@ -55,10 +55,6 @@ export function ProtectedRoute({
         setAuthError(
           `Acceso denegado. Rol requerido: ${allowedRoles.join(", ")}`
         );
-          `🚫 Acceso denegado - Rol: ${
-            user.role
-          }, Requerido: ${allowedRoles.join(", ")}`
-        );
         return;
       }
     }
@@ -77,8 +73,6 @@ export function ProtectedRoute({
             ", "
           )}`
         );
-          `🚫 Acceso denegado - Tipo: ${userType}, Requerido: ${allowedUserTypes.join(", ")}`
-        );
         return;
       }
     }
@@ -86,10 +80,6 @@ export function ProtectedRoute({
     // Si llegó hasta aquí, está autorizado
     setIsAuthorized(true);
     setAuthError(null);
-      nombre: (user as any).nombre,
-      role: user.role,
-      tipoUsuario: (user as any).tipoUsuario,
-    });
   }, [
     isLoading,
     isAuthenticated,
