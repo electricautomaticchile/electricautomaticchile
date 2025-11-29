@@ -73,7 +73,6 @@ export class BaseApiService {
 
       return data;
     } catch (error) {
-      console.error("API Request Error:", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Error de conexión",

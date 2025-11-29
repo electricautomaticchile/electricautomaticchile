@@ -46,7 +46,6 @@ export function useNotifications() {
     reconnectionDelayMax: 30000,
     jitterFactor: 0.3,
     onConnect: () => {
-      console.log('[Notifications] WebSocket conectado');
 
       // Unirse a la sala del usuario
       if (user?.id) {
@@ -55,10 +54,8 @@ export function useNotifications() {
       }
     },
     onDisconnect: (reason) => {
-      console.log('[Notifications] WebSocket desconectado:', reason);
     },
     onReconnectAttempt: (attempt) => {
-      console.log(`[Notifications] Reintento de conexión #${attempt}`);
     },
   });
 
@@ -86,7 +83,6 @@ export function useNotifications() {
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.5);
     } catch (error) {
-      console.error('Error reproduciendo sonido:', error);
     }
   }, [soundEnabled]);
 

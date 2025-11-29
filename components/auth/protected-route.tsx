@@ -38,7 +38,6 @@ export function ProtectedRoute({
 
     // Si requiere auth pero no está autenticado
     if (!isAuthenticated || !user) {
-      console.log("🔒 Redirigiendo a login - Usuario no autenticado");
       const currentPath = window.location.pathname;
       router.push(
         `${redirectTo}?callbackUrl=${encodeURIComponent(currentPath)}`
@@ -56,7 +55,6 @@ export function ProtectedRoute({
         setAuthError(
           `Acceso denegado. Rol requerido: ${allowedRoles.join(", ")}`
         );
-        console.log(
           `🚫 Acceso denegado - Rol: ${
             user.role
           }, Requerido: ${allowedRoles.join(", ")}`
@@ -79,7 +77,6 @@ export function ProtectedRoute({
             ", "
           )}`
         );
-        console.log(
           `🚫 Acceso denegado - Tipo: ${userType}, Requerido: ${allowedUserTypes.join(", ")}`
         );
         return;
@@ -89,7 +86,6 @@ export function ProtectedRoute({
     // Si llegó hasta aquí, está autorizado
     setIsAuthorized(true);
     setAuthError(null);
-    console.log("✅ Usuario autorizado:", {
       nombre: (user as any).nombre,
       role: user.role,
       tipoUsuario: (user as any).tipoUsuario,

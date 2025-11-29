@@ -52,8 +52,6 @@ export class ErrorBoundary extends Component<Props, State> {
 
     componentDidCatch(error: Error, errorInfo: ErrorInfo) {
         // Logging del error
-        console.error('❌ Error atrapado por Error Boundary:', error);
-        console.error('📋 Component Stack:', errorInfo.componentStack);
 
         // Guardar errorInfo en el estado
         this.setState({
@@ -77,8 +75,6 @@ export class ErrorBoundary extends Component<Props, State> {
         // En desarrollo, solo log a consola
         if (process.env.NODE_ENV === 'development') {
             console.group('🐛 Error Boundary - Detalles');
-            console.error('Error:', error);
-            console.error('Error Info:', errorInfo);
             console.groupEnd();
             return;
         }
@@ -105,10 +101,8 @@ export class ErrorBoundary extends Component<Props, State> {
                     url: window.location.href,
                 }),
             }).catch((err) => {
-                console.error('Failed to log error:', err);
             });
         } catch (loggingError) {
-            console.error('Error logging to service:', loggingError);
         }
     }
 

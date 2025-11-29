@@ -26,51 +26,8 @@ interface SearchResult {
   icon: any;
 }
 
-// Datos de ejemplo para búsqueda
-const mockSearchData: SearchResult[] = [
-  {
-    id: "1",
-    type: "cliente",
-    title: "Juan Pérez",
-    subtitle: "Cliente #123456",
-    icon: Users,
-  },
-  {
-    id: "2",
-    type: "cliente",
-    title: "María González",
-    subtitle: "Cliente #123457",
-    icon: Users,
-  },
-  {
-    id: "3",
-    type: "dispositivo",
-    title: "Medidor IoT #001",
-    subtitle: "Activo - 245.8 kWh",
-    icon: Battery,
-  },
-  {
-    id: "4",
-    type: "dispositivo",
-    title: "Medidor IoT #002",
-    subtitle: "Activo - 189.2 kWh",
-    icon: Battery,
-  },
-  {
-    id: "5",
-    type: "reporte",
-    title: "Reporte Mensual Octubre",
-    subtitle: "Generado hace 2 días",
-    icon: FileText,
-  },
-  {
-    id: "6",
-    type: "estadistica",
-    title: "Consumo Total",
-    subtitle: "45,720 kWh este mes",
-    icon: TrendingUp,
-  },
-];
+// TODO: Conectar con API real para búsqueda
+const searchData: SearchResult[] = [];
 
 interface SearchBarProps {
   onResultClick?: (result: SearchResult) => void;
@@ -92,8 +49,8 @@ export function SearchBar({ onResultClick }: SearchBarProps) {
 
     setIsSearching(true);
     const timer = setTimeout(() => {
-      // Simular búsqueda
-      const filtered = mockSearchData.filter(
+      // TODO: Implementar búsqueda real con API
+      const filtered = searchData.filter(
         (item) =>
           item.title.toLowerCase().includes(query.toLowerCase()) ||
           item.subtitle?.toLowerCase().includes(query.toLowerCase())

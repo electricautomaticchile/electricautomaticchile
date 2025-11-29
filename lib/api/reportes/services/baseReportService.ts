@@ -29,7 +29,6 @@ export abstract class BaseReportService {
       }
 
       if (DEBUG_CONFIG.enabled && DEBUG_CONFIG.logRequests) {
-        console.log(
           `📊 [${this.getReportPrefix()}] Generando reporte:`,
           config
         );
@@ -73,13 +72,11 @@ export abstract class BaseReportService {
       });
 
       if (DEBUG_CONFIG.enabled) {
-        console.log(
           `✅ [${this.getReportPrefix()}] Reporte generado exitosamente`
         );
       }
     } catch (error) {
       if (DEBUG_CONFIG.enabled && DEBUG_CONFIG.logErrors) {
-        console.error(
           `❌ [${this.getReportPrefix()}] Error generando reporte:`,
           error
         );

@@ -34,7 +34,6 @@ export interface NotificacionLeida {
  */
 export function manejarNotificacionRecibida(datos: NotificacionRecibida): void {
   try {
-    console.log('[ManejadorNotificaciones] Notificación recibida:', datos);
 
     // Agregar evento al store
     useWebSocketStore.getState().agregarEvento('notificacion:recibida', datos);
@@ -89,7 +88,6 @@ export function manejarNotificacionRecibida(datos: NotificacionRecibida): void {
  */
 export function manejarNotificacionLeida(datos: NotificacionLeida): void {
   try {
-    console.log('[ManejadorNotificaciones] Notificación marcada como leída:', datos);
 
     // Agregar evento al store
     useWebSocketStore.getState().agregarEvento('notificacion:leida', datos);
@@ -121,7 +119,6 @@ export function actualizarContadorNotificaciones(): number {
     const notificacionesNoLeidas = obtenerNotificacionesNoLeidas();
     const contador = notificacionesNoLeidas.length;
 
-    console.log(`[ManejadorNotificaciones] Notificaciones no leídas: ${contador}`);
 
     // Aquí podrías emitir un evento personalizado para que los componentes se actualicen
     if (typeof window !== 'undefined') {
@@ -134,7 +131,6 @@ export function actualizarContadorNotificaciones(): number {
 
     return contador;
   } catch (error) {
-    console.error('[ManejadorNotificaciones] Error al actualizar contador:', error);
     return 0;
   }
 }
@@ -148,7 +144,6 @@ export function registrarManejadoresNotificaciones(
   escuchar<NotificacionRecibida>('notificacion:recibida', manejarNotificacionRecibida);
   escuchar<NotificacionLeida>('notificacion:leida', manejarNotificacionLeida);
 
-  console.log('[ManejadorNotificaciones] Manejadores de notificaciones registrados');
 }
 
 /**
@@ -197,7 +192,6 @@ export function marcarNotificacionComoLeida(
   emitir: (evento: string, datos: any) => void
 ): void {
   try {
-    console.log('[ManejadorNotificaciones] Marcando notificación como leída:', idNotificacion);
 
     // Emitir evento al servidor
     emitir('notificacion:marcar-leida', {
@@ -205,7 +199,6 @@ export function marcarNotificacionComoLeida(
       marcaTiempo: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('[ManejadorNotificaciones] Error al marcar notificación como leída:', error);
   }
 }
 
@@ -216,7 +209,6 @@ export function marcarTodasComoLeidas(emitir: (evento: string, datos: any) => vo
   try {
     const notificacionesNoLeidas = obtenerNotificacionesNoLeidas();
 
-    console.log(
       `[ManejadorNotificaciones] Marcando ${notificacionesNoLeidas.length} notificaciones como leídas`
     );
 
@@ -228,7 +220,6 @@ export function marcarTodasComoLeidas(emitir: (evento: string, datos: any) => vo
       });
     });
   } catch (error) {
-    console.error('[ManejadorNotificaciones] Error al marcar todas como leídas:', error);
   }
 }
 
@@ -249,14 +240,12 @@ export function limpiarNotificacionesAntiguas(): void {
       })
       .map((e) => e.datos.id);
 
-    console.log(
       `[ManejadorNotificaciones] Limpiando ${notificacionesAntiguasIds.length} notificaciones antiguas`
     );
 
     // Aquí podrías implementar lógica para eliminar del store
     // Por ahora solo loggeamos
   } catch (error) {
-    console.error('[ManejadorNotificaciones] Error al limpiar notificaciones antiguas:', error);
   }
 }
 

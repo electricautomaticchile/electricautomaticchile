@@ -80,22 +80,13 @@ class SecurityValidator {
 
     // Mostrar warnings
     if (warnings.length > 0) {
-      console.warn('⚠️  Advertencias de configuración:');
-      warnings.forEach(warning => console.warn(`   - ${warning}`));
     }
 
     // Si hay errores críticos, fallar
     if (errors.length > 0) {
-      console.error('🚨 ERRORES CRÍTICOS DE SEGURIDAD:');
-      errors.forEach(error => console.error(`   - ${error}`));
-      console.error('\n💡 Solución: Configure las variables de entorno requeridas');
-      console.error('📝 Referencia: Revise el archivo README.md para más información\n');
       
       // En desarrollo, mostrar ayuda adicional
       if (!isProduction) {
-        console.error('🔧 Para desarrollo local, puede crear un archivo .env.local con:');
-        console.error('   JWT_SECRET=su_secreto_jwt_de_al_menos_32_caracteres_aqui');
-        console.error('   MONGODB_URI=su_uri_de_mongodb_aqui');
       }
       
       throw new Error(`Configuración de seguridad inválida: ${errors.join(', ')}`);

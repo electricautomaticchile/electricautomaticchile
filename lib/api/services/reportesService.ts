@@ -167,7 +167,6 @@ class ReportesService {
           throw new Error(`Tipo de reporte no soportado: ${config.tipo}`);
       }
     } catch (error) {
-      console.error("❌ Error generando reporte completo:", error);
       throw error;
     }
   }
@@ -211,7 +210,6 @@ class ReportesService {
 
       return response;
     } catch (error) {
-      console.error("❌ Error obteniendo historial de reportes:", error);
       return {
         success: false,
         error: "Error al obtener historial de reportes",
@@ -233,7 +231,6 @@ class ReportesService {
       );
       return response;
     } catch (error) {
-      console.error("❌ Error obteniendo estadísticas de reportes:", error);
       return {
         success: false,
         error: "Error al obtener estadísticas de reportes",
@@ -285,7 +282,6 @@ class ReportesService {
       const data = await response.json();
       return { success: true, data };
     } catch (error) {
-      console.error("❌ Error en makeRequest:", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Error desconocido",
@@ -321,7 +317,6 @@ class ReportesService {
 
       return vistaPrevia;
     } catch (error) {
-      console.error("Error generando vista previa:", error);
       return "Error al generar vista previa del reporte.";
     }
   }
@@ -349,7 +344,6 @@ class ReportesService {
 
       return `${Math.round(estimacion.tiempoEstimado / 1000)} segundos`;
     } catch (error) {
-      console.error("Error estimando tiempo:", error);
       return "No se puede estimar el tiempo.";
     }
   }
@@ -362,7 +356,6 @@ class ReportesService {
     config: any,
     onProgress?: any
   ): Promise<void> {
-    console.warn(
       "⚠️  Método legacy: descargarReporteEstadisticas - Considera usar el nuevo sistema modular"
     );
 
@@ -390,7 +383,6 @@ class ReportesService {
         onProgress
       );
     } catch (error) {
-      console.error("❌ Error descargando reporte de estadísticas:", error);
       throw new Error("Error al descargar reporte de estadísticas");
     }
   }
@@ -400,7 +392,6 @@ class ReportesService {
     config: any,
     onProgress?: any
   ): Promise<void> {
-    console.warn(
       "⚠️  Método legacy: descargarReporteConsumoSectorial - Considera usar el nuevo sistema modular"
     );
 
@@ -428,7 +419,6 @@ class ReportesService {
         onProgress
       );
     } catch (error) {
-      console.error(
         "❌ Error descargando reporte de consumo sectorial:",
         error
       );
@@ -457,7 +447,6 @@ class ReportesService {
         onProgress
       );
     } catch (error) {
-      console.error("❌ Error descargando reporte PDF de estadísticas:", error);
       throw new Error("Error al descargar reporte PDF de estadísticas");
     }
   }
@@ -483,7 +472,6 @@ class ReportesService {
         onProgress
       );
     } catch (error) {
-      console.error(
         "❌ Error descargando reporte PDF de consumo sectorial:",
         error
       );

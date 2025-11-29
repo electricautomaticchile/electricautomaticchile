@@ -42,8 +42,7 @@ export function MapaBasico({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Datos de ejemplo para desarrollo
-  const datosEjemplo: UbicacionMedidor = {
+  const datosUbicacion: UbicacionMedidor = {
     coordinates: ubicacion || { lat: -33.4489, lng: -70.6693 },
     address: {
       street: "Av. Providencia",
@@ -76,10 +75,9 @@ export function MapaBasico({
       // });
       // const data = await response.json();
       
-      setMedidorUbicacion(datosEjemplo);
+      setMedidorUbicacion(datosUbicacion);
     } catch (err) {
       setError('Error al cargar la ubicación del medidor');
-      console.error('Error loading meter location:', err);
     } finally {
       setLoading(false);
     }

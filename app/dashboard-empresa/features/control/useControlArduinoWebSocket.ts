@@ -70,7 +70,6 @@ export function useControlArduinoWebSocket(config: UseControlArduinoConfig = {})
    * Manejar resultado de comando hardware
    */
   const manejarResultadoComando = useCallback((data: ResultadoComandoHardware) => {
-    console.log('[Arduino WebSocket] Resultado de comando recibido:', data);
     
     if (data.exitoso) {
       toast({
@@ -96,7 +95,6 @@ export function useControlArduinoWebSocket(config: UseControlArduinoConfig = {})
    * Manejar actualización de sensor
    */
   const manejarActualizacionSensor = useCallback((data: ActualizacionSensor) => {
-    console.log('[Arduino WebSocket] Actualización de sensor:', data);
     
     // Aquí podrías actualizar un estado local de sensores si lo necesitas
     // Por ahora solo logueamos
@@ -106,7 +104,6 @@ export function useControlArduinoWebSocket(config: UseControlArduinoConfig = {})
    * Manejar actualización de relé
    */
   const manejarActualizacionRele = useCallback((data: ActualizacionRele) => {
-    console.log('[Arduino WebSocket] Actualización de relé:', data);
     
     // Actualizar estado del Arduino cuando cambia un relé
     arduinoControl.refresh();
@@ -116,7 +113,6 @@ export function useControlArduinoWebSocket(config: UseControlArduinoConfig = {})
    * Manejar actualización de conexión de dispositivo
    */
   const manejarActualizacionConexion = useCallback((data: ActualizacionConexionDispositivo) => {
-    console.log('[Arduino WebSocket] Actualización de conexión:', data);
     
     if (data.estado === 'desconectado') {
       toast({
@@ -140,11 +136,9 @@ export function useControlArduinoWebSocket(config: UseControlArduinoConfig = {})
    */
   useEffect(() => {
     if (!estaConectado) {
-      console.log('[Arduino WebSocket] No conectado, esperando conexión...');
       return;
     }
     
-    console.log('[Arduino WebSocket] Suscribiendo a eventos de hardware...');
     
     // Suscribirse a eventos
     escuchar<ResultadoComandoHardware>('hardware:resultado_comando', manejarResultadoComando);
@@ -154,7 +148,6 @@ export function useControlArduinoWebSocket(config: UseControlArduinoConfig = {})
     
     // Cleanup: desuscribirse cuando el componente se desmonta
     return () => {
-      console.log('[Arduino WebSocket] Desuscribiendo de eventos de hardware...');
       dejarDeEscuchar('hardware:resultado_comando');
       dejarDeEscuchar('hardware:actualizacion_sensor');
       dejarDeEscuchar('hardware:actualizacion_rele');

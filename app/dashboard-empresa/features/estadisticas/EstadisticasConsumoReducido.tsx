@@ -26,7 +26,6 @@ export function EstadisticasConsumoReducido({
   }
 
   if (!resumen) {
-    console.warn("EstadisticasConsumoReducido: resumen is undefined", {
       loading,
       datosLength: datos?.length ?? 0,
       timestamp: new Date().toISOString(),
@@ -42,7 +41,6 @@ export function EstadisticasConsumoReducido({
   }
 
   // Log de debugging para renderizado exitoso
-  console.log("EstadisticasConsumoReducido: renderizando con datos válidos", {
     loading,
     resumenDefined: !!resumen,
     datosLength: datos?.length ?? 0,

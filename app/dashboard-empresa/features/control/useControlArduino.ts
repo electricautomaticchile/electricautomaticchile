@@ -40,7 +40,6 @@ export function useControlArduino(config: UseControlArduinoConfig = {}) {
   // Log para debug
   const debugLog = useCallback((message: string, data?: any) => {
     if (DEBUG_CONFIG.enabled && DEBUG_CONFIG.enableConsoleLog) {
-      console.log(`[Arduino] ${message}`, data || "");
     }
   }, []);
 

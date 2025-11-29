@@ -85,7 +85,6 @@ export function ControlServicioEmpresa({
         onActualizar();
       }
     } catch (error: any) {
-      console.error(`Error ${accion} servicio:`, error);
       toast({
         title: "Error",
         description:
@@ -108,7 +107,6 @@ export function ControlServicioEmpresa({
         setHistorial(response.data);
       }
     } catch (error) {
-      console.error("Error cargando historial:", error);
       toast({
         title: "Error",
         description: "No se pudo cargar el historial",

@@ -41,8 +41,8 @@ interface MapaInteractivoProps {
   reducida?: boolean;
 }
 
-// Medidores en Barnechea con coordenadas reales
-const datosEjemplo: Medidor[] = [
+// TODO: Obtener desde API
+const medidoresData: Medidor[] = [
   {
     id: "meter_001",
     customerName: "Residencial Los Trapenses",
@@ -156,7 +156,7 @@ export function MapaInteractivo({ reducida = false }: MapaInteractivoProps) {
     const cargarDatos = async () => {
       setLoading(true);
       await new Promise((resolve) => setTimeout(resolve, 500));
-      setMedidores(datosEjemplo);
+      setMedidores(medidoresData);
       setLoading(false);
     };
     cargarDatos();

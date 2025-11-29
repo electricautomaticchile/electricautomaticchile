@@ -48,7 +48,6 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   const toggleDarkMode = () => {
     if (mounted) {
       const newTheme = resolvedTheme === 'dark' ? 'light' : 'dark';
-      console.log(`Cambiando tema de ${resolvedTheme} a ${newTheme}`);
       setTheme(newTheme);
     }
   };

@@ -40,7 +40,6 @@ export class ImagenPerfilService {
         message: "Imagen subida exitosamente",
       };
     } catch (error: any) {
-      console.error("Error al subir imagen:", error);
       return {
         success: false,
         error: error.response?.data?.message || "Error al subir imagen",
@@ -67,7 +66,6 @@ export class ImagenPerfilService {
         message: "Imagen de perfil actualizada exitosamente",
       };
     } catch (error: any) {
-      console.error("Error al actualizar imagen de perfil:", error);
       return {
         success: false,
         error:
@@ -95,7 +93,6 @@ export class ImagenPerfilService {
         data: response.data,
       };
     } catch (error: any) {
-      console.error("Error al obtener imagen de perfil:", error);
       return {
         success: false,
         error:
@@ -123,7 +120,6 @@ export class ImagenPerfilService {
         message: "Imagen de perfil eliminada exitosamente",
       };
     } catch (error: any) {
-      console.error("Error al eliminar imagen de perfil:", error);
       return {
         success: false,
         error:
@@ -168,7 +164,6 @@ export class ImagenPerfilService {
         message: "Imagen de perfil actualizada exitosamente",
       };
     } catch (error: any) {
-      console.error("Error al subir y actualizar imagen:", error);
       return {
         success: false,
         error: "Error al procesar la imagen de perfil",

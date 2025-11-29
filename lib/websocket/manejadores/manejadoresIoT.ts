@@ -24,7 +24,6 @@ import type {
  */
 export function manejarActualizacionVoltaje(datos: ActualizacionVoltajeDispositivo): void {
   try {
-    console.log('[ManejadorIoT] Actualización de voltaje:', datos);
 
     // Agregar evento al store
     useWebSocketStore.getState().agregarEvento('dispositivo:actualizacion_voltaje', datos);
@@ -61,7 +60,6 @@ export function manejarActualizacionVoltaje(datos: ActualizacionVoltajeDispositi
  */
 export function manejarActualizacionCorriente(datos: ActualizacionCorrienteDispositivo): void {
   try {
-    console.log('[ManejadorIoT] Actualización de corriente:', datos);
 
     // Agregar evento al store
     useWebSocketStore.getState().agregarEvento('dispositivo:actualizacion_corriente', datos);
@@ -102,7 +100,6 @@ export function manejarActualizacionCorriente(datos: ActualizacionCorrienteDispo
  */
 export function manejarActualizacionPotencia(datos: ActualizacionPotenciaDispositivo): void {
   try {
-    console.log('[ManejadorIoT] Actualización de potencia:', datos);
 
     // Agregar evento al store
     useWebSocketStore.getState().agregarEvento('dispositivo:actualizacion_potencia', datos);
@@ -121,7 +118,6 @@ export function manejarActualizacionPotencia(datos: ActualizacionPotenciaDisposi
  */
 export function manejarActualizacionConexion(datos: ActualizacionConexionDispositivo): void {
   try {
-    console.log('[ManejadorIoT] Actualización de conexión:', datos);
 
     // Agregar evento al store
     useWebSocketStore.getState().agregarEvento('dispositivo:actualizacion_conexion', datos);
@@ -170,7 +166,6 @@ export function manejarActualizacionConexion(datos: ActualizacionConexionDisposi
  */
 export function manejarAlertaIoT(datos: AlertaIoT): void {
   try {
-    console.log('[ManejadorIoT] Nueva alerta IoT:', datos);
 
     // Agregar evento al store
     useWebSocketStore.getState().agregarEvento('iot:alerta:nueva', datos);
@@ -250,7 +245,6 @@ function reproducirSonidoAlerta(): void {
     }
   } catch (error) {
     // Silenciar errores de audio - no es crítico
-    console.debug('[ManejadorIoT] No se pudo reproducir sonido de alerta:', error);
   }
 }
 
@@ -282,7 +276,6 @@ export function registrarManejadoresIoT(
 
   escuchar<AlertaIoT>('iot:alerta:nueva', manejarAlertaIoT);
 
-  console.log('[ManejadorIoT] Manejadores de eventos IoT registrados');
 }
 
 /**

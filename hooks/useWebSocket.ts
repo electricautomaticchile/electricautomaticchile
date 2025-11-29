@@ -38,7 +38,6 @@ interface WebSocketState {
  * @example
  * const { socket, state, connect, disconnect } = useWebSocket({
  *   url: 'http://localhost:5000',
- *   onConnect: () => console.log('Connected!'),
  *   reconnection: true,
  *   maxReconnectionAttempts: 10
  * });
@@ -115,7 +114,6 @@ export function useWebSocket(options: UseWebSocketOptions) {
     const scheduleReconnect = useCallback(() => {
         if (!reconnection) return;
         if (reconnectAttemptsRef.current >= maxReconnectionAttempts) {
-            console.warn(
                 `[WebSocket] Máximo de reintentos alcanzado (${maxReconnectionAttempts})`
             );
             setState((prev) => ({
@@ -136,7 +134,6 @@ export function useWebSocket(options: UseWebSocketOptions) {
             reconnectAttempts: reconnectAttemptsRef.current,
         }));
 
-        console.log(
             `[WebSocket] Reintentando conexión en ${delay}ms (intento ${reconnectAttemptsRef.current}/${maxReconnectionAttempts})`
         );
 
@@ -162,7 +159,6 @@ export function useWebSocket(options: UseWebSocketOptions) {
      */
     const connect = useCallback(() => {
         if (socketRef.current?.connected) {
-            console.log('[WebSocket] Ya está conectado');
             return;
         }
 
@@ -177,7 +173,6 @@ export function useWebSocket(options: UseWebSocketOptions) {
 
             // Event: Conectado
             socket.on('connect', () => {
-                console.log('[WebSocket] ✅ Conectado exitosamente');
                 reconnectAttemptsRef.current = 0;
                 clearReconnectTimeout();
                 setState({
@@ -192,7 +187,6 @@ export function useWebSocket(options: UseWebSocketOptions) {
 
             // Event: Desconectado
             socket.on('disconnect', (reason) => {
-                console.log(`[WebSocket] ⚠️ Desconectado: ${reason}`);
                 setState((prev) => ({
                     ...prev,
                     connected: false,
@@ -211,7 +205,6 @@ export function useWebSocket(options: UseWebSocketOptions) {
 
             // Event: Error de conexión
             socket.on('connect_error', (error) => {
-                console.error('[WebSocket] ❌ Error de conexión:', error.message);
                 setState((prev) => ({
                     ...prev,
                     connected: false,
@@ -226,7 +219,6 @@ export function useWebSocket(options: UseWebSocketOptions) {
 
             // Event: Error general
             socket.on('error', (error) => {
-                console.error('[WebSocket] ❌ Error:', error);
                 const err = error instanceof Error ? error : new Error(String(error));
                 setState((prev) => ({ ...prev, error: err }));
                 onError?.(err);
@@ -236,7 +228,6 @@ export function useWebSocket(options: UseWebSocketOptions) {
             socket.connect();
         } catch (error) {
             const err = error instanceof Error ? error : new Error(String(error));
-            console.error('[WebSocket] ❌ Error creando socket:', err);
             setState((prev) => ({
                 ...prev,
                 connecting: false,
@@ -254,7 +245,6 @@ export function useWebSocket(options: UseWebSocketOptions) {
         reconnectAttemptsRef.current = 0;
 
         if (socketRef.current) {
-            console.log('[WebSocket] Desconectando...');
             socketRef.current.disconnect();
             socketRef.current.removeAllListeners();
             socketRef.current = null;

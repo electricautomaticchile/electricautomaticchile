@@ -55,7 +55,6 @@ export class DownloadUtils {
       const metadata = this.extraerMetadatos(response);
 
       if (DEBUG_CONFIG.enabled && DEBUG_CONFIG.logResponses) {
-        console.log("📊 [Download] Información del reporte:", {
           nombreArchivo,
           ...metadata,
         });
@@ -75,7 +74,6 @@ export class DownloadUtils {
       await this.ejecutarDescarga(blob, nombreArchivo);
 
       if (DEBUG_CONFIG.enabled) {
-        console.log("✅ [Download] Archivo descargado exitosamente:", {
           nombreArchivo,
           tamañoArchivo: `${(blob.size / 1024).toFixed(2)}KB`,
           ...metadata,
@@ -83,7 +81,6 @@ export class DownloadUtils {
       }
     } catch (error) {
       if (DEBUG_CONFIG.enabled && DEBUG_CONFIG.logErrors) {
-        console.error("❌ [Download] Error en descarga de archivo:", error);
       }
       throw error;
     }
@@ -199,7 +196,6 @@ export class DownloadUtils {
         }
 
         if (DEBUG_CONFIG.enabled) {
-          console.warn(
             `⚠️ [Download] Intento ${attempt} falló, reintentando en ${delay}ms:`,
             lastError.message
           );

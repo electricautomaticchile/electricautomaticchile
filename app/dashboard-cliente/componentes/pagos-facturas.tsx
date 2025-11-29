@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { useApi } from "@/lib/hooks/useApi";
 import { useToast } from "@/components/ui/use-toast";
 import { baseService } from "@/lib/api/utils/baseService";
+import { LoadingState, EmptyState, ConfirmDialog } from "@/components/shared";
 
 interface Boleta {
   _id: string;
@@ -45,7 +46,6 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
         setBoletas(response.data as Boleta[]);
       }
     } catch (error) {
-      console.error('Error cargando boletas:', error);
       toast({
         title: "Error",
         description: "No se pudieron cargar las boletas",
@@ -102,7 +102,6 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
         });
       }
     } catch (error) {
-      console.error('Error pagando boleta:', error);
       toast({
         title: "Error",
         description: "No se pudo procesar el pago",
@@ -130,7 +129,6 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
         document.body.removeChild(a);
       }
     } catch (error) {
-      console.error('Error descargando PDF:', error);
       toast({
         title: "Error",
         description: "No se pudo descargar el PDF",
@@ -261,10 +259,7 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
       </div>
 
       {cargando ? (
-        <div className="text-center py-12">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto text-orange-600" />
-          <p className="mt-4 text-gray-500">Cargando boletas...</p>
-        </div>
+        <LoadingState message="Cargando boletas..." />
       ) : (
         <Tabs defaultValue="facturas" value={tabActiva} onValueChange={setTabActiva}>
           <TabsList className="mb-4 grid grid-cols-2 gap-4">
@@ -393,13 +388,11 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
             )}
 
             {boletas.length === 0 && (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <CircleDollarSign className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium mb-2">No hay boletas disponibles</h3>
-                  <p className="text-gray-500">Las boletas aparecerán aquí cuando estén disponibles</p>
-                </CardContent>
-              </Card>
+              <EmptyState
+                icon={CircleDollarSign}
+                title="No hay boletas disponibles"
+                description="Las boletas aparecerán aquí cuando estén disponibles"
+              />
             )}
           </TabsContent>
 

@@ -43,7 +43,6 @@ export function useNotificacionesCliente() {
       const url = `${apiUrl}/api/notificaciones/listar?limite=50`;
       const token = TokenManager.getToken();
       
-      console.log("[NotificacionesCliente] Cargando notificaciones desde:", url);
       
       const headers: HeadersInit = {
         "Content-Type": "application/json",
@@ -61,13 +60,10 @@ export function useNotificacionesCliente() {
       const data = await response.json();
 
       if (data.success) {
-        console.log("[NotificacionesCliente] Notificaciones cargadas:", data.data?.length || 0);
         setNotificaciones(data.data || []);
       } else {
-        console.error("[NotificacionesCliente] Error en respuesta:", data.message);
       }
     } catch (error) {
-      console.error("[NotificacionesCliente] Error cargando notificaciones:", error);
     } finally {
       setLoading(false);
     }
@@ -105,7 +101,6 @@ export function useNotificacionesCliente() {
         );
       }
     } catch (error) {
-      console.error("[NotificacionesCliente] Error marcando como leída:", error);
     }
   }, []);
 
@@ -141,7 +136,6 @@ export function useNotificacionesCliente() {
         });
       }
     } catch (error) {
-      console.error("[NotificacionesCliente] Error eliminando notificación:", error);
     }
   }, [toast]);
 
@@ -179,7 +173,6 @@ export function useNotificacionesCliente() {
         });
       }
     } catch (error) {
-      console.error("[NotificacionesCliente] Error marcando todas como leídas:", error);
     }
   }, [toast]);
 

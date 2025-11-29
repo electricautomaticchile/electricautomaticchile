@@ -93,11 +93,9 @@ export function ConsumoElectrico({
    */
   const manejarActualizacionPotencia = useCallback(
     (datos: ActualizacionPotenciaDispositivo) => {
-      console.log(
         "🔥 [ConsumoElectrico] ¡Actualización de potencia recibida!",
         datos
       );
-      console.log(
         "🔥 [ConsumoElectrico] Tipo de datos:",
         typeof datos,
         "Keys:",
@@ -106,7 +104,6 @@ export function ConsumoElectrico({
 
       // Actualizar consumo en tiempo real (convertir W a kWh)
       const consumoKwh = datos.energia || datos.potenciaActiva / 1000;
-      console.log(
         "🔥 [ConsumoElectrico] Consumo calculado:",
         consumoKwh,
         "kWh"
@@ -115,19 +112,16 @@ export function ConsumoElectrico({
 
       // Actualizar costo en tiempo real
       if (datos.costo !== undefined) {
-        console.log("🔥 [ConsumoElectrico] Costo recibido:", datos.costo);
         setCostoTiempoReal(datos.costo);
       } else {
         // Calcular costo si no viene en los datos (usar tarifa por defecto)
         const tarifa = 185;
         const costoCalculado = consumoKwh * tarifa;
-        console.log("🔥 [ConsumoElectrico] Costo calculado:", costoCalculado, "con tarifa:", tarifa);
         setCostoTiempoReal(costoCalculado);
       }
 
       // Actualizar timestamp
       setUltimaActualizacionTiempoReal(new Date(datos.marcaTiempo));
-      console.log(
         "🔥 [ConsumoElectrico] Timestamp actualizado:",
         datos.marcaTiempo
       );
@@ -142,7 +136,6 @@ export function ConsumoElectrico({
                          consumoKwh < consumoPrevio ? "↓ Disminuyendo" : 
                          "→ Estable";
         
-        console.log("🔥 [ConsumoElectrico] Actualizando datosConsumo con tendencia:", tendencia);
         
         return {
           ...prevDatos,
@@ -174,7 +167,6 @@ export function ConsumoElectrico({
 
   // Log de debug
   useEffect(() => {
-    console.log("🔥 [ConsumoElectrico] Estado WebSocket:", {
       socketId: socket?.id,
       conectado: wsConectado,
       estaConectado,
@@ -184,7 +176,6 @@ export function ConsumoElectrico({
     if (socket) {
       // Socket.IO tiene un evento especial para capturar todos los eventos
       socket.onAny((eventName, ...args) => {
-        console.log(
           "🔥 [ConsumoElectrico] Evento ANY recibido:",
           eventName,
           args
@@ -192,13 +183,11 @@ export function ConsumoElectrico({
 
         // Si es el evento que buscamos, resaltarlo
         if (eventName === "dispositivo:actualizacion_potencia") {
-          console.log("🎯 [ConsumoElectrico] ¡EVENTO ENCONTRADO!", args);
         }
       });
 
       // También escuchar eventos de sala
       socket.on("room:joined", (data) => {
-        console.log("🏠 [ConsumoElectrico] Unido a sala:", data);
       });
 
       return () => {
@@ -221,12 +210,10 @@ export function ConsumoElectrico({
 
         if (response.success && response.data) {
           setDispositivoAsignado(response.data.dispositivoId);
-          console.log(
             `[ConsumoElectrico] Dispositivo asignado: ${response.data.dispositivoId}`
           );
         }
       } catch (err) {
-        console.error("Error obteniendo dispositivo asignado:", err);
         // Mantener el valor por defecto "arduino_uno"
       }
     };
@@ -264,7 +251,6 @@ export function ConsumoElectrico({
           setError(response.message || "Error al cargar datos de consumo");
         }
       } catch (err) {
-        console.error("Error cargando datos de consumo:", err);
         setError("Error de conexión al cargar datos");
       } finally {
         setCargando(false);

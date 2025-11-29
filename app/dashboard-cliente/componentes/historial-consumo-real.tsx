@@ -142,7 +142,6 @@ export function HistorialConsumoReal({ reducida = false, clienteId }: HistorialC
             });
           }
 
-          console.log("📊 Datos transformados:", {
             total: datosTransformados.length,
             energiaTotal: datosTransformados.reduce((sum, d) => sum + d.energia, 0),
             costoTotal: datosTransformados.reduce((sum, d) => sum + d.costo, 0),
@@ -151,7 +150,6 @@ export function HistorialConsumoReal({ reducida = false, clienteId }: HistorialC
           setUltimaActualizacion(new Date());
         }
       } catch (err: any) {
-        console.error("Error cargando historial:", err);
         setError(err.message || "Error al cargar historial");
       } finally {
         setCargando(false);

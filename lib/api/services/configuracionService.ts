@@ -80,7 +80,6 @@ class ConfiguracionService {
 
       return { success: true, data };
     } catch (error) {
-      console.error("API Request Error:", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Error de conexión",
@@ -102,11 +101,9 @@ class ConfiguracionService {
       if (response.success) {
         return response.data || [];
       } else {
-        console.warn("Error obteniendo configuraciones:", response.error);
         return [];
       }
     } catch (error) {
-      console.error("Error obteniendo configuraciones:", error);
       return [];
     }
   }
@@ -128,11 +125,9 @@ class ConfiguracionService {
       if (response.success) {
         return response.data || null;
       } else {
-        console.error("Error estableciendo configuración:", response.error);
         return null;
       }
     } catch (error) {
-      console.error("Error estableciendo configuración:", error);
       return null;
     }
   }
@@ -151,11 +146,9 @@ class ConfiguracionService {
       if (response.success) {
         return response.data || { exitosasCount: 0, errores: [] };
       } else {
-        console.error("Error actualizando configuraciones:", response.error);
         return { exitosasCount: 0, errores: [response.error] };
       }
     } catch (error) {
-      console.error("Error actualizando configuraciones:", error);
       return {
         exitosasCount: 0,
         errores: [error instanceof Error ? error.message : "Error desconocido"],

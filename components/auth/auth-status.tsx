@@ -24,7 +24,6 @@ export function AuthStatus() {
       await logout();
       router.push("/auth/login");
     } catch (error) {
-      console.error("Error al cerrar sesión:", error);
     }
   };
 

@@ -81,7 +81,6 @@ export function useCreateClienteMutation(
       }
     },
     onError: (error) => {
-      console.error("Error creando cliente:", error);
     },
     ...options,
   });

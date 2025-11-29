@@ -48,7 +48,6 @@ export function ControlServicio() {
         setEstadoServicio(response.data);
       }
     } catch (error) {
-      console.error("Error cargando estado del servicio:", error);
       toast({
         title: "Error",
         description: "No se pudo cargar el estado del servicio",
@@ -81,7 +80,6 @@ export function ControlServicio() {
         });
       }
     } catch (error: any) {
-      console.error("Error restableciendo servicio:", error);
       toast({
         title: "Error",
         description:

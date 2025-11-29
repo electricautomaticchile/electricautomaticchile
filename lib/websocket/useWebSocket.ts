@@ -16,7 +16,6 @@
  * @example
  * // Con listener automático
  * useWebSocket('dispositivo:actualizacion_potencia', (datos) => {
- *   console.log('Nueva potencia:', datos);
  * });
  * 
  * @example
@@ -150,7 +149,6 @@ export function useWebSocket<T = any>(
         try {
           callbackRef.current(datos);
         } catch (error) {
-          console.error(`[useWebSocket] Error en callback del evento "${evento}":`, error);
         }
       }
     };
@@ -161,13 +159,11 @@ export function useWebSocket<T = any>(
     // Track listener in memory manager
     memoryManager.registerListener(evento, wrappedCallback, componentId);
     
-    console.log(`[useWebSocket] Escuchando evento: ${evento}`);
     
     // Cleanup: remover listener cuando el componente se desmonta o cambia el evento
     return () => {
       socket.off(evento, wrappedCallback);
       memoryManager.unregisterListener(evento, wrappedCallback);
-      console.log(`[useWebSocket] Dejó de escuchar evento: ${evento}`);
     };
   }, [evento, socket, componentId, memoryManager]);
   
@@ -185,12 +181,10 @@ export function useWebSocket<T = any>(
    */
   const emitir = (evento: string, datos: any): void => {
     if (!socket) {
-      console.warn('[useWebSocket] No hay socket disponible para emitir evento:', evento);
       return;
     }
     
     if (!estaConectado) {
-      console.warn('[useWebSocket] Socket no conectado. No se puede emitir evento:', evento);
       return;
     }
     
@@ -202,7 +196,6 @@ export function useWebSocket<T = any>(
    */
   const escuchar = <T = any>(evento: string, callback: (datos: T) => void): void => {
     if (!socket) {
-      console.warn('[useWebSocket] No hay socket disponible para escuchar evento:', evento);
       return;
     }
     

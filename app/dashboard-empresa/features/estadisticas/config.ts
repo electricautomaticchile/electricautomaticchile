@@ -228,8 +228,8 @@ export const CONFIG_TOOLTIPS = {
   },
 };
 
-// Datos de ejemplo para pruebas
-export const DATOS_EJEMPLO = {
+// Datos iniciales
+export const DATOS_INICIALES = {
   consumoMensual: generarDatosConsumo("mensual"),
   consumoDiario: generarDatosConsumo("diario"),
   consumoHorario: generarDatosConsumo("horario"),

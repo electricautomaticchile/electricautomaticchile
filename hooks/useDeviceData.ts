@@ -62,7 +62,6 @@ export const useDeviceData = (options: UseDeviceDataOptions) => {
         setError(response.message || "Error al cargar dispositivos");
       }
     } catch (err) {
-      console.error("Error cargando dispositivos:", err);
       setError("Error de conexión al cargar dispositivos");
     } finally {
       setLoading(false);

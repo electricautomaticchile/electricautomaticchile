@@ -66,7 +66,6 @@ export function SoporteUsuarioNuevo() {
 
   // Debug
   useEffect(() => {
-    console.log("🔍 Debug Cliente:", { clienteId, user, tabActiva });
   }, [clienteId, user, tabActiva]);
 
   const cargarTickets = useCallback(async () => {
@@ -79,18 +78,15 @@ export function SoporteUsuarioNuevo() {
         limit: 50,
       });
 
-      console.log("📋 Tickets cargados:", response);
 
       if (response.success && response.data) {
         // Los tickets están en response.data directamente (es un array)
         const ticketsArray = Array.isArray(response.data) ? response.data : [];
         setTickets(ticketsArray);
-        console.log("✅ Tickets en estado:", ticketsArray);
       } else {
         setTickets([]);
       }
     } catch (error) {
-      console.error("Error cargando tickets:", error);
       toast({
         title: "Error",
         description: "No se pudieron cargar los tickets",
@@ -103,7 +99,6 @@ export function SoporteUsuarioNuevo() {
 
   // Cargar tickets del cliente
   useEffect(() => {
-    console.log("🔄 useEffect ejecutado:", { clienteId, tabActiva });
     if (clienteId && tabActiva === "tickets") {
       cargarTickets();
     }
@@ -163,7 +158,6 @@ export function SoporteUsuarioNuevo() {
         setTabActiva("tickets");
       }
     } catch (error: any) {
-      console.error("Error creando ticket:", error);
       toast({
         title: "Error",
         description:
@@ -204,7 +198,6 @@ export function SoporteUsuarioNuevo() {
         cargarTickets();
       }
     } catch (error: any) {
-      console.error("Error enviando respuesta:", error);
       toast({
         title: "Error",
         description:
@@ -245,7 +238,6 @@ export function SoporteUsuarioNuevo() {
         cargarTickets();
       }
     } catch (error: any) {
-      console.error("Error eliminando ticket:", error);
       toast({
         title: "Error",
         description:

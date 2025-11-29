@@ -8,11 +8,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { FormField } from "@/components/shared";
 import {
   User,
   Home,
@@ -114,7 +114,6 @@ export function PerfilUsuario({ datos }: PerfilUsuarioProps) {
         throw new Error(response.error || "Error al actualizar el perfil");
       }
     } catch (error) {
-      console.error("Error al guardar cambios:", error);
       toast({
         title: "Error",
         description:
@@ -167,84 +166,48 @@ export function PerfilUsuario({ datos }: PerfilUsuarioProps) {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="nombre" className="flex items-center gap-1.5">
-                    <User className="h-4 w-4 text-gray-500" />
-                    Nombre Completo
-                  </Label>
-                  <Input
-                    id="nombre"
-                    name="nombre"
-                    value={formData.nombre}
-                    onChange={handleInputChange}
-                  />
-                </div>
+                <FormField
+                  label="Nombre Completo"
+                  name="nombre"
+                  value={formData.nombre}
+                  onChange={(value) => setFormData(prev => ({ ...prev, nombre: value as string }))}
+                  placeholder="Ingrese su nombre completo"
+                />
 
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="cliente"
-                    className="flex items-center gap-1.5"
-                  >
-                    <CreditCard className="h-4 w-4 text-gray-500" />
-                    Número de Cliente
-                  </Label>
-                  <Input
-                    id="cliente"
-                    value={datos.numeroCliente}
-                    disabled
-                    className="bg-gray-50 dark:bg-slate-900"
-                  />
-                  <p className="text-xs text-gray-500">
-                    Este número no puede ser modificado
-                  </p>
-                </div>
+                <FormField
+                  label="Número de Cliente"
+                  name="cliente"
+                  value={datos.numeroCliente}
+                  onChange={() => {}}
+                  disabled
+                />
 
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="flex items-center gap-1.5">
-                    <Mail className="h-4 w-4 text-gray-500" />
-                    Correo Electrónico
-                  </Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                  />
-                </div>
+                <FormField
+                  label="Correo Electrónico"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(value) => setFormData(prev => ({ ...prev, email: value as string }))}
+                  placeholder="tu@email.com"
+                />
 
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="telefono"
-                    className="flex items-center gap-1.5"
-                  >
-                    <Phone className="h-4 w-4 text-gray-500" />
-                    Teléfono Móvil
-                  </Label>
-                  <Input
-                    id="telefono"
-                    name="telefono"
-                    value={formData.telefono}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label
-                  htmlFor="direccion"
-                  className="flex items-center gap-1.5"
-                >
-                  <Home className="h-4 w-4 text-gray-500" />
-                  Dirección
-                </Label>
-                <Input
-                  id="direccion"
-                  name="direccion"
-                  value={formData.direccion}
-                  onChange={handleInputChange}
+                <FormField
+                  label="Teléfono Móvil"
+                  name="telefono"
+                  type="tel"
+                  value={formData.telefono}
+                  onChange={(value) => setFormData(prev => ({ ...prev, telefono: value as string }))}
+                  placeholder="+56 9 1234 5678"
                 />
               </div>
+
+              <FormField
+                label="Dirección"
+                name="direccion"
+                value={formData.direccion}
+                onChange={(value) => setFormData(prev => ({ ...prev, direccion: value as string }))}
+                placeholder="Ingrese su dirección"
+              />
 
               {mensajeExito && (
                 <div className="p-3 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 text-green-800 dark:text-green-300 flex items-center gap-2">
@@ -315,25 +278,35 @@ export function PerfilUsuario({ datos }: PerfilUsuarioProps) {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="current-password">Contraseña Actual</Label>
-                <Input id="current-password" type="password" />
-              </div>
+              <FormField
+                label="Contraseña Actual"
+                name="current-password"
+                type="password"
+                value=""
+                onChange={() => {}}
+                placeholder="Ingrese su contraseña actual"
+              />
 
               <Separator />
 
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="new-password">Nueva Contraseña</Label>
-                  <Input id="new-password" type="password" />
-                </div>
+                <FormField
+                  label="Nueva Contraseña"
+                  name="new-password"
+                  type="password"
+                  value=""
+                  onChange={() => {}}
+                  placeholder="Ingrese su nueva contraseña"
+                />
 
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password">
-                    Confirmar Nueva Contraseña
-                  </Label>
-                  <Input id="confirm-password" type="password" />
-                </div>
+                <FormField
+                  label="Confirmar Nueva Contraseña"
+                  name="confirm-password"
+                  type="password"
+                  value=""
+                  onChange={() => {}}
+                  placeholder="Confirme su nueva contraseña"
+                />
               </div>
 
               <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 text-sm">

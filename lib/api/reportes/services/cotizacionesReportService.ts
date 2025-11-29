@@ -63,7 +63,6 @@ export class CotizacionesReportService extends BaseReportService {
     onProgress?: IProgressCallback
   ): Promise<void> {
     try {
-      console.log(
         "📊 [COTIZACIONES] Descargando reporte de cotizaciones:",
         config
       );
@@ -101,7 +100,6 @@ export class CotizacionesReportService extends BaseReportService {
         message: "Reporte de cotizaciones descargado exitosamente",
       });
     } catch (error) {
-      console.error("❌ [COTIZACIONES] Error descargando reporte:", error);
 
       onProgress?.({
         step: "error",

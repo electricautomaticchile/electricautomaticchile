@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { LoadingState, EmptyState } from "@/components/shared";
 import {
   Dialog,
   DialogContent,
@@ -63,7 +63,6 @@ export function DispositivosActivosTabla({
         setEstadoServicio(response.data);
       }
     } catch (error) {
-      console.error("Error cargando estado del servicio:", error);
       toast({
         title: "Error",
         description: "No se pudo cargar el estado del servicio",
@@ -77,18 +76,15 @@ export function DispositivosActivosTabla({
   // Cargar consumo y costo
   const cargarConsumoYCosto = useCallback(async (dispositivoId: string) => {
     try {
-      console.log(`🔄 Cargando consumo y costo para dispositivo: ${dispositivoId}`);
 
       // Obtener datos del dispositivo desde la API usando el _id
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       const url = `${apiUrl}/api/dispositivos/${dispositivoId}`;
 
-      console.log(`📡 Haciendo fetch a: ${url}`);
 
       const response = await fetch(url);
       const data = await response.json();
 
-      console.log(`📥 Respuesta recibida:`, data);
 
       if (data.success && data.data?.ultimaLectura) {
         const { energia, costo } = data.data.ultimaLectura;
@@ -96,23 +92,19 @@ export function DispositivosActivosTabla({
         setCostoTiempoReal(costo || 0);
         setUltimaActualizacion(new Date());
 
-        console.log(`✅ Consumo y costo actualizados para ${dispositivoId}:`, {
           energia,
           costo,
           timestamp: new Date().toISOString()
         });
       } else {
-        console.warn(`⚠️ No se encontró ultimaLectura en la respuesta:`, data);
       }
     } catch (error) {
-      console.error("❌ Error cargando consumo y costo:", error);
     }
   }, []);
 
   // Cargar datos de todos los dispositivos
   const cargarDatosTodosDispositivos = useCallback(async () => {
     try {
-      console.log(`🔄 Cargando datos de ${dispositivos.length} dispositivos...`);
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       const nuevosDatos = new Map<string, { consumo: number; costo: number }>();
@@ -131,16 +123,13 @@ export function DispositivosActivosTabla({
             });
           }
         } catch (error) {
-          console.error(`Error cargando datos de ${dispositivo.id}:`, error);
         }
       });
 
       await Promise.all(promesas);
       setDatosDispositivos(nuevosDatos);
 
-      console.log(`✅ Datos cargados para ${nuevosDatos.size} dispositivos`);
     } catch (error) {
-      console.error("❌ Error cargando datos de dispositivos:", error);
     }
   }, [dispositivos]);
 
@@ -156,15 +145,12 @@ export function DispositivosActivosTabla({
   useEffect(() => {
     if (!dispositivoSeleccionado) return;
 
-    console.log(`⏰ Iniciando actualización automática cada 1 minuto para ${dispositivoSeleccionado}`);
 
     const interval = setInterval(() => {
-      console.log(`🔄 Actualizando datos automáticamente...`);
       cargarConsumoYCosto(dispositivoSeleccionado);
     }, 60000); // 60 segundos = 1 minuto
 
     return () => {
-      console.log(`⏹️ Deteniendo actualización automática`);
       clearInterval(interval);
     };
   }, [dispositivoSeleccionado, cargarConsumoYCosto]);
@@ -173,25 +159,21 @@ export function DispositivosActivosTabla({
   useEffect(() => {
     if (dispositivos.length === 0) return;
 
-    console.log(`⏰ Iniciando actualización automática de ${dispositivos.length} dispositivos cada 1 minuto`);
 
     // Cargar inmediatamente
     cargarDatosTodosDispositivos();
 
     // Actualizar cada 1 minuto
     const interval = setInterval(() => {
-      console.log(`🔄 Actualizando datos de todos los dispositivos automáticamente...`);
       cargarDatosTodosDispositivos();
     }, 60000); // 60 segundos = 1 minuto
 
     return () => {
-      console.log(`⏹️ Deteniendo actualización automática de dispositivos`);
       clearInterval(interval);
     };
   }, [dispositivos, cargarDatosTodosDispositivos]);
 
   const abrirDetalles = (dispositivoId: string) => {
-    console.log("🔍 Abriendo detalles del dispositivo:", dispositivoId);
     setDispositivoSeleccionado(dispositivoId);
   };
 
@@ -201,42 +183,16 @@ export function DispositivosActivosTabla({
   };
 
   if (loading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {[...Array(6)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardHeader className="pb-3">
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
-              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
+    return <LoadingState message="Cargando dispositivos..." />;
   }
 
   if (dispositivos.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="max-w-md mx-auto">
-          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
-            <Zap className="h-8 w-8 text-gray-400" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-            No hay dispositivos
-          </h3>
-          <p className="text-gray-500 dark:text-gray-400">
-            No se encontraron dispositivos con los filtros aplicados.
-          </p>
-        </div>
-      </div>
+      <EmptyState
+        icon={Zap}
+        title="No hay dispositivos"
+        description="No se encontraron dispositivos con los filtros aplicados."
+      />
     );
   }
 
@@ -460,14 +416,7 @@ export function DispositivosActivosTabla({
 
                   {/* Control de Servicio Eléctrico */}
                   {cargandoEstado ? (
-                    <Card>
-                      <CardContent className="py-12 text-center">
-                        <LoadingSpinner />
-                        <p className="text-sm text-muted-foreground mt-4">
-                          Cargando estado del servicio...
-                        </p>
-                      </CardContent>
-                    </Card>
+                    <LoadingState message="Cargando estado del servicio..." />
                   ) : estadoServicio ? (
                     <ControlServicioEmpresa
                       clienteId={dispositivoSeleccionado}

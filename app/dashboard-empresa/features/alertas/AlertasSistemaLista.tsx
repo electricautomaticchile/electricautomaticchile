@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { LoadingState, EmptyState } from "@/components/shared";
 import {
   BellRing,
   ChevronDown,
@@ -37,26 +37,20 @@ export function AlertasSistemaLista({
 }: AlertasSistemaListaProps) {
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <LoadingSpinner />
-      </div>
-    );
+    return <LoadingState message="Cargando alertas..." />;
   }
 
   if (alertas.length === 0) {
     return (
-      <div className="text-center py-12">
-        <BellRing className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-          No hay alertas que mostrar
-        </h3>
-        <p className="text-gray-500 dark:text-gray-400">
-          {busqueda
+      <EmptyState
+        icon={BellRing}
+        title="No hay alertas que mostrar"
+        description={
+          busqueda
             ? "No se encontraron alertas que coincidan con la búsqueda."
-            : "No hay alertas activas en este momento."}
-        </p>
-      </div>
+            : "No hay alertas activas en este momento."
+        }
+      />
     );
   }
 

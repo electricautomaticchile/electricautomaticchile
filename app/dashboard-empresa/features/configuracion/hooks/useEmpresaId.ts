@@ -29,7 +29,6 @@ export function useEmpresaId(): UseEmpresaIdReturn {
             ?.split("=")[1];
 
         if (!token) {
-          console.warn("⚠️ No hay token de autenticación");
           setError("No hay sesión activa");
           setLoading(false);
           return;
@@ -50,7 +49,6 @@ export function useEmpresaId(): UseEmpresaIdReturn {
         }
 
         const data = await response.json();
-        console.log("📋 Perfil obtenido desde API:", data);
 
         // El perfil puede venir en diferentes formatos según la API
         const profile = data.data || data.user || data;
@@ -63,19 +61,16 @@ export function useEmpresaId(): UseEmpresaIdReturn {
           profile.empresaId?.toString();
 
         if (id) {
-          console.log("🏢 EmpresaId obtenido desde API:", id);
           setEmpresaId(id);
 
           // Guardar en localStorage para uso futuro
           localStorage.setItem("user", JSON.stringify(profile));
         } else {
-          console.warn("⚠️ No se encontró empresaId en el perfil");
           setError("No se pudo identificar la empresa");
         }
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "Error desconocido";
-        console.error("❌ Error obteniendo empresaId desde API:", err);
         setError(errorMessage);
 
         // Fallback: intentar obtener desde localStorage
@@ -85,7 +80,6 @@ export function useEmpresaId(): UseEmpresaIdReturn {
 
           if (userDataString) {
             const userData = JSON.parse(userDataString);
-            console.log(
               "📋 Usando datos de localStorage como fallback:",
               userData
             );
@@ -96,13 +90,11 @@ export function useEmpresaId(): UseEmpresaIdReturn {
               userData.id?.toString() ||
               userData.empresaId?.toString();
             if (id) {
-              console.log("🏢 EmpresaId obtenido desde localStorage:", id);
               setEmpresaId(id);
               setError(undefined);
             }
           }
         } catch (fallbackError) {
-          console.error("Error en fallback:", fallbackError);
         }
       } finally {
         setLoading(false);

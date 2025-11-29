@@ -63,7 +63,6 @@ export const useLeadMagnet = (): UseLeadMagnetReturn => {
         const errorMessage =
           err instanceof Error ? err.message : "Error desconocido";
         setError(errorMessage);
-        console.error("Error en lead magnet:", err);
         return false;
       } finally {
         setLoading(false);
@@ -109,7 +108,6 @@ export const useLeadMagnetStats = () => {
       const errorMessage =
         err instanceof Error ? err.message : "Error desconocido";
       setError(errorMessage);
-      console.error("Error cargando estadísticas de leads:", err);
     } finally {
       setLoading(false);
     }

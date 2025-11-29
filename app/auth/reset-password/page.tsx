@@ -47,10 +47,8 @@ const ResetPasswordContent = () => {
     const tokenFromUrl = searchParams.get("token");
     if (tokenFromUrl) {
       setToken(tokenFromUrl);
-      console.log("🔐 Token recibido:", tokenFromUrl.substring(0, 10) + "...");
       setTokenValid(true); // Asumimos que es válido inicialmente
     } else {
-      console.log("❌ No se encontró token en la URL");
       setTokenValid(false);
       setError("Token no válido. Solicita un nuevo enlace de recuperación.");
     }
@@ -84,15 +82,12 @@ const ResetPasswordContent = () => {
     setError("");
 
     try {
-      console.log("🔐 Restableciendo contraseña...");
 
       const response = await apiService.restablecerPassword(token, newPassword);
 
       if (response.success) {
-        console.log("✅ Contraseña restablecida exitosamente");
         setSuccess(true);
       } else {
-        console.error("❌ Error al restablecer:", response.error);
         setError(response.error || "Error al restablecer contraseña");
 
         // Si el token es inválido, marcar como tal
@@ -104,7 +99,6 @@ const ResetPasswordContent = () => {
         }
       }
     } catch (error) {
-      console.error("💥 Error inesperado:", error);
       setError("Error de conexión. Intente nuevamente.");
     } finally {
       setIsLoading(false);

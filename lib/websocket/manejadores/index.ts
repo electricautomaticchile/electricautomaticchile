@@ -72,7 +72,6 @@ export {
 export function registrarTodosLosManejadores(
   escuchar: <T>(evento: string, callback: (datos: T) => void) => void
 ): void {
-  console.log('[Manejadores] Registrando todos los manejadores de eventos...');
 
   // Importar funciones de registro
   const { registrarManejadoresIoT } = require('./manejadoresIoT');
@@ -84,7 +83,6 @@ export function registrarTodosLosManejadores(
   registrarManejadoresNotificaciones(escuchar);
   registrarManejadoresHardware(escuchar);
 
-  console.log('[Manejadores] Todos los manejadores registrados exitosamente');
 }
 
 /**
@@ -93,7 +91,6 @@ export function registrarTodosLosManejadores(
  * Esta función limpia eventos antiguos de todos los tipos para liberar memoria.
  */
 export function limpiarEventosAntiguos(): void {
-  console.log('[Manejadores] Limpiando eventos antiguos...');
 
   // Importar función de limpieza
   const { limpiarNotificacionesAntiguas } = require('./manejadoresNotificaciones');
@@ -101,5 +98,4 @@ export function limpiarEventosAntiguos(): void {
   // Limpiar notificaciones antiguas
   limpiarNotificacionesAntiguas();
 
-  console.log('[Manejadores] Eventos antiguos limpiados');
 }

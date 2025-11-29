@@ -46,19 +46,15 @@ export default function RecoveryPage() {
     setError("");
 
     try {
-      console.log("🔐 Solicitando recuperación para:", emailOrNumber);
 
       const response = await apiService.solicitarRecuperacion(emailOrNumber);
 
       if (response.success) {
-        console.log("✅ Solicitud de recuperación exitosa");
         setSuccess(true);
       } else {
-        console.error("❌ Error en recuperación:", response.error);
         setError(response.error || "Error al solicitar recuperación");
       }
     } catch (error) {
-      console.error("💥 Error inesperado:", error);
       setError("Error de conexión. Intente nuevamente.");
     } finally {
       setIsLoading(false);

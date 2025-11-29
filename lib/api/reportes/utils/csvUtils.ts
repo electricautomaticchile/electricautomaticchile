@@ -22,7 +22,6 @@ export class CSVUtils {
       };
 
       if (DEBUG_CONFIG.enabled && DEBUG_CONFIG.logRequests) {
-        console.log("📊 [CSV] Exportando datos locales:", {
           nombreArchivo,
           registros: datos.length,
           columnas: columnas.length,
@@ -66,7 +65,6 @@ export class CSVUtils {
       this.descargarBlob(blob, nombreFinal);
 
       if (DEBUG_CONFIG.enabled) {
-        console.log("✅ [CSV] Exportación completada:", {
           nombreArchivo: nombreFinal,
           tamaño: `${(blob.size / 1024).toFixed(2)}KB`,
           registros: datos.length,
@@ -74,7 +72,6 @@ export class CSVUtils {
       }
     } catch (error) {
       if (DEBUG_CONFIG.enabled && DEBUG_CONFIG.logErrors) {
-        console.error("❌ [CSV] Error exportando CSV local:", error);
       }
       throw new Error("Error al exportar CSV");
     }

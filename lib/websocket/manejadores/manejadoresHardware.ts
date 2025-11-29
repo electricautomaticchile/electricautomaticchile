@@ -22,7 +22,6 @@ import type {
  */
 export function manejarResultadoComando(datos: ResultadoComandoHardware): void {
   try {
-    console.log('[ManejadorHardware] Resultado de comando:', datos);
 
     // Agregar evento al store
     useWebSocketStore.getState().agregarEvento('hardware:resultado_comando', datos);
@@ -68,7 +67,6 @@ export function manejarResultadoComando(datos: ResultadoComandoHardware): void {
  */
 export function manejarActualizacionSensor(datos: ActualizacionSensorHardware): void {
   try {
-    console.log('[ManejadorHardware] Actualización de sensor:', datos);
 
     // Agregar evento al store
     useWebSocketStore.getState().agregarEvento('hardware:actualizacion_sensor', datos);
@@ -90,7 +88,6 @@ export function manejarActualizacionSensor(datos: ActualizacionSensorHardware): 
  */
 export function manejarActualizacionRele(datos: ActualizacionReleHardware): void {
   try {
-    console.log('[ManejadorHardware] Actualización de relé:', datos);
 
     // Agregar evento al store
     useWebSocketStore.getState().agregarEvento('hardware:actualizacion_rele', datos);
@@ -170,7 +167,6 @@ function verificarUmbralesSensor(datos: ActualizacionSensorHardware): void {
       });
     }
   } catch (error) {
-    console.error('[ManejadorHardware] Error al verificar umbrales de sensor:', error);
   }
 }
 
@@ -184,7 +180,6 @@ export function registrarManejadoresHardware(
   escuchar<ActualizacionSensorHardware>('hardware:actualizacion_sensor', manejarActualizacionSensor);
   escuchar<ActualizacionReleHardware>('hardware:actualizacion_rele', manejarActualizacionRele);
 
-  console.log('[ManejadorHardware] Manejadores de hardware registrados');
 }
 
 /**
@@ -304,7 +299,6 @@ export function enviarComandoDispositivo(
   try {
     const idComando = `cmd_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    console.log('[ManejadorHardware] Enviando comando:', {
       idComando,
       idDispositivo,
       comando,
@@ -322,7 +316,6 @@ export function enviarComandoDispositivo(
 
     return idComando;
   } catch (error) {
-    console.error('[ManejadorHardware] Error al enviar comando:', error);
     throw error;
   }
 }

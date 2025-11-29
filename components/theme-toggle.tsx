@@ -11,7 +11,6 @@ export function ThemeToggle() {
   // Función de manejo de clic con prevención de doble clic
   const handleToggle = React.useCallback(() => {
     toggleDarkMode();
-    console.log("Tema cambiado, ahora isDarkMode:", !isDarkMode);
   }, [isDarkMode, toggleDarkMode]);
 
   return (

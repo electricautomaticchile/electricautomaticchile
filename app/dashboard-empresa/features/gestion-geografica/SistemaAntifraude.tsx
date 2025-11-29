@@ -67,8 +67,8 @@ export function SistemaAntifraude({ reducida = false }: SistemaAntifraude) {
   const [busqueda, setBusqueda] = useState('');
   const [vistaActiva, setVistaActiva] = useState<'anomalias' | 'investigacion' | 'estadisticas'>('anomalias');
 
-  // Datos de ejemplo para desarrollo
-  const datosEjemplo: AnomaliaGPS[] = [
+  // TODO: Conectar con API real
+  const datosAnomalias: AnomaliaGPS[] = [
     {
       id: 'anom_001',
       meterId: 'meter_003',
@@ -135,7 +135,7 @@ export function SistemaAntifraude({ reducida = false }: SistemaAntifraude) {
     }
   ];
 
-  const estadisticasEjemplo: EstadisticasAntifraude = {
+  const estadisticasData: EstadisticasAntifraude = {
     totalAnomalias: 47,
     anomaliasCriticas: 8,
     fraudesConfirmados: 12,
@@ -152,12 +152,11 @@ export function SistemaAntifraude({ reducida = false }: SistemaAntifraude) {
     setLoading(true);
     
     try {
-      // Simular llamada a API
+      // TODO: Llamar a API real
       await new Promise(resolve => setTimeout(resolve, 1500));
-      setAnomalias(datosEjemplo);
-      setEstadisticas(estadisticasEjemplo);
+      setAnomalias(datosAnomalias);
+      setEstadisticas(estadisticasData);
     } catch (error) {
-      console.error('Error loading antifraud data:', error);
     } finally {
       setLoading(false);
     }

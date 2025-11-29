@@ -48,13 +48,11 @@ export function useConfiguracionEmpresa(): UseConfiguracionEmpresaReturn {
       setEstados((prev) => ({ ...prev, loading: true }));
       setError(undefined);
 
-      console.log("🔄 Cargando datos de empresa con ID:", empresaId);
 
       const response = await apiService.obtenerEmpresa(empresaId);
 
       if (response.success && response.data) {
         const empresa = response.data;
-        console.log("✅ Datos de empresa cargados:", empresa);
 
         setDatosEmpresa({
           nombreEmpresa: empresa.nombreEmpresa || "",
@@ -83,7 +81,6 @@ export function useConfiguracionEmpresa(): UseConfiguracionEmpresaReturn {
       } else {
         const errorMsg = response.error || MENSAJES_SISTEMA.error.carga;
         setError(errorMsg);
-        console.error("❌ Error en respuesta:", response.error);
         toast({
           title: "Error",
           description: errorMsg,
@@ -94,7 +91,6 @@ export function useConfiguracionEmpresa(): UseConfiguracionEmpresaReturn {
       const errorMsg =
         error instanceof Error ? error.message : MENSAJES_SISTEMA.error.carga;
       setError(errorMsg);
-      console.error("❌ Error cargando datos de empresa:", error);
       toast({
         title: "Error",
         description: errorMsg,
@@ -125,9 +121,6 @@ export function useConfiguracionEmpresa(): UseConfiguracionEmpresaReturn {
 
     try {
       setEstados((prev) => ({ ...prev, saving: true }));
-      console.log("💾 [useConfiguracionEmpresa] Iniciando guardado...");
-      console.log("📋 [useConfiguracionEmpresa] Empresa ID:", empresaId);
-      console.log("📋 [useConfiguracionEmpresa] Datos actuales:", datosEmpresa);
 
       const datosParaActualizar: DatosActualizacionEmpresa = {
         nombreEmpresa: datosEmpresa.nombreEmpresa,
@@ -146,21 +139,18 @@ export function useConfiguracionEmpresa(): UseConfiguracionEmpresaReturn {
         },
       };
 
-      console.log("📤 [useConfiguracionEmpresa] Datos a enviar:", datosParaActualizar);
 
       const response = await apiService.actualizarEmpresa(
         empresaId,
         datosParaActualizar
       );
 
-      console.log("📥 [useConfiguracionEmpresa] Respuesta recibida:", response);
 
       if (response.success) {
         toast({
           title: "✅ Configuración guardada",
           description: MENSAJES_SISTEMA.guardado.empresa,
         });
-        console.log("✅ [useConfiguracionEmpresa] Empresa actualizada exitosamente:", response.data);
         
         // Recargar datos para confirmar cambios
         await cargarDatosEmpresa();
@@ -172,7 +162,6 @@ export function useConfiguracionEmpresa(): UseConfiguracionEmpresaReturn {
         error instanceof Error
           ? error.message
           : MENSAJES_SISTEMA.error.guardado;
-      console.error("❌ [useConfiguracionEmpresa] Error guardando datos:", error);
       toast({
         title: "Error al guardar",
         description: errorMsg,
@@ -219,7 +208,6 @@ export function useConfiguracionEmpresa(): UseConfiguracionEmpresaReturn {
         throw new Error(response.error || "Error desconocido");
       }
     } catch (error) {
-      console.error("❌ Error guardando notificaciones:", error);
       toast({
         title: "Error",
         description: MENSAJES_SISTEMA.error.guardado,

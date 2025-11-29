@@ -116,7 +116,6 @@ export function EncabezadoEmpresa({
           {/* Barra de búsqueda */}
           <div className="flex-1 ml-4 hidden lg:block">
             <SearchBar onResultClick={(result) => {
-              console.log("Resultado seleccionado:", result);
               // Aquí puedes agregar lógica para navegar o mostrar detalles
             }} />
           </div>

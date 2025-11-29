@@ -137,7 +137,6 @@ export class ClientesReportService extends BaseReportService {
         throw new Error(response.error || "Error al obtener estadísticas");
       }
     } catch (error) {
-      console.error("Error obteniendo estadísticas de clientes:", error);
 
       // Devolver valores por defecto
       return {
@@ -173,7 +172,6 @@ export class ClientesReportService extends BaseReportService {
         throw new Error(response.error || "Error al obtener vista previa");
       }
     } catch (error) {
-      console.error("Error obteniendo vista previa de clientes:", error);
       return {
         datos: [],
         total: 0,

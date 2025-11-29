@@ -107,7 +107,6 @@ export default function DashboardCliente() {
         // setDatosCliente(datos);
         // setEstadoServicio(datos.estadoServicio);
       } catch (error) {
-        console.error("Error al cargar datos del cliente:", error);
       }
     };
 
@@ -127,7 +126,6 @@ export default function DashboardCliente() {
       // Por ahora, simulamos la respuesta
       setEstadoServicio(nuevoEstado);
     } catch (error) {
-      console.error("Error al cambiar estado del servicio:", error);
     }
   };
 

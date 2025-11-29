@@ -46,7 +46,6 @@ export function useNotificacionesEmpresa() {
    */
   const cargarNotificaciones = useCallback(async () => {
     if (!empresaId) {
-      console.log("[NotificacionesEmpresa] No hay empresaId, saltando carga");
       return;
     }
 
@@ -56,8 +55,6 @@ export function useNotificacionesEmpresa() {
       const url = `${apiUrl}/api/notificaciones/listar?limite=100`;
       const token = TokenManager.getToken();
       
-      console.log("[NotificacionesEmpresa] Cargando notificaciones desde:", url);
-      console.log("[NotificacionesEmpresa] Token presente:", !!token);
       
       const headers: HeadersInit = {
         "Content-Type": "application/json",
@@ -72,16 +69,12 @@ export function useNotificacionesEmpresa() {
         credentials: "include",
       });
 
-      console.log("[NotificacionesEmpresa] Response status:", response.status);
       
       const data = await response.json();
-      console.log("[NotificacionesEmpresa] Response data:", data);
 
       if (data.success) {
-        console.log("[NotificacionesEmpresa] Notificaciones cargadas:", data.data?.length || 0);
         setNotificaciones(data.data || []);
       } else {
-        console.error("[NotificacionesEmpresa] Error en respuesta:", data.message);
         toast({
           title: "Error cargando notificaciones",
           description: data.message || "No se pudieron cargar las notificaciones",
@@ -89,7 +82,6 @@ export function useNotificacionesEmpresa() {
         });
       }
     } catch (error) {
-      console.error("[NotificacionesEmpresa] Error cargando notificaciones:", error);
       toast({
         title: "Error de conexión",
         description: "No se pudo conectar con el servidor",
@@ -129,7 +121,6 @@ export function useNotificacionesEmpresa() {
         setEstadisticas(data.data);
       }
     } catch (error) {
-      console.error("Error cargando estadísticas:", error);
     }
   }, [empresaId]);
 
@@ -166,7 +157,6 @@ export function useNotificacionesEmpresa() {
         );
       }
     } catch (error) {
-      console.error("Error marcando como leída:", error);
     }
   }, []);
 
@@ -206,7 +196,6 @@ export function useNotificacionesEmpresa() {
         });
       }
     } catch (error) {
-      console.error("Error marcando todas como leídas:", error);
       toast({
         title: "Error",
         description: "No se pudieron marcar las notificaciones",
@@ -249,7 +238,6 @@ export function useNotificacionesEmpresa() {
         });
       }
     } catch (error) {
-      console.error("Error eliminando notificación:", error);
       toast({
         title: "Error",
         description: "No se pudo eliminar la notificación",
@@ -263,7 +251,6 @@ export function useNotificacionesEmpresa() {
    * TODO: Implementar cuando el WebSocket esté disponible
    */
   const manejarNuevaNotificacion = useCallback((data: Notificacion) => {
-    console.log("[NotificacionesEmpresa] Nueva notificación recibida:", data);
 
     // Agregar al inicio de la lista
     setNotificaciones((prev) => [data, ...prev]);

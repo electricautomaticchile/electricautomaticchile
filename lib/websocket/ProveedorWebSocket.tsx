@@ -183,7 +183,6 @@ export function ProveedorWebSocket({
    */
   useEffect(() => {
     if (!administradorRef.current) {
-      console.log("[ProveedorWebSocket] Inicializando AdministradorWebSocket");
 
       administradorRef.current = new AdministradorWebSocket(wsUrl, {
         conectarAutomaticamente: false, // Controlamos la conexión manualmente
@@ -198,7 +197,6 @@ export function ProveedorWebSocket({
 
       // Suscribirse a cambios de estado
       administradorRef.current.suscribirseAEstado("provider", (nuevoEstado) => {
-        console.log("[ProveedorWebSocket] Cambio de estado:", nuevoEstado);
         setEstadoConexion(nuevoEstado);
         establecerEstadoConexion(nuevoEstado);
 
@@ -226,7 +224,6 @@ export function ProveedorWebSocket({
     // Cleanup al desmontar
     return () => {
       if (administradorRef.current) {
-        console.log("[ProveedorWebSocket] Limpiando conexión WebSocket");
         administradorRef.current.desuscribirseDeEstado("provider");
         administradorRef.current.desconectar();
         administradorRef.current = null;
@@ -246,21 +243,18 @@ export function ProveedorWebSocket({
     const token = TokenManager.getToken();
 
     if (token && !estaConectado && estadoConexion === "desconectado") {
-      console.log(
         "[ProveedorWebSocket] Token detectado, conectando automáticamente..."
       );
 
       administradorRef.current
         .conectar(token)
         .then(() => {
-          console.log("[ProveedorWebSocket] Conexión establecida exitosamente");
         })
         .catch((error) => {
           manejarError(error, { contexto: "conexion_automatica" });
         });
     } else if (!token && estaConectado) {
       // Si no hay token pero estamos conectados, desconectar
-      console.log("[ProveedorWebSocket] Token no disponible, desconectando...");
       administradorRef.current.desconectar();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -280,7 +274,6 @@ export function ProveedorWebSocket({
 
       // Si hay token y no estamos conectados, intentar conectar
       if (token && !estaConectado && estadoConexion === "desconectado") {
-        console.log("[ProveedorWebSocket] Token disponible, reconectando...");
 
         administradorRef.current?.conectar(token).catch((error) => {
           manejarError(error, { contexto: "reconexion_periodica" });
@@ -288,7 +281,6 @@ export function ProveedorWebSocket({
       }
       // Si no hay token y estamos conectados, desconectar
       else if (!token && estaConectado) {
-        console.log("[ProveedorWebSocket] Token removido, desconectando...");
         administradorRef.current?.desconectar();
       }
     }, 5000); // Verificar cada 5 segundos
@@ -323,7 +315,6 @@ export function ProveedorWebSocket({
    */
   const reconectar = useCallback(() => {
     if (!administradorRef.current) {
-      console.warn(
         "[ProveedorWebSocket] No hay administrador disponible para reconectar"
       );
       return;
@@ -337,7 +328,6 @@ export function ProveedorWebSocket({
       return;
     }
 
-    console.log("[ProveedorWebSocket] Reconexión manual iniciada");
 
     // Desconectar primero si está conectado
     if (estaConectado) {
@@ -348,7 +338,6 @@ export function ProveedorWebSocket({
     administradorRef.current
       .conectar(token)
       .then(() => {
-        console.log("[ProveedorWebSocket] Reconexión manual exitosa");
         toast({
           title: "Reconectado",
           description: "La conexión se ha restablecido exitosamente",
@@ -365,13 +354,11 @@ export function ProveedorWebSocket({
    */
   const desconectar = useCallback(() => {
     if (!administradorRef.current) {
-      console.warn(
         "[ProveedorWebSocket] No hay administrador disponible para desconectar"
       );
       return;
     }
 
-    console.log("[ProveedorWebSocket] Desconexión manual iniciada");
     administradorRef.current.desconectar();
   }, []);
 

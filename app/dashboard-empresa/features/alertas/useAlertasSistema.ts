@@ -109,7 +109,6 @@ export function useAlertasSistema() {
     try {
       await recargar();
     } catch (error) {
-      console.error("Error recargando alertas:", error);
       toast({
         title: "Error",
         description: "No se pudieron recargar las alertas",

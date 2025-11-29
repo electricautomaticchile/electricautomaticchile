@@ -275,7 +275,6 @@ export function GestionClientes({ reducida = false }: GestionClientesProps) {
         description: `El reporte de clientes en formato ${config.formato.toUpperCase()} se ha descargado exitosamente.`,
       });
     } catch (error) {
-      console.error("Error generando reporte:", error);
       toast({
         title: "Error al generar reporte",
         description:

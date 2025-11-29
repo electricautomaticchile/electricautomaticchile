@@ -77,7 +77,6 @@ export const validateAPIConfig = () => {
   }
   
   if (warnings.length > 0) {
-    console.warn('API Configuration warnings:', warnings);
   }
   
   return warnings.length === 0;

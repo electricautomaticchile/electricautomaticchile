@@ -279,7 +279,6 @@ function DashboardContent() {
           );
         }
       } catch (error) {
-        console.error("Error cargando estadísticas de tickets:", error);
       }
     };
 

@@ -112,7 +112,6 @@ export function useDispositivosActivos() {
           ? (responseData as unknown as Dispositivo[])
           : [];
         
-        console.log("Dispositivos cargados desde API:", {
           success: response.success,
           hasDispositivos: !!responseData.dispositivos,
           isArray: Array.isArray(dispositivosBackend),
@@ -143,7 +142,6 @@ export function useDispositivosActivos() {
         setResumenDispositivos(resumen);
       } else {
         // Fallback a simulación si la API falla o devuelve datos inválidos
-        console.warn("API no devolvió datos válidos, usando simulación", {
           success: response.success,
           hasData: !!response.data,
           dataType: typeof response.data
@@ -156,7 +154,6 @@ export function useDispositivosActivos() {
         setResumenDispositivos(resumen);
       }
     } catch (error) {
-      console.error("Error cargando dispositivos:", error);
       
       // Usar datos simulados en caso de error
       const dispositivosSimulados = generarDispositivosSimulados();
@@ -233,7 +230,6 @@ export function useDispositivosActivos() {
           );
         }, 1000);
       } catch (error) {
-        console.error("Error controlando dispositivo:", error);
         toast({
           title: "❌ Error de Control",
           description: MENSAJES.errorComando,

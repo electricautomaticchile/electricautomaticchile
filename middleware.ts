@@ -12,23 +12,19 @@ interface JWTPayload {
   exp: number;
 }
 
-// Logger simple para middleware (sin console.log en producción)
 class MiddlewareLogger {
   private isProduction = process.env.NODE_ENV === "production";
 
   info(message: string, data?: Record<string, unknown>): void {
     if (!this.isProduction) {
-      console.info(`[MIDDLEWARE] ${message}`, data || "");
     }
   }
 
   error(message: string, data?: Record<string, unknown>): void {
-    console.error(`[MIDDLEWARE] ${message}`, data || "");
   }
 
   warn(message: string, data?: Record<string, unknown>): void {
     if (!this.isProduction) {
-      console.warn(`[MIDDLEWARE] ${message}`, data || "");
     }
   }
 }
@@ -38,20 +34,7 @@ const logger = new MiddlewareLogger();
 // Función para verificar JWT
 async function verifyJWT(token: string): Promise<JWTPayload | null> {
   try {
-    // En desarrollo, intentar decodificar token mock (base64)
-    if (process.env.NODE_ENV === "development") {
-      try {
-        const decoded = JSON.parse(atob(token));
-        // Verificar si es un token mock válido
-        if (decoded.sub && decoded.userId && decoded.role && decoded.type) {
-          logger.info("Token mock de desarrollo detectado y aceptado");
-          return decoded as JWTPayload;
-        }
-      } catch (e) {
-        // Si falla, continuar con verificación JWT normal
-        logger.info("No es token mock, verificando como JWT real");
-      }
-    }
+
 
     // Validar que JWT_SECRET esté configurado
     if (!process.env.JWT_SECRET) {

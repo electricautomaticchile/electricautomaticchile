@@ -30,7 +30,6 @@ export function useEstadisticasConsumo() {
   const isAuthenticated = useIsAuthenticated();
 
   // Log de debugging para verificar inicialización
-  console.log("useEstadisticasConsumo: estado inicializado", {
     loading,
     resumenEstadisticasDefined: !!resumenEstadisticas,
     resumenEstadisticasConsumoMensual: resumenEstadisticas?.consumoMensual,
@@ -52,14 +51,12 @@ export function useEstadisticasConsumo() {
   // Cargar datos de consumo
   const cargarDatos = useCallback(async (periodo: string) => {
     try {
-      console.log("useEstadisticasConsumo: iniciando carga de datos", {
         periodo,
         userId,
       });
       setLoading(true);
 
       if (!isAuthenticated || !userId) {
-        console.warn(
           "useEstadisticasConsumo: Usuario no autenticado, usando datos simulados"
         );
         const datosSimulados = generarDatosConsumo(periodo as TipoExportacion);
@@ -87,7 +84,6 @@ export function useEstadisticasConsumo() {
           ? responseData.resumen as EstadisticasResumen
           : ESTADISTICAS_RESUMEN_DEFAULT;
 
-        console.log("useEstadisticasConsumo: datos cargados desde API", {
           success: response.success,
           datosLength: datos.length,
           resumenDefined: !!resumen,
@@ -97,7 +93,6 @@ export function useEstadisticasConsumo() {
         setDatosConsumo(datos);
         setResumenEstadisticas(resumen);
       } else {
-        console.warn("useEstadisticasConsumo: API no devolvió datos válidos, usando simulación", {
           success: response.success,
           hasData: !!response.data
         });
@@ -106,7 +101,6 @@ export function useEstadisticasConsumo() {
         setResumenEstadisticas(ESTADISTICAS_RESUMEN_DEFAULT);
       }
     } catch (error) {
-      console.error("Error cargando estadísticas:", error);
 
       // Usar datos simulados en caso de error
       const datosSimulados = generarDatosConsumo(periodo as TipoExportacion);
@@ -206,7 +200,6 @@ export function useEstadisticasConsumo() {
           setEstadoExportacion((prev) => ({ ...prev, mostrarModal: false }));
         }, 2000);
       } catch (error) {
-        console.error("Error exportando estadísticas:", error);
         setEstadoExportacion({
           estado: "error",
           progreso: {

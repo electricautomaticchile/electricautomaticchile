@@ -57,10 +57,6 @@ class Logger {
     };
 
     this.addLog(entry);
-
-    if (!this.isProduction) {
-      console.debug(this.formatMessage("debug", message, context), data || "");
-    }
   }
 
   info(
@@ -81,7 +77,6 @@ class Logger {
     this.addLog(entry);
 
     if (!this.isProduction) {
-      console.info(this.formatMessage("info", message, context), data || "");
     }
   }
 
@@ -103,7 +98,6 @@ class Logger {
     this.addLog(entry);
 
     if (!this.isProduction) {
-      console.warn(this.formatMessage("warn", message, context), data || "");
     }
   }
 
@@ -123,7 +117,6 @@ class Logger {
     this.addLog(entry);
 
     // Los errores siempre se loggean, incluso en producción
-    console.error(this.formatMessage("error", message, context), data || "");
 
     // En producción, enviar errores a servicio de monitoreo
     if (this.isProduction) {
