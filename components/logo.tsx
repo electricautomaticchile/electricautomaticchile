@@ -1,4 +1,4 @@
-import { Zap } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface LogoProps {
@@ -8,13 +8,15 @@ interface LogoProps {
 
 export function Logo({ className, showText = true }: LogoProps) {
   return (
-    <div className={cn("flex items-center gap-2", className)}>
-      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
-        <Zap className="h-5 w-5 text-white" />
-      </div>
-      {showText && (
-        <span className="font-bold text-lg">Electric Automatic</span>
-      )}
+    <div className={cn("flex items-center", className)}>
+      <Image
+        src="/logo.svg"
+        alt="ElectricAutomaticChile"
+        width={showText ? 240 : 50}
+        height={showText ? 60 : 50}
+        className="object-contain"
+        priority
+      />
     </div>
   );
 }

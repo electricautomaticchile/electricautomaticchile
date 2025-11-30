@@ -30,7 +30,6 @@ export function useEstadisticasConsumo() {
   const isAuthenticated = useIsAuthenticated();
 
   // Log de debugging para verificar inicialización
-  // Debug info disponible si se necesita
 
   const [estadoExportacion, setEstadoExportacion] = useState<EstadoExportacion>(
     {

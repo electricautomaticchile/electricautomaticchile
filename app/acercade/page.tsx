@@ -11,9 +11,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function AcercaDePage() {
   return (
-    <div className="space-y-16 py-8">
+    <div className="container mx-auto px-4 space-y-16 py-8 dark:bg-black min-h-screen">
       {/* Hero Section */}
-      <section className="relative py-20 overflow-hidden">
+      <section className="relative py-16 overflow-hidden">
         <div className="container mx-auto px-4 relative z-10">
           <div className="inline-block mb-3 px-3 py-1 bg-orange-500/10 rounded-full mx-auto text-center">
             <span className="text-orange-500 font-medium text-sm">
@@ -21,24 +21,21 @@ export default function AcercaDePage() {
             </span>
           </div>
 
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 text-center">
-            Transformando el Control
-            <span className="text-orange-500"> Eléctrico en Chile</span>
+          <h1 className="text-3xl md:text-5xl font-bold mb-6 text-center">
+            Acerca de
+            <span className="text-orange-500"> ElectricAutomaticChile</span>
           </h1>
 
-          <p className="text-center max-w-3xl mx-auto text-lg mb-8 text-muted-foreground leading-relaxed">
-            Somos pioneros en la automatización y gestión eficiente del
-            suministro eléctrico. Nuestra misión es solucionar la problemática
-            de los tiempos prolongados en la reposición del servicio,
-            implementando tecnología IoT de vanguardia que garantiza respuestas
-            inmediatas y gestión inteligente del suministro energético en todo
-            Chile.
+          <p className="text-center max-w-2xl mx-auto text-lg mb-8 text-muted-foreground leading-relaxed">
+            Pioneros en automatización del suministro eléctrico en Chile, 
+            implementando tecnología IoT que garantiza respuestas inmediatas 
+            y gestión inteligente del suministro energético.
           </p>
         </div>
       </section>
 
       {/* Context & Problem */}
-      <section className="py-16 bg-gradient-to-b from-orange-500/[0.02] to-background relative overflow-hidden">
+      <section className="py-16 dark:bg-black relative overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12 max-w-2xl mx-auto">
             <div className="inline-block mb-3 px-3 py-1 bg-orange-500/10 rounded-full">
@@ -53,7 +50,7 @@ export default function AcercaDePage() {
           </div>
 
           <div className="max-w-4xl mx-auto space-y-6">
-            <Card className="border-orange-500/10">
+            <Card className="border-orange-500/20 dark:bg-black dark:border-orange-500/30">
               <CardContent className="p-8">
                 <h3 className="text-xl font-bold mb-4 text-orange-500">
                   Situación Actual
@@ -82,7 +79,7 @@ export default function AcercaDePage() {
               </CardContent>
             </Card>
 
-            <Card className="border-orange-500/10">
+            <Card className="border-orange-500/20 dark:bg-black dark:border-orange-500/30">
               <CardContent className="p-8">
                 <h3 className="text-xl font-bold mb-4 text-orange-500">
                   La Brecha que Abordamos
@@ -116,7 +113,7 @@ export default function AcercaDePage() {
               </CardContent>
             </Card>
 
-            <Card className="border-orange-500/10">
+            <Card className="border-orange-500/20 dark:bg-black dark:border-orange-500/30">
               <CardContent className="p-8">
                 <h3 className="text-xl font-bold mb-4 text-orange-500">
                   Grupo Objetivo
@@ -142,7 +139,7 @@ export default function AcercaDePage() {
       {/* Mission & Vision */}
       <section className="py-16 container mx-auto px-4">
         <div className="grid md:grid-cols-2 gap-8">
-          <Card className="overflow-hidden border border-orange-500/10 transition-all duration-300 hover:shadow-sm">
+          <Card className="overflow-hidden border-orange-500/20 dark:bg-black dark:border-orange-500/30 transition-all duration-300 hover:shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <div className="p-2 rounded-full bg-orange-500/10">
@@ -163,7 +160,7 @@ export default function AcercaDePage() {
             </CardContent>
           </Card>
 
-          <Card className="overflow-hidden border border-orange-500/10 transition-all duration-300 hover:shadow-sm">
+          <Card className="overflow-hidden border-orange-500/20 dark:bg-black dark:border-orange-500/30 transition-all duration-300 hover:shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <div className="p-2 rounded-full bg-orange-500/10">
@@ -186,7 +183,7 @@ export default function AcercaDePage() {
       </section>
 
       {/* Objectives */}
-      <section className="py-16 bg-gradient-to-b from-background via-orange-500/[0.02] to-background relative overflow-hidden">
+      <section className="py-16 dark:bg-black relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/4 w-64 h-64 bg-orange-500/[0.03] rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-orange-500/[0.03] rounded-full blur-3xl"></div>
@@ -242,7 +239,7 @@ export default function AcercaDePage() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-12">
-          <div className="space-y-6 bg-background/50 p-8 rounded-lg border border-orange-500/10">
+          <div className="space-y-6  p-8 rounded-lg border border-orange-500">
             <h3 className="text-2xl font-bold flex items-center gap-2">
               <div className="p-2 rounded-full bg-orange-500/10 inline-flex">
                 <Zap className="text-orange-500 h-5 w-5" />
@@ -284,7 +281,7 @@ export default function AcercaDePage() {
               ))}
             </ul>
           </div>
-          <div className="space-y-6 bg-background/50 p-8 rounded-lg border border-orange-500/10">
+          <div className="space-y-6 p-8 rounded-lg border border-orange-500">
             <h3 className="text-2xl font-bold flex items-center gap-2">
               <div className="p-2 rounded-full bg-orange-500/10 inline-flex">
                 <Telescope className="text-orange-500 h-5 w-5" />
@@ -316,7 +313,7 @@ export default function AcercaDePage() {
               ].map((item, index) => (
                 <div
                   key={index}
-                  className="border border-orange-500/10 rounded-lg p-6 transition-all duration-300 hover:translate-y-[-2px] hover:border-orange-500/20 bg-background"
+                  className="border border-orange-500/50 rounded-lg p-6 transition-all duration-300 hover:translate-y-[-2px] hover:border-orange-500/20 "
                 >
                   <h4 className="font-bold mb-2 text-lg">{item.title}</h4>
                   <p className="text-muted-foreground">{item.description}</p>
@@ -342,7 +339,7 @@ export default function AcercaDePage() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          <Card className="border-orange-500/10">
+          <Card className="border-orange-500/20 dark:bg-black dark:border-orange-500/30">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <div className="p-2 rounded-full bg-orange-500/10">
@@ -374,7 +371,7 @@ export default function AcercaDePage() {
             </CardContent>
           </Card>
 
-          <Card className="border-orange-500/10">
+          <Card className="border-orange-500/20 dark:bg-black dark:border-orange-500/30">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <div className="p-2 rounded-full bg-orange-500/10">
@@ -409,7 +406,7 @@ export default function AcercaDePage() {
       </section>
 
       {/* Coverage */}
-      <section className="py-16 bg-gradient-to-b from-background via-orange-500/[0.02] to-background relative overflow-hidden">
+      <section className="py-16 dark:bg-black relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 right-1/4 w-64 h-64 bg-orange-500/[0.03] rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 left-1/4 w-64 h-64 bg-orange-500/[0.03] rounded-full blur-3xl"></div>
@@ -506,7 +503,7 @@ function ObjectiveCard({
   description: string;
 }) {
   return (
-    <Card className="group overflow-hidden transition-all duration-300 hover:translate-y-[-2px] border border-border/50 h-full bg-background">
+    <Card className="group overflow-hidden transition-all duration-300 hover:translate-y-[-2px] border-orange-500/20 dark:bg-black dark:border-orange-500/30 h-full">
       <CardContent className="p-6 space-y-4">
         <div className="mb-4 flex items-center gap-4">
           <div className="p-3 rounded-full bg-orange-500/10 group-hover:bg-orange-500/20 transition-colors duration-300">

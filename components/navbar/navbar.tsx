@@ -3,19 +3,10 @@ import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Menu } from "lucide-react";
-import { ChevronRight } from "lucide-react";
-import {
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
-} from "@/components/ui/collapsible";
 import {
   NavigationMenu,
   NavigationMenuList,
   NavigationMenuLink,
-  NavigationMenuItem,
-  NavigationMenuTrigger,
-  NavigationMenuContent,
 } from "@/components/ui/navigation-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
@@ -70,8 +61,8 @@ export default function Component() {
     <header
       className={`sticky top-0 z-50 w-full transition-all duration-300 ${
         scrolled
-          ? "bg-background/90 backdrop-blur-md shadow-md"
-          : "bg-background"
+          ? "bg-background/90 dark:bg-black/90 backdrop-blur-md shadow-md"
+          : "bg-background dark:bg-black"
       }`}
     >
       <div className="flex h-20 w-full shrink-0 items-center px-4 md:px-20">
@@ -105,11 +96,11 @@ export default function Component() {
                 Nosotros
               </Link>
               <Link
-                href="/navservices"
+                href="/soluciones"
                 className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-orange-500"
                 prefetch={false}
               >
-                Servicios
+                Soluciones
               </Link>
               <Link
                 href="/formulario"
@@ -155,7 +146,7 @@ export default function Component() {
 
             <NavigationMenuLink asChild>
               <Link
-                href="/navservices"
+                href="/soluciones"
                 className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
                 prefetch={false}
               >

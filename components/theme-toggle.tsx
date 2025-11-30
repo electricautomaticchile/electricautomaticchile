@@ -8,10 +8,9 @@ import { Button } from "@/components/ui/button"
 export function ThemeToggle() {
   const { isDarkMode, toggleDarkMode } = useAppContext()
   
-  // Función de manejo de clic con prevención de doble clic
   const handleToggle = React.useCallback(() => {
     toggleDarkMode();
-  }, [isDarkMode, toggleDarkMode]);
+  }, [toggleDarkMode]);
 
   return (
     <Button 

@@ -22,7 +22,6 @@ export class CSVUtils {
       };
 
       if (DEBUG_CONFIG.enabled && DEBUG_CONFIG.logRequests) {
-        // Debug info disponible si se necesita
       }
 
       // Crear headers del CSV
@@ -61,7 +60,6 @@ export class CSVUtils {
       this.descargarBlob(blob, nombreFinal);
 
       if (DEBUG_CONFIG.enabled) {
-        // Debug info disponible si se necesita
       }
     } catch (error) {
       if (DEBUG_CONFIG.enabled && DEBUG_CONFIG.logErrors) {

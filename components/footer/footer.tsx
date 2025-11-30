@@ -5,7 +5,7 @@ import { Logo } from "@/components/logo";
 
 export default function Component() {
   return (
-    <footer className="border-t border-border mt-12">
+    <footer className="border-t border-border mt-12 dark:bg-black">
       <div className="container mx-auto py-12 px-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10">
           {/* Logo y Términos */}

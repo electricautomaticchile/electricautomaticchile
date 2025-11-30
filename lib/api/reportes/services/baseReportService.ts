@@ -33,7 +33,6 @@ export class BaseReportService {
       }
 
       if (DEBUG_CONFIG.enabled && DEBUG_CONFIG.logRequests) {
-        // Debug info disponible si se necesita
       }
 
       // Progress: Iniciando
@@ -74,11 +73,9 @@ export class BaseReportService {
       });
 
       if (DEBUG_CONFIG.enabled) {
-        // Debug info disponible si se necesita
       }
     } catch (error) {
       if (DEBUG_CONFIG.enabled && DEBUG_CONFIG.logErrors) {
-        // Debug info disponible si se necesita
       }
 
       // Progress: Error

@@ -37,7 +37,6 @@ export function EstadisticasConsumoReducido({
   }
 
   // Log de debugging para renderizado exitoso
-  // Debug info disponible si se necesita
 
   // Crear objeto seguro con fallbacks
   const resumenSeguro = {

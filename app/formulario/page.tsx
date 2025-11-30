@@ -118,7 +118,7 @@ export default function FormularioContacto() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-12 dark:bg-black min-h-screen">
       <div className="max-w-4xl mx-auto">
         {/* Cabecera */}
         <div className="text-center mb-10">
@@ -159,7 +159,7 @@ export default function FormularioContacto() {
         )}
 
         {/* Formulario */}
-        <Card className="border-border/40 shadow-sm">
+        <Card className="border-orange-500/20 shadow-sm dark:bg-black dark:border-orange-500/30">
           <CardHeader>
             <CardTitle className="text-xl">Formulario de Contacto</CardTitle>
             <CardDescription>

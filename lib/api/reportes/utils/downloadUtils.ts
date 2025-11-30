@@ -55,7 +55,6 @@ export class DownloadUtils {
       const metadata = this.extraerMetadatos(response);
 
       if (DEBUG_CONFIG.enabled && DEBUG_CONFIG.logResponses) {
-        // Debug info disponible si se necesita
       }
 
       // Crear blob con la respuesta
@@ -72,7 +71,6 @@ export class DownloadUtils {
       await this.ejecutarDescarga(blob, nombreArchivo);
 
       if (DEBUG_CONFIG.enabled) {
-        // Debug info disponible si se necesita
       }
     } catch (error) {
       if (DEBUG_CONFIG.enabled && DEBUG_CONFIG.logErrors) {
@@ -191,7 +189,6 @@ export class DownloadUtils {
         }
 
         if (DEBUG_CONFIG.enabled) {
-          // Debug info disponible si se necesita
         }
 
         await new Promise((resolve) => setTimeout(resolve, delay * attempt));

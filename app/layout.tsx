@@ -40,11 +40,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className="scroll-smooth">
-      <head>{/* La configuración del favicon ahora está en metadata */}</head>
-      <body className="min-h-screen flex flex-col antialiased">
+      <body className="min-h-screen flex flex-col antialiased dark:bg-black">
         <Providers>
           <Navbar />
-          <main className="container min-h-[calc(100vh-5rem)] mx-auto px-4 py-8 flex-grow">
+          <main className="flex-grow dark:bg-black">
             {children}
           </main>
           <Footer />
