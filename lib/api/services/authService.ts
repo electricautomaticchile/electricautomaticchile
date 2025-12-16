@@ -19,6 +19,7 @@ export class AuthService extends BaseApiService {
     if (response.success && response.data) {
       TokenManager.setToken(response.data.token);
       TokenManager.setRefreshToken(response.data.refreshToken);
+      TokenManager.setUser(response.data.user);
     }
 
     return response;

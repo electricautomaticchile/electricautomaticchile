@@ -25,7 +25,7 @@ import {
   type ValorContextoWebSocket,
 } from "./WebSocketContext";
 import { TokenManager } from "../api/utils/tokenManager";
-import { useWebSocketStore } from "../store/useWebSocketStore";
+import { useWebSocketStore } from "@/store/useWebSocketStore";
 import { useToast } from "@/components/ui/use-toast";
 import type { EstadoConexion } from "./tipos";
 import {

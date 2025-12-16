@@ -61,3 +61,4 @@ bun.lock*
 
 # Tool version files (keeping only .nvmrc)
 .tool-versions
+.kiro

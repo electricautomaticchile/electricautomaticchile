@@ -1,81 +1,76 @@
-// Clase para manejar el almacenamiento de tokens
 export class TokenManager {
   private static readonly TOKEN_KEY = "auth_token";
   private static readonly REFRESH_TOKEN_KEY = "refresh_token";
+  private static readonly USER_KEY = "user_data";
 
-  static getToken(): string | null {
+  private static getCookie(name: string): string | null {
     if (typeof window === "undefined") return null;
-    return localStorage.getItem(this.TOKEN_KEY);
+    const cookies = document.cookie.split(";");
+    const cookie = cookies.find((c) => c.trim().startsWith(`${name}=`));
+    return cookie ? decodeURIComponent(cookie.split("=")[1]) : null;
   }
 
-  static setToken(token: string): void {
+  private static setCookie(name: string, value: string, maxAge: number): void {
     if (typeof window === "undefined") return;
-    localStorage.setItem(this.TOKEN_KEY, token);
-
-    // También guardar en cookies para el middleware
     const isProduction = window.location.protocol === "https:";
     const cookieOptions = [
-      `${this.TOKEN_KEY}=${token}`,
+      `${name}=${encodeURIComponent(value)}`,
       "path=/",
-      `max-age=${24 * 60 * 60}`, // 24 horas
+      `max-age=${maxAge}`,
       "samesite=strict",
     ];
-
-    // Solo agregar 'secure' en producción (HTTPS)
     if (isProduction) {
       cookieOptions.push("secure");
     }
-
-    document.cookie = cookieOptions.join("; ");
-    // Token guardado en cookies (sin logging en producción)
-  }
-
-  static getRefreshToken(): string | null {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
-  }
-
-  static setRefreshToken(token: string): void {
-    if (typeof window === "undefined") return;
-    localStorage.setItem(this.REFRESH_TOKEN_KEY, token);
-
-    // También guardar en cookies para persistencia
-    const isProduction = window.location.protocol === "https:";
-    const cookieOptions = [
-      `${this.REFRESH_TOKEN_KEY}=${token}`,
-      "path=/",
-      `max-age=${7 * 24 * 60 * 60}`, // 7 días
-      "samesite=strict",
-    ];
-
-    // Solo agregar 'secure' en producción (HTTPS)
-    if (isProduction) {
-      cookieOptions.push("secure");
-    }
-
     document.cookie = cookieOptions.join("; ");
   }
 
-  static clearTokens(): void {
+  private static deleteCookie(name: string): void {
     if (typeof window === "undefined") return;
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
-
-    // También limpiar cookies - asegurar que funcione tanto en dev como prod
     const clearCookieOptions = [
       "path=/",
       "expires=Thu, 01 Jan 1970 00:00:00 GMT",
       "samesite=strict",
     ];
-
-    // Agregar secure si estamos en HTTPS
     if (window.location.protocol === "https:") {
       clearCookieOptions.push("secure");
     }
+    document.cookie = `${name}=; ${clearCookieOptions.join("; ")}`;
+  }
 
-    document.cookie = `${this.TOKEN_KEY}=; ${clearCookieOptions.join("; ")}`;
-    document.cookie = `${this.REFRESH_TOKEN_KEY}=; ${clearCookieOptions.join("; ")}`;
+  static getToken(): string | null {
+    return this.getCookie(this.TOKEN_KEY);
+  }
 
-    // Tokens y cookies limpiados
+  static setToken(token: string): void {
+    this.setCookie(this.TOKEN_KEY, token, 24 * 60 * 60);
+  }
+
+  static getRefreshToken(): string | null {
+    return this.getCookie(this.REFRESH_TOKEN_KEY);
+  }
+
+  static setRefreshToken(token: string): void {
+    this.setCookie(this.REFRESH_TOKEN_KEY, token, 7 * 24 * 60 * 60);
+  }
+
+  static getUser(): any | null {
+    const userData = this.getCookie(this.USER_KEY);
+    if (!userData) return null;
+    try {
+      return JSON.parse(userData);
+    } catch {
+      return null;
+    }
+  }
+
+  static setUser(user: any): void {
+    this.setCookie(this.USER_KEY, JSON.stringify(user), 24 * 60 * 60);
+  }
+
+  static clearTokens(): void {
+    this.deleteCookie(this.TOKEN_KEY);
+    this.deleteCookie(this.REFRESH_TOKEN_KEY);
+    this.deleteCookie(this.USER_KEY);
   }
 }

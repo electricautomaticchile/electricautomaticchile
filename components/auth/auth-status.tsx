@@ -1,6 +1,6 @@
 "use client";
 
-import { useApi } from "@/lib/hooks/useApi";
+import { useApi } from '@/hooks/useApi';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

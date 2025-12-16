@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useApi } from "@/lib/hooks/useApi";
+import { useApi } from '@/hooks/useApi';
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ShieldAlert } from "lucide-react";
@@ -30,13 +30,11 @@ export function ProtectedRoute({
   useEffect(() => {
     if (isLoading) return;
 
-    // Si no requiere autenticación, permitir acceso
     if (!requireAuth) {
       setIsAuthorized(true);
       return;
     }
 
-    // Si requiere auth pero no está autenticado
     if (!isAuthenticated || !user) {
       const currentPath = window.location.pathname;
       router.push(
@@ -45,7 +43,6 @@ export function ProtectedRoute({
       return;
     }
 
-    // Verificar roles si se especificaron
     if (allowedRoles.length > 0) {
       const hasValidRole = allowedRoles.some(
         (role) => user.role === role || (user as any).tipoUsuario === role
@@ -59,9 +56,7 @@ export function ProtectedRoute({
       }
     }
 
-    // Verificar tipos de usuario si se especificaron
     if (allowedUserTypes.length > 0) {
-      // Usar type o tipoUsuario para compatibilidad
       const userType = user.type || (user as any).tipoUsuario;
       const hasValidType = allowedUserTypes.some(
         (type) => userType === type || user.role === type
@@ -77,7 +72,6 @@ export function ProtectedRoute({
       }
     }
 
-    // Si llegó hasta aquí, está autorizado
     setIsAuthorized(true);
     setAuthError(null);
   }, [
@@ -103,7 +97,6 @@ export function ProtectedRoute({
     );
   }
 
-  // Mostrar error de autorización
   if (authError) {
     return (
       <div className="flex items-center justify-center min-h-screen">

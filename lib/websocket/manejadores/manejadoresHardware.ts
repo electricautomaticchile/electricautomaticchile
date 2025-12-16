@@ -9,7 +9,7 @@
  */
 
 import { toast } from '@/components/ui/use-toast';
-import { useWebSocketStore } from '@/lib/store/useWebSocketStore';
+import { useWebSocketStore } from '@/store/useWebSocketStore';
 import { manejarErrorEvento } from '../errorHandlers';
 import type {
   ResultadoComandoHardware,

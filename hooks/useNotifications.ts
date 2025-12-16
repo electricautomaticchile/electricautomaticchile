@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback, useState } from 'react';
 import { useWebSocket } from './useWebSocket';
-import { useAuth } from '@/lib/store/useAppStore';
+import { useAuth } from '@/store/useAppStore';
 import { toast } from '@/components/ui/use-toast';
 
 interface Notification {

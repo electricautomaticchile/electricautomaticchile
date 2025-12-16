@@ -18,7 +18,7 @@ import {
   controlarRele,
   useContadorNotificaciones,
 } from '@/lib/websocket/manejadores';
-import { useWebSocketStore } from '@/lib/store/useWebSocketStore';
+import { useWebSocketStore } from '@/store/useWebSocketStore';
 
 /**
  * Ejemplo 1: Mostrar alertas activas en tiempo real
