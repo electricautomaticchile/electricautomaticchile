@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { apiService } from "@/lib/api/apiService";
-import { logger } from "@/lib/utils/logger";
-import { UserProfile, AuthResponse } from "@/types/user";
+import { AuthUser, AuthResponse } from "@/types/auth";
 export interface LoginCredentials {
   email: string;
   password: string;
@@ -14,19 +13,19 @@ export interface ApiAuthResponse {
 }
 
 export interface AuthState {
-  user: UserProfile | null;
+  user: AuthUser | null;
   isAuthenticated: boolean;
   isRealAuthenticated: boolean;
   isLoading: boolean;
 }
 
 // Usuario temporal para desarrollo
-const TEMP_USER: UserProfile = {
+const TEMP_USER: AuthUser = {
   id: "temp_user",
   email: "temp@example.com",
   name: "Usuario Temporal",
-  role: "client",
-  type: "client",
+  role: "cliente",
+  type: "cliente",
   isActive: true,
 };
 
@@ -179,7 +178,7 @@ class AuthManager {
     return authCookie ? decodeURIComponent(authCookie.split("=")[1]) : null;
   }
 
-  private getStoredUser(): UserProfile | null {
+  private getStoredUser(): AuthUser | null {
     if (typeof window === "undefined") return null;
     const cookies = document.cookie.split(";");
     const userCookie = cookies.find((cookie) =>
@@ -193,7 +192,7 @@ class AuthManager {
     }
   }
 
-  private saveUser(user: UserProfile): void {
+  private saveUser(user: AuthUser): void {
     if (typeof window === "undefined") return;
     const isProduction = window.location.protocol === "https:";
     const cookieOptions = [

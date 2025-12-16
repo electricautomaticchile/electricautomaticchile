@@ -21,7 +21,7 @@ export interface IReporteGenerado {
   formato: "excel" | "csv";
   fechaGeneracion: Date;
   usuarioId: string;
-  usuarioTipo: "empresa" | "superusuario" | "cliente";
+  usuarioTipo: "empresa" | "cliente";
   empresaId?: string;
   filtros: any;
   estadisticas: {

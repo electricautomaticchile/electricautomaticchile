@@ -2,9 +2,9 @@ import { BaseApiService } from "../utils/baseService";
 import { TokenManager } from "../utils/tokenManager";
 import {
   ApiResponse,
-  IUsuario,
   LoginCredentials,
   AuthResponse,
+  AuthUser,
 } from "../types";
 
 export class AuthService extends BaseApiService {
@@ -34,8 +34,8 @@ export class AuthService extends BaseApiService {
     return response;
   }
 
-  async getProfile(): Promise<ApiResponse<IUsuario>> {
-    return this.makeRequest<IUsuario>("/auth/me");
+  async getProfile(): Promise<ApiResponse<AuthUser>> {
+    return this.makeRequest<AuthUser>("/auth/me");
   }
 
   async cambiarPassword(

@@ -15,7 +15,6 @@ import { clientesService } from "./services/clientesService";
 import { dispositivosService } from "./services/dispositivosService";
 import { estadisticasService } from "./services/estadisticasService";
 import { leadMagnetService } from "./services/leadMagnetService";
-import { superusuariosService } from "./services/superusuariosService";
 import { empresasService } from "./services/empresasService";
 import { alertasService } from "./services/alertasService";
 // import { arduinoService } from "./services/arduinoService"; // Temporalmente deshabilitado
@@ -89,18 +88,6 @@ class ApiService {
   obtenerEstadisticasLeads =
     leadMagnetService.obtenerEstadisticasLeads.bind(leadMagnetService);
 
-  // =================== SUPERUSUARIOS ===================
-  obtenerSuperusuarios =
-    superusuariosService.obtenerSuperusuarios.bind(superusuariosService);
-  crearSuperusuario =
-    superusuariosService.crearSuperusuario.bind(superusuariosService);
-  actualizarSuperusuario =
-    superusuariosService.actualizarSuperusuario.bind(superusuariosService);
-  obtenerEstadisticasSuperusuarios =
-    superusuariosService.obtenerEstadisticasSuperusuarios.bind(
-      superusuariosService
-    );
-
   // =================== EMPRESAS ===================
   obtenerEmpresas = empresasService.obtenerEmpresas.bind(empresasService);
   obtenerEmpresa = empresasService.obtenerEmpresa.bind(empresasService);
@@ -160,7 +147,6 @@ export {
   dispositivosService,
   estadisticasService,
   leadMagnetService,
-  superusuariosService,
   empresasService,
   alertasService,
   // arduinoService, // Temporalmente deshabilitado

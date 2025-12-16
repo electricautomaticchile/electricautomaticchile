@@ -5,9 +5,9 @@ export { clientesService } from "./clientesService";
 export { dispositivosService } from "./dispositivosService";
 export { estadisticasService } from "./estadisticasService";
 export { leadMagnetService } from "./leadMagnetService";
-export { superusuariosService } from "./superusuariosService";
 export { empresasService } from "./empresasService";
 export { default as ImagenPerfilService } from "./imagenPerfilService";
+export { alertasService } from "./alertasService";
 
 // Re-exportar todos los tipos
 export * from "../types";
