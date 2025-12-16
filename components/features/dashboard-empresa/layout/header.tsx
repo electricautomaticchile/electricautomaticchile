@@ -272,7 +272,7 @@ export function EncabezadoEmpresa({
                 <Button
                   variant="ghost"
                   className="w-full text-sm justify-start"
-                  onClick={() => router.push("/dashboard-empresa?tab=alertas")}
+                  onClick={() => router.push("/empresa?tab=alertas")}
                 >
                   Ver todas las notificaciones
                 </Button>

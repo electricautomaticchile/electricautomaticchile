@@ -47,12 +47,12 @@ export default function Component() {
 
     // Lógica mejorada para determinar el dashboard
     if (userRole === "cliente" || userType === "cliente") {
-      return "/dashboard-cliente";
+      return "/cliente";
     } else if (userRole === "empresa" || userType === "empresa") {
-      return "/dashboard-empresa";
+      return "/empresa";
     } else {
       // Default fallback
-      return "/dashboard-empresa";
+      return "/empresa";
     }
   };
 
@@ -89,7 +89,7 @@ export default function Component() {
                 Inicio
               </Link>
               <Link
-                href="/acercade"
+                href="/acerca-de"
                 className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-orange-500"
                 prefetch={false}
               >
@@ -155,7 +155,7 @@ export default function Component() {
             </NavigationMenuLink>
             <NavigationMenuLink asChild>
               <Link
-                href="/acercade"
+                href="/acerca-de"
                 className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
                 prefetch={false}
               >

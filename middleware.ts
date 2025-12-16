@@ -70,8 +70,8 @@ async function verifyJWT(token: string): Promise<JWTPayload | null> {
 
 // Rutas que requieren autenticación
 const protectedRoutes = [
-  "/dashboard-cliente",
-  "/dashboard-empresa",
+  "/cliente",
+  "/empresa",
 ];
 
 // Función para verificar si una ruta está protegida
@@ -85,11 +85,11 @@ function hasAccess(
   userRole: string,
   userType: string
 ): boolean {
-  if (pathname.startsWith("/dashboard-cliente")) {
+  if (pathname.startsWith("/cliente")) {
     return userType === "cliente" || userRole === "cliente";
   }
 
-  if (pathname.startsWith("/dashboard-empresa")) {
+  if (pathname.startsWith("/empresa")) {
     return userType === "empresa" || userRole === "empresa";
   }
 
@@ -169,7 +169,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/dashboard-cliente/:path*",
-    "/dashboard-empresa/:path*",
+    "/cliente/:path*",
+    "/empresa/:path*",
   ],
 };

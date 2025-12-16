@@ -96,11 +96,11 @@ const LoginContent = () => {
         const type = response.data.user.type;
 
         if (role === "empresa" || type === "empresa") {
-          window.location.href = "/dashboard-empresa";
+          window.location.href = "/empresa";
         } else if (role === "cliente" || type === "cliente") {
-          window.location.href = "/dashboard-cliente";
+          window.location.href = "/cliente";
         } else {
-          window.location.href = "/dashboard-empresa";
+          window.location.href = "/empresa";
         }
       } else {
         setError(response.error || "Credenciales incorrectas");
