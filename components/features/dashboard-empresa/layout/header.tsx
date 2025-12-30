@@ -61,9 +61,11 @@ export function EncabezadoEmpresa({
     setMounted(true);
   }, []);
 
-  const cerrarSesion = async () => {
-    await logout();
-    router.push("/auth/login");
+  const cerrarSesion = () => {
+    logout();
+    setTimeout(() => {
+      window.location.href = "/";
+    }, 0);
   };
 
   // Obtener nombre de la empresa o valor por defecto con compatibilidad
@@ -361,15 +363,13 @@ export function EncabezadoEmpresa({
 
               <DropdownMenuSeparator />
 
-              {isAuthenticated && user && (
-                <DropdownMenuItem
-                  onClick={cerrarSesion}
-                  className="text-red-600 focus:text-red-600 dark:focus:text-red-400"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Cerrar sesión</span>
-                </DropdownMenuItem>
-              )}
+              <DropdownMenuItem
+                onClick={cerrarSesion}
+                className="text-red-600 focus:text-red-600 dark:focus:text-red-400"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Cerrar sesión</span>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

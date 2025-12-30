@@ -5,9 +5,8 @@ import { jwtVerify } from "jose";
 interface JWTPayload {
   sub: string;
   userId: string;
-  email: string;
-  role: string;
-  type: string;
+  userRole: string;
+  userType: string;
   iat: number;
   exp: number;
 }
@@ -138,7 +137,7 @@ export async function middleware(request: NextRequest) {
   if (!tokenPayload) {
     logger.warn(`Acceso denegado - Sin token válido para: ${pathname}`);
 
-    const url = new URL("/auth/login", request.url);
+    const url = new URL("/login", request.url);
     url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);
   }
@@ -149,9 +148,8 @@ export async function middleware(request: NextRequest) {
     type: tokenPayload.type,
   });
 
-  // Verificar permisos específicos por ruta
-  const userRole = tokenPayload.role;
-  const tipoUsuario = tokenPayload.type;
+  const userRole = tokenPayload.userRole || tokenPayload.role;
+  const tipoUsuario = tokenPayload.userType || tokenPayload.type;
 
   if (!hasAccess(pathname, userRole, tipoUsuario)) {
     logger.warn(`Acceso denegado - Permisos insuficientes`, {
@@ -160,7 +158,10 @@ export async function middleware(request: NextRequest) {
       tipoUsuario,
     });
 
-    return NextResponse.redirect(new URL("/acceso-denegado", request.url));
+    const url = new URL("/login", request.url);
+    url.searchParams.set("error", "insufficient_permissions");
+    url.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(url);
   }
 
   logger.info(`Acceso permitido a: ${pathname}`);

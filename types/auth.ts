@@ -22,7 +22,7 @@ export interface AuthResponse {
 }
 
 export interface LoginCredentials {
-  email: string;
+  numeroCliente: string;
   password: string;
 }
 

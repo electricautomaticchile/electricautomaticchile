@@ -38,28 +38,25 @@ const LoginContent = () => {
   }, [searchParams]);
 
   const validateClientNumber = (value: string) => {
-    const regex = /^\d{6}-\d$/;
+    const regex = /^\d{7}-\d$/;
     return regex.test(value);
   };
 
   const handleClientNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
 
-    // Remover todo excepto números
     value = value.replace(/[^\d]/g, "");
 
-    // Limitar a 7 dígitos máximo
-    if (value.length > 7) {
-      value = value.slice(0, 7);
+    if (value.length > 8) {
+      value = value.slice(0, 8);
     }
 
-    // Agregar guion automáticamente después del 6to dígito
-    if (value.length > 6) {
-      value = value.slice(0, 6) + "-" + value.slice(6);
+    if (value.length > 7) {
+      value = value.slice(0, 7) + "-" + value.slice(7);
     }
 
     setClientNumber(value);
-    setIsValidFormat(validateClientNumber(value) || value === "" || value.length < 8);
+    setIsValidFormat(validateClientNumber(value) || value === "" || value.length < 9);
     if (error) setError("");
   };
 
@@ -87,7 +84,7 @@ const LoginContent = () => {
 
     try {
       const response = await apiService.login({
-        email: clientNumber,
+        numeroCliente: clientNumber,
         password: password,
       });
 
@@ -147,14 +144,14 @@ const LoginContent = () => {
                 value={clientNumber}
                 onChange={(value) => {
                   let val = String(value).replace(/[^\d]/g, "");
-                  if (val.length > 7) val = val.slice(0, 7);
-                  if (val.length > 6) val = val.slice(0, 6) + "-" + val.slice(6);
+                  if (val.length > 8) val = val.slice(0, 8);
+                  if (val.length > 7) val = val.slice(0, 7) + "-" + val.slice(7);
                   setClientNumber(val);
-                  setIsValidFormat(validateClientNumber(val) || val === "" || val.length < 8);
+                  setIsValidFormat(validateClientNumber(val) || val === "" || val.length < 9);
                   if (error) setError("");
                 }}
-                error={!isValidFormat && clientNumber ? "El formato debe ser XXXXXX-X (6 números, guion, 1 número)" : undefined}
-                placeholder="Formato: 111111-1"
+                error={!isValidFormat && clientNumber ? "El formato debe ser XXXXXXX-X (7 números, guion, 1 número)" : undefined}
+                placeholder="Formato: 1234567-8"
                 disabled={isLoading}
               />
 

@@ -110,7 +110,7 @@ export default function Component() {
                 Contacto
               </Link>
               <Link
-                href="/auth/login"
+                href="/login"
                 className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-orange-500"
                 prefetch={false}
               >
@@ -193,7 +193,7 @@ export default function Component() {
               </Button>
             </>
           ) : (
-            <Link href="/auth/login">
+            <Link href="/login">
               <Button
                 variant="outline"
                 className="transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 hover:border-orange-500"
