@@ -64,7 +64,7 @@ export function EncabezadoEmpresa({
   const cerrarSesion = () => {
     logout();
     setTimeout(() => {
-      window.location.href = "/";
+      window.location.href = "/login";
     }, 0);
   };
 
