@@ -1,10 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { apiService } from "@/lib/api/apiService";
-import { AuthUser, AuthResponse } from "@/types/auth";
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
+import { AuthUser, AuthResponse, LoginCredentials } from "@/types/auth";
 
 export interface ApiAuthResponse {
   success: boolean;

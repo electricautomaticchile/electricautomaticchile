@@ -7,6 +7,7 @@ interface JWTPayload {
   userId: string;
   userRole: string;
   userType: string;
+  empresaId?: string;
   iat: number;
   exp: number;
 }
@@ -126,9 +127,9 @@ export async function middleware(request: NextRequest) {
       logger.info("Payload JWT", {
         sub: tokenPayload.sub,
         userId: tokenPayload.userId,
-        email: tokenPayload.email,
-        role: tokenPayload.role,
-        type: tokenPayload.type,
+        userRole: tokenPayload.userRole,
+        userType: tokenPayload.userType,
+        empresaId: tokenPayload.empresaId,
       });
     }
   }
@@ -144,12 +145,12 @@ export async function middleware(request: NextRequest) {
 
   logger.info("Token válido para usuario", {
     id: tokenPayload.sub,
-    role: tokenPayload.role,
-    type: tokenPayload.type,
+    userRole: tokenPayload.userRole,
+    userType: tokenPayload.userType,
   });
 
-  const userRole = tokenPayload.userRole || tokenPayload.role;
-  const tipoUsuario = tokenPayload.userType || tokenPayload.type;
+  const userRole = tokenPayload.userRole;
+  const tipoUsuario = tokenPayload.userType;
 
   if (!hasAccess(pathname, userRole, tipoUsuario)) {
     logger.warn(`Acceso denegado - Permisos insuficientes`, {
