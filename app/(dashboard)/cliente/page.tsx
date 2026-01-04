@@ -28,20 +28,61 @@ export default function DashboardCliente() {
   >("activo");
   const [mostrarModalPassword, setMostrarModalPassword] = useState(false);
   const [requiereCambioPassword, setRequiereCambioPassword] = useState(false);
+  const [resumenData, setResumenData] = useState<any>(null);
 
-  // Usar datos reales del usuario desde useApi
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const cookies = document.cookie.split(";");
+      const requiereCambioCookie = cookies.find((c) =>
+        c.trim().startsWith("requiereCambioPassword=")
+      );
+      if (requiereCambioCookie && requiereCambioCookie.split("=")[1] === "true") {
+        setRequiereCambioPassword(true);
+        setMostrarModalPassword(true);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const cargarResumen = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/cliente/resumen`, {
+          credentials: 'include',
+        });
+        const data = await response.json();
+        if (data.success) {
+          setResumenData(data.data);
+          if (data.data.cliente.passwordTemporal) {
+            setRequiereCambioPassword(true);
+            setMostrarModalPassword(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error cargando resumen:', error);
+      }
+    };
+
+    cargarResumen();
+  }, []);
   const datosCliente = {
     _id: (user as any)?._id?.toString() || user?.id?.toString(),
     id: user?.id?.toString() || (user as any)?._id?.toString(),
-    nombre: (user as any)?.nombre || user?.name || "Cliente",
-    numeroCliente: (user as any)?.numeroCliente || "---",
+    nombre: resumenData?.cliente?.nombre || (user as any)?.nombre || user?.name || "Cliente",
+    numeroCliente: resumenData?.cliente?.numeroCliente || (user as any)?.numeroCliente || "---",
     direccion: (user as any)?.direccion || "No especificada",
-    correo: (user as any)?.correo || user?.email || "",
+    correo: resumenData?.cliente?.correo || (user as any)?.correo || user?.email || "",
     email: user?.email || (user as any)?.correo || "",
     telefono: (user as any)?.telefono || "",
     ultimoPago: (user as any)?.ultimoPago || "---",
-    consumoActual: (user as any)?.consumoActual || 0,
+    consumoActual: resumenData?.estadisticas?.consumoMensual || (user as any)?.consumoActual || 0,
     ubicacion: (user as any)?.ubicacion || { lat: -33.4489, lng: -70.6693 },
+    estadisticas: resumenData?.estadisticas || {
+      dispositivosActivos: 0,
+      dispositivosTotal: 0,
+      consumoMensual: 0,
+      costoMensual: 0,
+      boletasPendientes: 0,
+    },
   };
 
   // Control de tiempo de inactividad (30 minutos)
@@ -197,10 +238,10 @@ export default function DashboardCliente() {
                 </div>
                 <div className="pt-4 border-t border-border">
                   <p className="text-xs text-muted-foreground">
-                    Consumo actual
+                    Dispositivos activos
                   </p>
                   <p className="text-2xl font-bold text-orange-600">
-                    {datosCliente.consumoActual} kWh
+                    {datosCliente.estadisticas.dispositivosActivos} / {datosCliente.estadisticas.dispositivosTotal}
                   </p>
                 </div>
               </div>
@@ -210,14 +251,14 @@ export default function DashboardCliente() {
                 onClick={() => setComponenteActivo("boletas")}
               >
                 <h3 className="text-sm font-medium text-orange-100 mb-2">
-                  Pagos y Facturas
+                  Consumo Mensual
                 </h3>
-                <p className="text-xs text-orange-100 mb-4">Último pago</p>
+                <p className="text-xs text-orange-100 mb-4">Este mes</p>
                 <p className="text-3xl font-bold text-white mb-2">
-                  {datosCliente.ultimoPago}
+                  {datosCliente.estadisticas.consumoMensual.toFixed(2)} kWh
                 </p>
                 <p className="text-xs text-orange-100">
-                  Click para ver detalles
+                  ${datosCliente.estadisticas.costoMensual.toFixed(0)} CLP
                 </p>
               </div>
 
@@ -327,11 +368,40 @@ export default function DashboardCliente() {
         {/* Modal de cambio de contraseña */}
         <CambioPasswordModal
           open={mostrarModalPassword}
-          onOpenChange={setMostrarModalPassword}
-          onConfirm={async (currentPassword, newPassword) => {
-            // Implementar lógica de cambio de contraseña
-            handlePasswordChangeSuccess();
+          onOpenChange={(open) => {
+            if (!requiereCambioPassword) {
+              setMostrarModalPassword(open);
+            }
           }}
+          onConfirm={async (currentPassword, newPassword) => {
+            try {
+              const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/cambiar-password`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                  passwordActual: currentPassword,
+                  passwordNuevo: newPassword,
+                }),
+              });
+
+              const data = await response.json();
+              
+              if (data.success) {
+                handlePasswordChangeSuccess();
+                setMostrarModalPassword(false);
+              } else {
+                throw new Error(data.error || 'Error al cambiar contraseña');
+              }
+            } catch (error) {
+              console.error('Error:', error);
+              throw error;
+            }
+          }}
+          requiereActual={!requiereCambioPassword}
+          esForzado={requiereCambioPassword}
         />
       </div>
     </ProveedorWebSocket>

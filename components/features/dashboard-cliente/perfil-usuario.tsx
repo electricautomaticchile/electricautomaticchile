@@ -55,6 +55,9 @@ export function PerfilUsuario({ datos }: PerfilUsuarioProps) {
     notificacionesSMS: false,
     actualizaciones: true,
     reportesMensuales: true,
+    passwordActual: "",
+    passwordNueva: "",
+    passwordConfirmar: "",
   });
 
   const [mensajeExito, setMensajeExito] = useState("");
@@ -282,8 +285,8 @@ export function PerfilUsuario({ datos }: PerfilUsuarioProps) {
                 label="Contraseña Actual"
                 name="current-password"
                 type="password"
-                value=""
-                onChange={() => {}}
+                value={formData.passwordActual || ""}
+                onChange={(value) => setFormData(prev => ({ ...prev, passwordActual: value as string }))}
                 placeholder="Ingrese su contraseña actual"
               />
 
@@ -294,8 +297,8 @@ export function PerfilUsuario({ datos }: PerfilUsuarioProps) {
                   label="Nueva Contraseña"
                   name="new-password"
                   type="password"
-                  value=""
-                  onChange={() => {}}
+                  value={formData.passwordNueva || ""}
+                  onChange={(value) => setFormData(prev => ({ ...prev, passwordNueva: value as string }))}
                   placeholder="Ingrese su nueva contraseña"
                 />
 
@@ -303,8 +306,8 @@ export function PerfilUsuario({ datos }: PerfilUsuarioProps) {
                   label="Confirmar Nueva Contraseña"
                   name="confirm-password"
                   type="password"
-                  value=""
-                  onChange={() => {}}
+                  value={formData.passwordConfirmar || ""}
+                  onChange={(value) => setFormData(prev => ({ ...prev, passwordConfirmar: value as string }))}
                   placeholder="Confirme su nueva contraseña"
                 />
               </div>
@@ -314,16 +317,85 @@ export function PerfilUsuario({ datos }: PerfilUsuarioProps) {
                   Requisitos de seguridad:
                 </h3>
                 <ul className="list-disc list-inside space-y-1 text-gray-600 dark:text-gray-300">
-                  <li>Mínimo 8 caracteres</li>
-                  <li>Al menos una letra mayúscula</li>
-                  <li>Al menos un número</li>
-                  <li>Al menos un símbolo (!, @, #, etc.)</li>
+                  <li>Mínimo 6 caracteres</li>
+                  <li>Recomendado: letra mayúscula, número y símbolo</li>
                 </ul>
               </div>
 
               <div className="flex justify-end">
-                <Button className="bg-orange-600 hover:bg-orange-700">
-                  Cambiar Contraseña
+                <Button 
+                  className="bg-orange-600 hover:bg-orange-700"
+                  onClick={async () => {
+                    if (!formData.passwordNueva || !formData.passwordConfirmar) {
+                      toast({
+                        title: "Error",
+                        description: "Por favor complete todos los campos",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+
+                    if (formData.passwordNueva !== formData.passwordConfirmar) {
+                      toast({
+                        title: "Error",
+                        description: "Las contraseñas no coinciden",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+
+                    if (formData.passwordNueva.length < 6) {
+                      toast({
+                        title: "Error",
+                        description: "La contraseña debe tener al menos 6 caracteres",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+
+                    setCargando(true);
+                    try {
+                      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/cambiar-password`, {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                          passwordActual: formData.passwordActual || "",
+                          passwordNuevo: formData.passwordNueva,
+                        }),
+                      });
+
+                      const data = await response.json();
+                      
+                      if (data.success) {
+                        toast({
+                          title: "Éxito",
+                          description: "Contraseña actualizada correctamente",
+                        });
+                        setFormData(prev => ({
+                          ...prev,
+                          passwordActual: "",
+                          passwordNueva: "",
+                          passwordConfirmar: "",
+                        }));
+                      } else {
+                        throw new Error(data.error || 'Error al cambiar contraseña');
+                      }
+                    } catch (error: any) {
+                      toast({
+                        title: "Error",
+                        description: error.message || "Error al cambiar contraseña",
+                        variant: "destructive",
+                      });
+                    } finally {
+                      setCargando(false);
+                    }
+                  }}
+                  disabled={cargando}
+                >
+                  {cargando ? "Cambiando..." : "Cambiar Contraseña"}
                 </Button>
               </div>
             </CardContent>
