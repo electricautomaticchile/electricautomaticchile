@@ -12,8 +12,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Map, AlertTriangle, RefreshCw } from "lucide-react";
+import { mapaService } from "@/lib/api/services/mapaService";
 
-// Cargar LeafletMap solo en el cliente para evitar errores de SSR
 const LeafletMap = dynamic(
   () => import("./components/LeafletMap").then((mod) => mod.LeafletMap),
   {
@@ -41,8 +41,7 @@ interface MapaInteractivoProps {
   reducida?: boolean;
 }
 
-// TODO: Obtener desde API
-const medidoresData: Medidor[] = [
+const medidoresDataEjemplo: Medidor[] = [
   {
     id: "meter_001",
     customerName: "Residencial Los Trapenses",
@@ -150,17 +149,40 @@ export function MapaInteractivo({ reducida = false }: MapaInteractivoProps) {
   const [loading, setLoading] = useState(true);
   const [filtroEstado, setFiltroEstado] = useState<string>("todos");
 
-
-
   useEffect(() => {
     const cargarDatos = async () => {
       setLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setMedidores(medidoresData);
-      setLoading(false);
+      try {
+        const datos = await mapaService.obtenerDatosMapa();
+        
+        const medidoresFormateados: Medidor[] = datos.dispositivos.map((d) => ({
+          id: d.id,
+          customerName: d.nombre,
+          coordinates: { lat: d.latitud, lng: d.longitud },
+          address: d.direccion || "Sin dirección",
+          status: mapearEstado(d.estado, d.activo),
+          consumption: d.consumo || 0,
+          anomalies: 0,
+          serialNumber: d.numeroDispositivo,
+        }));
+
+        setMedidores(medidoresFormateados);
+      } catch (error) {
+        setMedidores(medidoresDataEjemplo);
+      } finally {
+        setLoading(false);
+      }
     };
     cargarDatos();
   }, []);
+
+  const mapearEstado = (estado: string, activo: boolean): "active" | "inactive" | "suspicious" | "fraud_detected" => {
+    if (!activo) return "inactive";
+    if (estado === "activo") return "active";
+    if (estado === "alerta") return "suspicious";
+    if (estado === "error") return "fraud_detected";
+    return "active";
+  };
 
   const medidoresFiltrados = medidores.filter((m) => {
     if (filtroEstado === "todos") return true;
@@ -237,7 +259,7 @@ export function MapaInteractivo({ reducida = false }: MapaInteractivoProps) {
         </div>
 
         <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200">
-          <span className="text-sm font-medium">Zona: Barnechea, Santiago</span>
+          <span className="text-sm font-medium">Dispositivos con ubicación</span>
           <Badge
             variant="outline"
             className="bg-green-100 text-green-700 border-green-300"
@@ -259,7 +281,7 @@ export function MapaInteractivo({ reducida = false }: MapaInteractivoProps) {
               Mapa Interactivo de Red Eléctrica
             </CardTitle>
             <CardDescription>
-              Visualización geográfica de medidores en Barnechea
+              Visualización geográfica de medidores
             </CardDescription>
           </div>
           <Button

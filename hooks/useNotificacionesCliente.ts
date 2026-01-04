@@ -40,7 +40,7 @@ export function useNotificacionesCliente() {
     try {
       setLoading(true);
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-      const url = `${apiUrl}/api/notificaciones/listar?limite=50`;
+      const url = `${apiUrl}/api/notificaciones`;
       const token = TokenManager.getToken();
       
       

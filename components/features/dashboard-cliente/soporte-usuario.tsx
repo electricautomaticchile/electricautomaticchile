@@ -175,7 +175,7 @@ export function SoporteUsuarioNuevo() {
     setEnviando(true);
     try {
       const response = await ticketsService.agregarRespuesta(
-        ticketSeleccionado._id,
+        ticketSeleccionado.id || ticketSeleccionado._id,
         {
           autorId: clienteId!,
           autorNombre: nombreCliente,

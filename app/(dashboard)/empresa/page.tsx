@@ -26,7 +26,7 @@ import { AlertasSistema } from "./features/alertas";
 
 import { ConfiguracionEmpresa } from "./features/configuracion";
 import { MapaInteractivo } from "./features/gestion-geografica/MapaInteractivo";
-import { SistemaAntifraude } from "./features/gestion-geografica/SistemaAntifraude";
+import { SistemaAntifraude } from "./features/gestion-geografica/antifraude";
 import { GestionTickets } from "@/components/features/dashboard-empresa/gestion-tickets";
 import { ticketsService } from "@/lib/api/ticketsService";
 
@@ -46,17 +46,8 @@ import {
   Headphones,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 
-// Datos de resumen del dashboard
-const resumenDashboard = {
-  clientesActivos: 24,
-  clientesTotales: 26,
-  dispositivosActivos: 187,
-  dispositivosTotales: 195,
-  alertasActivas: 3,
-};
-
-// Componente de KPI mejorado
 const KPICard = ({
   title,
   value,
@@ -143,7 +134,6 @@ const KPICard = ({
   );
 };
 
-// Sección de Dispositivos simplificada
 const DispositivosSection = () => {
   return (
     <div className="w-full">
@@ -152,7 +142,6 @@ const DispositivosSection = () => {
   );
 };
 
-// Sección de Mapa y Seguridad con tabs
 const MapaSeguridadSection = () => {
   return (
     <Tabs defaultValue="mapa" className="w-full">
@@ -170,7 +159,6 @@ const MapaSeguridadSection = () => {
   );
 };
 
-// Navegación móvil
 const MobileNavigation = ({
   isOpen,
   onClose,
@@ -257,7 +245,6 @@ const MobileNavigation = ({
   );
 };
 
-// Componente interno que usa el contexto
 function DashboardContent() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [mostrarModalPassword, setMostrarModalPassword] = useState(false);
@@ -267,6 +254,7 @@ function DashboardContent() {
 
   const { resumen } = useNotificaciones();
   const notificacionesNoLeidas = resumen.noLeidas;
+  const { stats, loading: loadingStats } = useDashboardStats();
 
   // Cargar estadísticas de tickets
   useEffect(() => {
@@ -327,7 +315,6 @@ function DashboardContent() {
   }, [activeTab]);
 
   return (
-      <ProveedorWebSocket>
         <div className="min-h-screen flex flex-col bg-background">
           <EncabezadoEmpresa
             onCambiarPassword={() => setMostrarModalPassword(true)}
@@ -447,18 +434,17 @@ function DashboardContent() {
                             variant="destructive"
                             className="ml-1 text-xs px-1.5"
                           >
-                            {resumenDashboard.alertasActivas}
+                            {stats.alertasActivas}
                           </Badge>
                         </Button>
                       </div>
                     </div>
 
-                    {/* KPIs principales mejorados */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                       <KPICard
                         title="Clientes Activos"
-                        value={resumenDashboard.clientesActivos}
-                        subtitle={`/ ${resumenDashboard.clientesTotales}`}
+                        value={stats.clientesActivos}
+                        subtitle={`/ ${stats.clientesTotales}`}
                         icon={Users}
                         trendValue="92% activos"
                         trend="neutral"
@@ -466,10 +452,10 @@ function DashboardContent() {
                       />
                       <KPICard
                         title="Dispositivos"
-                        value={resumenDashboard.dispositivosActivos}
-                        subtitle={`/ ${resumenDashboard.dispositivosTotales}`}
+                        value={stats.dispositivosActivos}
+                        subtitle={`/ ${stats.dispositivosTotales}`}
                         icon={Battery}
-                        trendValue={`${Math.round((resumenDashboard.dispositivosActivos / resumenDashboard.dispositivosTotales) * 100)}% operativos`}
+                        trendValue={`${stats.dispositivosTotales > 0 ? Math.round((stats.dispositivosActivos / stats.dispositivosTotales) * 100) : 0}% operativos`}
                         trend="neutral"
                         colorScheme="green"
                       />
@@ -483,7 +469,7 @@ function DashboardContent() {
                       />
                       <KPICard
                         title="Alertas Activas"
-                        value={resumenDashboard.alertasActivas}
+                        value={stats.alertasActivas}
                         icon={BellRing}
                         trendValue="Requieren atención"
                         trend="neutral"
@@ -563,9 +549,9 @@ function DashboardContent() {
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 bg-red-100 dark:bg-red-900/20 rounded-lg flex items-center justify-center relative">
                                 <BellRing className="h-5 w-5 text-red-600" />
-                                {resumenDashboard.alertasActivas > 0 && (
+                                {stats.alertasActivas > 0 && (
                                   <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold">
-                                    {resumenDashboard.alertasActivas}
+                                    {stats.alertasActivas}
                                   </span>
                                 )}
                               </div>
@@ -576,7 +562,7 @@ function DashboardContent() {
                                     variant="destructive"
                                     className="text-xs px-2"
                                   >
-                                    {resumenDashboard.alertasActivas}
+                                    {stats.alertasActivas}
                                   </Badge>
                                 </CardTitle>
                                 <CardDescription className="text-xs">
@@ -607,25 +593,24 @@ function DashboardContent() {
               </div>
             </main>
           </div>
-        </div>
 
-        <CambioPasswordModal
-          open={mostrarModalPassword}
-          onOpenChange={setMostrarModalPassword}
-          onConfirm={async (currentPassword, newPassword) => {
-            // Implementar lógica de cambio de contraseña
-            handlePasswordChangeSuccess();
-          }}
-        />
-      </ProveedorWebSocket>
+          <CambioPasswordModal
+            open={mostrarModalPassword}
+            onOpenChange={setMostrarModalPassword}
+            onConfirm={async (currentPassword, newPassword) => {
+              handlePasswordChangeSuccess();
+            }}
+          />
+        </div>
   );
 }
 
-// Componente principal que provee el contexto
 export default function DashboardEmpresa() {
   return (
-    <NotificacionesProvider>
-      <DashboardContent />
-    </NotificacionesProvider>
+    <ProveedorWebSocket>
+      <NotificacionesProvider>
+        <DashboardContent />
+      </NotificacionesProvider>
+    </ProveedorWebSocket>
   );
 }

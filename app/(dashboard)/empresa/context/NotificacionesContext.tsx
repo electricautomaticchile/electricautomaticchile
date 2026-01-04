@@ -1,7 +1,8 @@
 "use client";
 
-import React, { createContext, useContext, ReactNode } from "react";
+import React, { createContext, useContext, ReactNode, useEffect } from "react";
 import { useNotificacionesEmpresa } from "../features/alertas/useNotificacionesEmpresa";
+import { useWebSocketNotifications } from "@/hooks/useWebSocketEvents";
 
 interface Notificacion {
     _id: string;
@@ -62,13 +63,12 @@ interface NotificacionesProviderProps {
     children: ReactNode;
 }
 
-/**
- * Provider que centraliza el estado de notificaciones
- * Evita múltiples llamadas al hook y re-renders innecesarios
- */
 export function NotificacionesProvider({ children }: NotificacionesProviderProps) {
-    // Solo llamamos el hook UNA vez aquí
     const notificacionesData = useNotificacionesEmpresa();
+
+    useWebSocketNotifications((notification) => {
+        notificacionesData.recargar();
+    });
 
     return (
         <NotificacionesContext.Provider value={notificacionesData}>
@@ -77,10 +77,6 @@ export function NotificacionesProvider({ children }: NotificacionesProviderProps
     );
 }
 
-/**
- * Hook para consumir notificaciones desde cualquier componente hijo
- * Uso: const { notificaciones, resumen, marcarComoLeida } = useNotificaciones();
- */
 export function useNotificaciones() {
     const context = useContext(NotificacionesContext);
 

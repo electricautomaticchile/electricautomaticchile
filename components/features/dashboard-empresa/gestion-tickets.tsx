@@ -114,7 +114,7 @@ export function GestionTickets() {
     setEnviando(true);
     try {
       const response = await ticketsService.agregarRespuesta(
-        ticketSeleccionado._id,
+        ticketSeleccionado.id || ticketSeleccionado._id,
         {
           autorId: empresaId!,
           autorNombre: nombreEmpresa,

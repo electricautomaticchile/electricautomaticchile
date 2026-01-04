@@ -1,6 +1,7 @@
 import { baseService } from "./utils/baseService";
 
 export interface Ticket {
+  id?: string;
   _id: string;
   numeroTicket: string;
   clienteId: string;
@@ -124,9 +125,9 @@ class TicketsService {
    * Agregar respuesta a un ticket
    */
   async agregarRespuesta(ticketId: string, respuesta: AgregarRespuestaDto) {
-    return baseService.post<Ticket>(
-      `/tickets/${ticketId}/respuestas`,
-      respuesta
+    return baseService.put<Ticket>(
+      `/tickets/${ticketId}/responder`,
+      { mensaje: respuesta.mensaje }
     );
   }
 

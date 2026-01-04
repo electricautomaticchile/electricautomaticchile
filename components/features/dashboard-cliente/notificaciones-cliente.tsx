@@ -15,7 +15,6 @@ import {
   CreditCard,
   WifiOff,
   TrendingUp,
-  X,
   ChevronDown,
   ChevronUp
 } from "lucide-react";
@@ -33,7 +32,7 @@ export function NotificacionesCliente() {
   const [expandida, setExpandida] = useState<string | null>(null);
 
   // Iconos por categoría
-  const iconosPorCategoria = {
+  const iconosPorCategoria: Record<string, any> = {
     dispositivo: WifiOff,
     facturacion: CreditCard,
     consumo: TrendingUp,
@@ -51,9 +50,9 @@ export function NotificacionesCliente() {
 
   const badgePorTipo = {
     error: "destructive",
-    warning: "warning",
+    warning: "default",
     info: "default",
-    success: "success",
+    success: "default",
   } as const;
 
   const badgePorPrioridad = {
@@ -175,7 +174,7 @@ export function NotificacionesCliente() {
           </Card>
         ) : (
           notificaciones.map((notif) => {
-            const Icono = iconosPorCategoria[notif.categoria];
+            const Icono = iconosPorCategoria[notif.categoria] || Bell;
             const esExpandida = expandida === notif._id;
             
             return (
@@ -185,15 +184,16 @@ export function NotificacionesCliente() {
               >
                 <CardContent className="p-4">
                   <div className="flex items-start gap-4">
-                    {/* Icono */}
-                    <div className={`p-2 rounded-lg ${
-                      notif.tipo === 'error' ? 'bg-red-100 dark:bg-red-900' :
-                      notif.tipo === 'warning' ? 'bg-yellow-100 dark:bg-yellow-900' :
-                      notif.tipo === 'info' ? 'bg-blue-100 dark:bg-blue-900' :
-                      'bg-green-100 dark:bg-green-900'
-                    }`}>
-                      <Icono className="h-5 w-5" />
-                    </div>
+                    {Icono && (
+                      <div className={`p-2 rounded-lg ${
+                        notif.tipo === 'error' ? 'bg-red-100 dark:bg-red-900' :
+                        notif.tipo === 'warning' ? 'bg-yellow-100 dark:bg-yellow-900' :
+                        notif.tipo === 'info' ? 'bg-blue-100 dark:bg-blue-900' :
+                        'bg-green-100 dark:bg-green-900'
+                      }`}>
+                        <Icono className="h-5 w-5" />
+                      </div>
+                    )}
 
                     {/* Contenido */}
                     <div className="flex-1 min-w-0">

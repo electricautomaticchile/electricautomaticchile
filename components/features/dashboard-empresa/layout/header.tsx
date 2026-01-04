@@ -34,9 +34,9 @@ import { Badge } from "@/components/ui/badge";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { useApi } from '@/hooks/useApi';
-import { useNotifications } from "@/hooks/useNotifications";
 import { ProfileImageManager } from "@/components/ui/profile-image-manager";
-import { IndicadorEstadoConexion } from "@/components/websocket/IndicadorEstadoConexion";
+import { notificacionesService, Notificacion } from "@/lib/api/services/notificacionesService";
+import { WebSocketIndicator } from "../WebSocketIndicator";
 
 interface EncabezadoEmpresaProps {
   onCambiarPassword?: () => void;
@@ -53,13 +53,33 @@ export function EncabezadoEmpresa({
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-
-  const { notifications, unreadCount, markAsRead, markAllAsRead } =
-    useNotifications();
+  const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     setMounted(true);
+    cargarNotificaciones();
+    const interval = setInterval(cargarNotificaciones, 30000);
+    return () => clearInterval(interval);
   }, []);
+
+  const cargarNotificaciones = async () => {
+    const response = await notificacionesService.obtenerNotificaciones();
+    if (response.success && response.data) {
+      setNotificaciones(response.data);
+      setUnreadCount(response.data.filter(n => !n.leida).length);
+    }
+  };
+
+  const marcarComoLeida = async (id: string) => {
+    await notificacionesService.marcarComoLeida(id);
+    cargarNotificaciones();
+  };
+
+  const marcarTodasComoLeidas = async () => {
+    await notificacionesService.marcarTodasComoLeidas();
+    cargarNotificaciones();
+  };
 
   const cerrarSesion = () => {
     logout();
@@ -145,23 +165,22 @@ export function EncabezadoEmpresa({
             </div>
           </div>
 
-          {/* Indicador de conexión WebSocket */}
-          <IndicadorEstadoConexion className="hidden md:flex" />
-
-          {/* Toggle tema */}
           {mounted && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="hidden md:flex"
-            >
-              {theme === "dark" ? (
-                <Sun className="h-5 w-5" />
-              ) : (
-                <Moon className="h-5 w-5" />
-              )}
-            </Button>
+            <>
+              <WebSocketIndicator />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="hidden md:flex"
+              >
+                {theme === "dark" ? (
+                  <Sun className="h-5 w-5" />
+                ) : (
+                  <Moon className="h-5 w-5" />
+                )}
+              </Button>
+            </>
           )}
 
           {/* Notificaciones */}
@@ -189,7 +208,7 @@ export function EncabezadoEmpresa({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={markAllAsRead}
+                      onClick={marcarTodasComoLeidas}
                       className="text-xs h-6 px-2"
                     >
                       Marcar todas
@@ -199,44 +218,40 @@ export function EncabezadoEmpresa({
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <div className="max-h-64 overflow-y-auto">
-                {notifications.length === 0 ? (
+                {notificaciones.length === 0 ? (
                   <div className="p-4 text-center text-sm text-gray-500">
                     <BellRing className="h-8 w-8 mx-auto mb-2 text-gray-300" />
                     No hay notificaciones
                   </div>
                 ) : (
-                  notifications.slice(0, 5).map((notificacion, index) => {
+                  notificaciones.slice(0, 5).map((notificacion) => {
                     const IconoTipo =
-                      notificacion.type === "error"
+                      notificacion.tipo === "alerta"
                         ? AlertTriangle
-                        : notificacion.type === "success"
-                          ? CheckCircle2
-                          : BellRing;
+                        : notificacion.tipo === "ticket"
+                          ? BellRing
+                          : CheckCircle2;
                     const colorTipo =
-                      notificacion.type === "error"
+                      notificacion.tipo === "alerta"
                         ? "border-l-red-500"
-                        : notificacion.type === "warning"
-                          ? "border-l-amber-500"
-                          : notificacion.type === "success"
-                            ? "border-l-green-500"
-                            : "border-l-blue-500";
+                        : notificacion.tipo === "ticket"
+                          ? "border-l-blue-500"
+                          : "border-l-green-500";
                     const colorTexto =
-                      notificacion.type === "error"
+                      notificacion.tipo === "alerta"
                         ? "text-red-700 dark:text-red-400"
-                        : notificacion.type === "warning"
-                          ? "text-amber-700 dark:text-amber-400"
-                          : notificacion.type === "success"
-                            ? "text-green-700 dark:text-green-400"
-                            : "text-blue-700 dark:text-blue-400";
+                        : notificacion.tipo === "ticket"
+                          ? "text-blue-700 dark:text-blue-400"
+                          : "text-green-700 dark:text-green-400";
 
                     return (
                       <div
                         key={notificacion.id}
-                        className={`p-3 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 border-l-4 ${colorTipo} cursor-pointer transition-colors ${!notificacion.read
+                        className={`p-3 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 border-l-4 ${colorTipo} cursor-pointer transition-colors ${!notificacion.leida
                             ? "bg-orange-50 dark:bg-orange-900/10"
                             : ""
                           }`}
-                        onClick={() => markAsRead(notificacion.id)}
+                        onClick={() => marcarComoLeida(notificacion.id)}
                       >
                         <div className="flex items-start gap-2">
                           <IconoTipo
@@ -246,21 +261,17 @@ export function EncabezadoEmpresa({
                             <div
                               className={`font-medium ${colorTexto} flex items-center gap-2`}
                             >
-                              {notificacion.message}
-                              {!notificacion.read && (
+                              {notificacion.titulo}
+                              {!notificacion.leida && (
                                 <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0" />
                               )}
                             </div>
-                            <div className="text-gray-600 dark:text-gray-300 text-xs mt-1 flex items-center gap-2">
-                              {notificacion.deviceId && (
-                                <span>
-                                  Dispositivo: {notificacion.deviceId}
-                                </span>
-                              )}
+                            <div className="text-gray-600 dark:text-gray-300 text-xs mt-1">
+                              {notificacion.mensaje}
                             </div>
                             <div className="text-xs text-gray-400 mt-1 flex items-center gap-1">
                               <Clock className="h-3 w-3" />
-                              {new Date(notificacion.timestamp).toLocaleDateString()} - {new Date(notificacion.timestamp).toLocaleTimeString()}
+                              {new Date(notificacion.fechaCreacion).toLocaleDateString()} - {new Date(notificacion.fechaCreacion).toLocaleTimeString()}
                             </div>
                           </div>
                         </div>

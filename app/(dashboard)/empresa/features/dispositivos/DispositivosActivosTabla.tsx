@@ -17,6 +17,7 @@ import {
   Zap,
   User,
   X,
+  UserPlus,
 } from "lucide-react";
 import {
   IconoConexion,
@@ -33,6 +34,7 @@ import {
   EstadoServicio,
 } from "@/lib/api/servicioElectricoService";
 import { useToast } from "@/components/ui/use-toast";
+import { AsignarDispositivoModal } from "@/components/features/dashboard-empresa/AsignarDispositivoModal";
 
 export function DispositivosActivosTabla({
   dispositivos,
@@ -45,6 +47,8 @@ export function DispositivosActivosTabla({
     null
   );
   const [cargandoEstado, setCargandoEstado] = useState(false);
+  const [modalAsignarOpen, setModalAsignarOpen] = useState(false);
+  const [dispositivoAsignar, setDispositivoAsignar] = useState<any>(null);
 
   // Estado para consumo y costo en tiempo real (del modal)
   const [consumoTiempoReal, setConsumoTiempoReal] = useState<number | null>(null);
@@ -300,14 +304,47 @@ export function DispositivosActivosTabla({
               </div>
 
               {/* Indicador de click */}
-              <div className="text-center text-xs text-muted-foreground pt-2 border-t border-gray-100 dark:border-gray-800">
-                <Eye className="h-4 w-4 mx-auto mb-1" />
-                Click para ver detalles
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDispositivoAsignar(dispositivo);
+                    setModalAsignarOpen(true);
+                  }}
+                >
+                  <UserPlus className="h-4 w-4 mr-1" />
+                  Asignar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="flex-1"
+                  onClick={() => abrirDetalles(dispositivo.id)}
+                >
+                  <Eye className="h-4 w-4 mr-1" />
+                  Detalles
+                </Button>
               </div>
             </div>
           </CardContent>
         </Card>
       ))}
+
+      <AsignarDispositivoModal
+        open={modalAsignarOpen}
+        onOpenChange={setModalAsignarOpen}
+        dispositivo={dispositivoAsignar}
+        onSuccess={() => {
+          toast({
+            title: "Éxito",
+            description: "Dispositivo asignado correctamente",
+          });
+          cargarDatosTodosDispositivos();
+        }}
+      />
 
       {/* Modal de Detalles del Dispositivo */}
       <Dialog open={!!dispositivoSeleccionado} onOpenChange={(open) => !open && cerrarDetalles()}>

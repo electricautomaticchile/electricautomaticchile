@@ -52,7 +52,7 @@ export function useNotificacionesEmpresa() {
     try {
       setLoading(true);
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-      const url = `${apiUrl}/api/notificaciones/listar?limite=100`;
+      const url = `${apiUrl}/api/notificaciones`;
       const token = TokenManager.getToken();
       
       
