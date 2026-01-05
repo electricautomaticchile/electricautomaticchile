@@ -53,7 +53,7 @@ export class AuthService extends BaseApiService {
   ): Promise<ApiResponse<any>> {
     return this.makeRequest("/auth/solicitar-recuperacion", {
       method: "POST",
-      body: JSON.stringify({ emailOrNumeroCliente }),
+      body: JSON.stringify({ email: emailOrNumeroCliente }),
     });
   }
 
@@ -63,7 +63,7 @@ export class AuthService extends BaseApiService {
   ): Promise<ApiResponse<{ numeroCliente: string; tipoUsuario: string }>> {
     return this.makeRequest("/auth/restablecer-password", {
       method: "POST",
-      body: JSON.stringify({ token, nuevaPassword }),
+      body: JSON.stringify({ token, password: nuevaPassword }),
     });
   }
 }

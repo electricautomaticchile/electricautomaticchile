@@ -1,173 +1,51 @@
-import { BaseApiService } from "../utils/baseService";
-import { ApiResponse } from "../types";
+import { baseService } from '../utils/baseService';
 
-export interface ArduinoStatus {
-  connected: boolean;
-  port: string;
-  led_status: string;
-  recent_messages: string[];
-  last_update: Date;
-}
-
-export interface ArduinoStats {
-  total_commands: number;
-  on_commands: number;
-  total_duration: number;
-  avg_duration: number;
-  efficiency_percentage: number;
-  uptime: number;
-}
-
-export interface ArduinoDevice {
-  id: string;
-  nombre: string;
-  tipo: string;
-  estado: string;
-  puerto: string;
-  ultima_actividad: Date;
-  configuracion: {
-    baudRate: number;
-    pins: { [key: string]: number };
+export interface ArduinoDeviceInfo {
+  ID: string;
+  ClienteID: string;
+  EmpresaID: string;
+  LastReading?: {
+    DeviceID: string;
+    ClienteID: string;
+    Voltage: number;
+    Current: number;
+    Power: number;
+    Energy: number;
+    Cost: number;
+    LED1: boolean;
+    LED2: boolean;
+    Uptime: number;
+    Timestamp: number;
   };
 }
 
-class ArduinoService extends BaseApiService {
-  private basePath = "/arduino";
+export interface ArduinoStatus {
+  connected: boolean;
+  devicesCount: number;
+  devices: ArduinoDeviceInfo[];
+}
 
-  // Obtener estado del Arduino
-  async obtenerEstado(empresaId: string = "1"): Promise<
-    ApiResponse<{
-      data: ArduinoStatus;
-    }>
-  > {
-    return this.makeRequest(`${this.basePath}/status?empresaId=${empresaId}`);
+class ArduinoService {
+  async obtenerEstado(): Promise<ArduinoStatus> {
+    const response = await baseService.get<ArduinoStatus>('/arduino/status');
+    return response.data!;
   }
 
-  // Conectar Arduino
-  async conectar(
-    empresaId: string = "1",
-    port?: string
-  ): Promise<
-    ApiResponse<{
-      data: ArduinoStatus;
-      message: string;
-    }>
-  > {
-    return this.makeRequest(`${this.basePath}/connect`, {
-      method: "POST",
-      body: JSON.stringify({ empresaId, port }),
-    });
+  async listarPuertos(): Promise<string[]> {
+    const response = await baseService.get<{ ports: string[] }>('/arduino/ports');
+    return response.data!.ports;
   }
 
-  // Desconectar Arduino
-  async desconectar(empresaId: string = "1"): Promise<
-    ApiResponse<{
-      data: ArduinoStatus;
-      message: string;
-    }>
-  > {
-    return this.makeRequest(`${this.basePath}/disconnect`, {
-      method: "POST",
-      body: JSON.stringify({ empresaId }),
-    });
+  async conectar(port?: string): Promise<void> {
+    await baseService.post('/arduino/connect', { port });
   }
 
-  // Enviar comando al Arduino
-  async enviarComando(
-    action: "on" | "off" | "toggle",
-    empresaId: string = "1"
-  ): Promise<
-    ApiResponse<{
-      data: {
-        status: ArduinoStatus;
-        command_result: any;
-      };
-      message: string;
-    }>
-  > {
-    return this.makeRequest(`${this.basePath}/control/${action}`, {
-      method: "POST",
-      body: JSON.stringify({ empresaId }),
-    });
+  async desconectar(): Promise<void> {
+    await baseService.post('/arduino/disconnect', {});
   }
 
-  // Obtener estadísticas
-  async obtenerEstadisticas(empresaId: string): Promise<
-    ApiResponse<{
-      data: ArduinoStats;
-    }>
-  > {
-    return this.makeRequest(`${this.basePath}/stats/${empresaId}`);
-  }
-
-  // Exportar datos
-  async exportarDatos(
-    empresaId: string,
-    format: "json" | "csv" = "json",
-    days: number = 7
-  ): Promise<ApiResponse<any>> {
-    const url = `${this.basePath}/export/${empresaId}?format=${format}&days=${days}`;
-
-    // Para exportación, devolvemos la URL para descargar directamente
-    return {
-      success: true,
-      data: {
-        downloadUrl: url,
-        format,
-        days,
-      },
-    };
-  }
-
-  // Obtener dispositivos de la empresa
-  async obtenerDispositivosEmpresa(empresaId: string): Promise<
-    ApiResponse<{
-      data: ArduinoDevice[];
-      total: number;
-    }>
-  > {
-    return this.makeRequest(`${this.basePath}/devices/${empresaId}`);
-  }
-
-  // Registrar nuevo dispositivo
-  async registrarDispositivo(
-    empresaId: string,
-    dispositivo: {
-      nombre: string;
-      tipo: string;
-      puerto: string;
-      configuracion: any;
-    }
-  ): Promise<
-    ApiResponse<{
-      data: ArduinoDevice;
-      message: string;
-    }>
-  > {
-    return this.makeRequest(`${this.basePath}/devices/${empresaId}/register`, {
-      method: "POST",
-      body: JSON.stringify(dispositivo),
-    });
-  }
-
-  // Configurar dispositivo
-  async configurarDispositivo(
-    deviceId: string,
-    configuracion: any
-  ): Promise<
-    ApiResponse<{
-      data: {
-        device_id: string;
-        configuracion: any;
-        fecha_configuracion: Date;
-      };
-      message: string;
-    }>
-  > {
-    return this.makeRequest(`${this.basePath}/devices/${deviceId}/configure`, {
-      method: "PUT",
-      body: JSON.stringify(configuracion),
-    });
+  async enviarComando(command: string): Promise<void> {
+    await baseService.post('/arduino/command', { command });
   }
 }
 
