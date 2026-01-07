@@ -35,6 +35,7 @@ export interface AlertasSistemaAccionesProps {
   onMarcarTodasLeidas: () => void;
   resumenAlertas: ResumenAlertas;
   loading?: boolean;
+  onExportarExcel?: () => void;
 }
 
 export interface AlertasSistemaFiltrosProps {

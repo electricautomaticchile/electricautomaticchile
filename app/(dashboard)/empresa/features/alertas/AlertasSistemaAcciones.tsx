@@ -7,6 +7,7 @@ import {
   Bell,
   CheckCircle2,
   RefreshCw,
+  FileSpreadsheet,
 } from "lucide-react";
 import { AlertasSistemaAccionesProps } from './types';
 import { BadgeTiempoReal } from './AlertasSistemaIconos';
@@ -18,12 +19,12 @@ export function AlertasSistemaAcciones({
   onSimularAlerta,
   onMarcarTodasLeidas,
   resumenAlertas,
-  loading = false
+  loading = false,
+  onExportarExcel,
 }: AlertasSistemaAccionesProps) {
 
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-      {/* Título y descripción */}
       <div>
         <h2 className="text-2xl font-bold flex items-center gap-2">
           <BellRing className="h-6 w-6 text-orange-600" />
@@ -35,9 +36,7 @@ export function AlertasSistemaAcciones({
         </p>
       </div>
 
-      {/* Controles y acciones */}
       <div className="flex flex-col sm:flex-row gap-3">
-        {/* Barra de búsqueda */}
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
           <Input
@@ -50,9 +49,7 @@ export function AlertasSistemaAcciones({
           />
         </div>
 
-        {/* Botones de acción */}
         <div className="flex gap-2">
-          {/* Simular alerta para demostración */}
           <Button
             variant="outline"
             className="flex items-center gap-2"
@@ -64,7 +61,18 @@ export function AlertasSistemaAcciones({
             <span className="sm:hidden">Simular</span>
           </Button>
 
-          {/* Marcar todas como leídas */}
+          {onExportarExcel && (
+            <Button
+              variant="outline"
+              className="flex items-center gap-2"
+              onClick={onExportarExcel}
+              disabled={loading}
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+              <span className="hidden sm:inline">Excel</span>
+            </Button>
+          )}
+
           <Button
             className="flex items-center gap-2"
             onClick={onMarcarTodasLeidas}

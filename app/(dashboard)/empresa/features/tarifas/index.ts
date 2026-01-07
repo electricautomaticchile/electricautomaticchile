@@ -1,0 +1,1 @@
+export { GestionTarifas } from "./GestionTarifas";

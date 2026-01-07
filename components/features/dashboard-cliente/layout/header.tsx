@@ -25,7 +25,6 @@ const HeaderCliente: React.FC = () => {
                 tipoUsuario="cliente"
                 userName={user.name || "Cliente"}
                 size="sm"
-                showEditButton={true}
                 className="border-2 border-white/20"
               />
               <span className="hidden sm:inline text-sm font-medium">

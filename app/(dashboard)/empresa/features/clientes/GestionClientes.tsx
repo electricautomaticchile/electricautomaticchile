@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -7,181 +7,87 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Users,
-  UserPlus,
-  Search,
-  Filter,
-  ChevronDown,
-  MoreHorizontal,
-  Mail,
-  Phone,
-  MapPin,
-  Building2,
-  Edit,
-  Trash2,
-  Eye,
-  AlertCircle,
-  Loader2,
-  RefreshCw,
-  Download,
-  Plus,
-  X,
-} from "lucide-react";
+import { Users } from "lucide-react";
 import { ICliente } from "@/lib/api/apiService";
-import {
-  reportesService,
-  IConfigReporte,
-  IProgressCallback,
-} from "@/lib/api/services/reportesService";
-import { ReporteProgress } from "@/components/ui/reporte-progress";
+import { ClientesService } from "@/lib/api/services/clientesService";
+import { ExportService } from "@/lib/api/services/exportService";
+import { usePagination } from "@/hooks/usePagination";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+import { TableFilters } from "@/components/ui/table-filters";
+import { FilterParams } from "@/types/filters";
+import { PaginatedResponse } from "@/types/pagination";
 
-// Importar los subcomponentes
 import {
   ClienteModal,
-  ClientesFiltros,
   ClientesAcciones,
   ClientesEstadisticas,
   ClientesTabla,
   EstadisticasData,
 } from "./index";
 
-// Importar el nuevo hook con React Query
-import {
-  useClientes,
-  useClientesStats,
-} from '@/hooks/queries/useClientesQuery';
-
 interface GestionClientesProps {
   reducida?: boolean;
 }
 
-// Componente principal
 export function GestionClientes({ reducida = false }: GestionClientesProps) {
-  // Estados principales
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filtroTipo, setFiltroTipo] = useState("todos");
-  const [filtroCiudad, setFiltroCiudad] = useState("todos");
+  const { toast } = useToast();
+  const { params, setPage, setPageSize } = usePagination(reducida ? 5 : 10);
+  
+  const [filters, setFilters] = useState<FilterParams>({});
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<PaginatedResponse<ICliente> | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clienteEditando, setClienteEditando] = useState<ICliente | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
 
-  // Estados para el sistema de reportes
-  const [isReporteModalOpen, setIsReporteModalOpen] = useState(false);
-  const [reporteConfig, setReporteConfig] = useState<IConfigReporte | null>(
-    null
-  );
+  const clientesService = useMemo(() => new ClientesService(), []);
 
-  const { toast } = useToast();
-  const itemsPerPage = reducida ? 5 : 10;
-
-  // Hook con React Query - con parámetros optimizados
-  const clientesParams = {
-    page: currentPage,
-    limit: itemsPerPage,
-    ...(filtroTipo !== "todos" && { tipoCliente: filtroTipo }),
-    ...(filtroCiudad !== "todos" && { ciudad: filtroCiudad }),
-    ...(searchTerm && { busqueda: searchTerm }),
-  };
-
-  const {
-    clientes,
-    loading,
-    error,
-    isRefetching,
-    crear,
-    actualizar,
-    eliminar,
-    isCreating,
-    isUpdating,
-    isDeleting,
-    refetch,
-  } = useClientes(clientesParams);
-
-  // Hook para estadísticas
-  const { data: statsData, isLoading: statsLoading } = useClientesStats();
-
-  // Generar estadísticas con datos de React Query
   const estadisticas: EstadisticasData = {
-    totalClientes: statsData?.total || 0,
-    clientesActivos: statsData?.activos || 0,
-    clientesInactivos: statsData?.inactivos || 0,
-    clientesEmpresas: statsData?.empresas || 0,
-    clientesParticulares: statsData?.particulares || 0,
-    ingresosMensuales: statsData?.ingresosMensuales || 0,
-    crecimientoMensual: 5.2, // Esto vendría del API en el futuro
-    nuevosEsteMes: 3, // Esto vendría del API en el futuro
+    totalClientes: data?.total || 0,
+    clientesActivos: data?.data.filter(c => c.activo).length || 0,
+    clientesInactivos: data?.data.filter(c => !c.activo).length || 0,
+    clientesEmpresas: data?.data.filter(c => c.tipoCliente === "empresa").length || 0,
+    clientesParticulares: data?.data.filter(c => c.tipoCliente === "particular").length || 0,
+    ingresosMensuales: 0,
+    crecimientoMensual: 5.2,
+    nuevosEsteMes: 3,
   };
 
-  // Efecto para refetch cuando cambian los filtros
+  const cargarClientes = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await clientesService.obtenerClientesPaginado(params, filters);
+      if (response.success && response.data) {
+        setData(response.data as PaginatedResponse<ICliente>);
+      } else {
+        toast({
+          title: "Error",
+          description: response.error || "Error al cargar clientes",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Error al cargar clientes",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [params, filters, toast, clientesService]);
+
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      refetch();
-    }, 300); // Debounce de 300ms
+    cargarClientes();
+  }, [cargarClientes]);
 
-    return () => clearTimeout(timeoutId);
-  }, [searchTerm, filtroTipo, filtroCiudad, currentPage, refetch]);
+  const handleFilterChange = (newFilters: FilterParams) => {
+    setFilters(newFilters);
+    setPage(1);
+  };
 
-  // Filtrar clientes localmente (solo para la versión reducida)
-  const clientesFiltrados = reducida
-    ? clientes.filter((cliente: ICliente) => {
-        const matchesSearch =
-          !searchTerm ||
-          cliente.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          cliente.correo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          cliente.telefono?.includes(searchTerm) ||
-          cliente.rut?.includes(searchTerm);
-
-        const matchesTipo =
-          filtroTipo === "todos" || cliente.tipoCliente === filtroTipo;
-        const matchesCiudad =
-          filtroCiudad === "todos" || cliente.ciudad === filtroCiudad;
-
-        return matchesSearch && matchesTipo && matchesCiudad;
-      })
-    : clientes;
-
-  // Manejadores de eventos optimizados con React Query
-  const handleRefresh = async () => {
-    await refetch();
+  const handleRefresh = () => {
+    cargarClientes();
     toast({
       title: "Datos actualizados",
       description: "La lista de clientes se ha actualizado correctamente.",
@@ -195,11 +101,12 @@ export function GestionClientes({ reducida = false }: GestionClientesProps) {
 
   const handleDelete = async (cliente: ICliente) => {
     try {
-      await eliminar(cliente._id);
+      await clientesService.eliminarCliente(cliente._id);
       toast({
         title: "Cliente eliminado",
         description: "El cliente ha sido eliminado exitosamente.",
       });
+      cargarClientes();
     } catch (error) {
       toast({
         title: "Error",
@@ -215,111 +122,48 @@ export function GestionClientes({ reducida = false }: GestionClientesProps) {
   };
 
   const handleModalSuccess = () => {
-    // No necesitamos hacer refetch manual, React Query se encarga automáticamente
     toast({
       title: clienteEditando ? "Cliente actualizado" : "Cliente creado",
       description: `El cliente ha sido ${clienteEditando ? "actualizado" : "creado"} exitosamente.`,
     });
     handleModalClose();
+    cargarClientes();
   };
 
-  const handleLimpiarFiltros = () => {
-    setSearchTerm("");
-    setFiltroTipo("todos");
-    setFiltroCiudad("todos");
-    setCurrentPage(1);
-  };
-
-  // Manejar exportación de reportes
   const handleExportar = async (formato: "excel" | "csv" | "pdf") => {
-    const filtros = {
-      ...(filtroTipo !== "todos" && { tipoCliente: filtroTipo }),
-      ...(filtroCiudad !== "todos" && { ciudad: filtroCiudad }),
-      ...(searchTerm && { busqueda: searchTerm }),
-    };
-
-    const config: IConfigReporte = {
-      titulo: "Reporte de Clientes",
-      tipo: "clientes",
-      formato,
-      filtros,
-    };
-
-    // Vista previa de filtros
-    const vistaPrevia = reportesService.generarVistaPrevia(config);
-    const tiempoEstimado = reportesService.estimarTiempoGeneracion(config);
-
-    // Mostrar confirmación
-    const confirmar = window.confirm(
-      `¿Generar reporte de clientes?\n\n` +
-        `Formato: ${formato.toUpperCase()}\n` +
-        `${vistaPrevia}\n` +
-        `Tiempo estimado: ${tiempoEstimado}\n\n` +
-        `¿Continuar?`
-    );
-
-    if (!confirmar) return;
-
-    setReporteConfig(config);
-    setIsReporteModalOpen(true);
-  };
-
-  const generarReporte = async (
-    config: IConfigReporte,
-    onProgress: IProgressCallback
-  ) => {
     try {
-      await reportesService.generarReporteCompleto(config, onProgress);
-      toast({
-        title: "Reporte generado",
-        description: `El reporte de clientes en formato ${config.formato.toUpperCase()} se ha descargado exitosamente.`,
-      });
+      if (formato === "excel") {
+        await ExportService.exportarClientesExcel();
+        toast({
+          title: "Exportación exitosa",
+          description: "El archivo Excel se ha descargado correctamente.",
+        });
+      } else if (formato === "pdf") {
+        await ExportService.exportarClientesPDF();
+        toast({
+          title: "Exportación exitosa",
+          description: "El archivo PDF se ha descargado correctamente.",
+        });
+      }
     } catch (error) {
       toast({
-        title: "Error al generar reporte",
-        description:
-          error instanceof Error ? error.message : "Error desconocido",
+        title: "Error al exportar",
+        description: error instanceof Error ? error.message : "Error desconocido",
         variant: "destructive",
       });
     }
   };
 
-  // Calcular paginación
-  const totalPages = Math.ceil(clientesFiltrados.length / itemsPerPage);
-  const clientesPaginados = reducida
-    ? clientesFiltrados.slice(0, itemsPerPage)
-    : clientesFiltrados.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-      );
-
-  // Mostrar errores si los hay
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: "Error",
-        description: error,
-        variant: "destructive",
-      });
-    }
-  }, [error, toast]);
-
-  // Versión reducida para el dashboard
   if (reducida) {
     return (
       <div className="space-y-4">
-        {/* Estadísticas resumidas */}
-        <ClientesEstadisticas data={estadisticas} loading={statsLoading} />
-
-        {/* Tabla simplificada */}
+        <ClientesEstadisticas data={estadisticas} loading={loading} />
         <ClientesTabla
-          clientes={clientesPaginados}
+          clientes={data?.data || []}
           loading={loading}
           onEdit={handleEdit}
           onDelete={handleDelete}
         />
-
-        {/* Modal */}
         <ClienteModal
           isOpen={isModalOpen}
           onClose={handleModalClose}
@@ -330,7 +174,6 @@ export function GestionClientes({ reducida = false }: GestionClientesProps) {
     );
   }
 
-  // Versión completa
   return (
     <div className="space-y-6">
       <Card>
@@ -345,58 +188,58 @@ export function GestionClientes({ reducida = false }: GestionClientesProps) {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* Acciones principales */}
           <ClientesAcciones
             onNuevoCliente={() => setIsModalOpen(true)}
             onRefresh={handleRefresh}
             onExportarExcel={() => handleExportar("excel")}
             onExportarCSV={() => handleExportar("csv")}
             onExportarPDF={() => handleExportar("pdf")}
-            isRefreshing={isRefetching}
+            isRefreshing={loading}
             totalClientes={estadisticas.totalClientes}
-            clientesFiltrados={clientesFiltrados.length}
+            clientesFiltrados={data?.data.length || 0}
           />
 
-          {/* Filtros */}
-          <ClientesFiltros
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            filtroTipo={filtroTipo}
-            onFiltroTipoChange={setFiltroTipo}
-            filtroCiudad={filtroCiudad}
-            onFiltroCiudadChange={setFiltroCiudad}
-            onLimpiarFiltros={handleLimpiarFiltros}
+          <TableFilters
+            onFilterChange={handleFilterChange}
+            showDateFilters
+            showActiveFilter
+            showTypeFilter
+            typeOptions={[
+              { value: "empresa", label: "Empresa" },
+              { value: "particular", label: "Particular" },
+            ]}
           />
 
-          {/* Estadísticas */}
-          <ClientesEstadisticas data={estadisticas} loading={statsLoading} />
+          <ClientesEstadisticas data={estadisticas} loading={loading} />
 
-          {/* Tabla */}
           <ClientesTabla
-            clientes={clientesPaginados}
+            clientes={data?.data || []}
             loading={loading}
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
+
+          {data && (
+            <PaginationControls
+              page={data.page}
+              pageSize={data.pageSize}
+              total={data.total}
+              totalPages={data.totalPages}
+              hasNext={data.hasNext}
+              hasPrev={data.hasPrev}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+          )}
         </CardContent>
       </Card>
 
-      {/* Modal de cliente */}
       <ClienteModal
         isOpen={isModalOpen}
         onClose={handleModalClose}
         cliente={clienteEditando}
         onSuccess={handleModalSuccess}
       />
-
-      {/* Modal de progreso de reportes */}
-      {reporteConfig && isReporteModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg">
-            <p>Generando reporte...</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

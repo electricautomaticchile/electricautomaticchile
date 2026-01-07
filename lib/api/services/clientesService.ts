@@ -1,5 +1,7 @@
 import { BaseApiService } from "../utils/baseService";
 import { ApiResponse, ICliente } from "../types";
+import { PaginatedResponse, PaginationParams, buildPaginationQuery } from "@/types/pagination";
+import { FilterParams, buildFilterQuery, combineQueryParams } from "@/types/filters";
 
 export class ClientesService extends BaseApiService {
   async obtenerClientes(params?: {
@@ -22,6 +24,17 @@ export class ClientesService extends BaseApiService {
       : "/clientes";
 
     return this.makeRequest<ICliente[]>(endpoint);
+  }
+
+  async obtenerClientesPaginado(
+    params: PaginationParams,
+    filters?: FilterParams
+  ): Promise<ApiResponse<PaginatedResponse<ICliente>>> {
+    const paginationQuery = buildPaginationQuery(params);
+    const filterQuery = filters ? buildFilterQuery(filters) : "";
+    const query = combineQueryParams(paginationQuery, filterQuery);
+    
+    return this.makeRequest<PaginatedResponse<ICliente>>(`/clientes?${query}`);
   }
 
   async obtenerCliente(id: string): Promise<ApiResponse<ICliente>> {

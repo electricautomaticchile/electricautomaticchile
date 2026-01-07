@@ -19,73 +19,45 @@ export interface IUpdateProfileImageRequest {
 }
 
 export class ImagenPerfilService {
-  private static baseURL = "/empresa";
+  private static baseURL = "/imagenes-perfil";
 
-  /**
-   * Subir imagen de perfil
-   */
-  static async uploadImage(file: File): Promise<IImagenPerfilResponse> {
+  static async uploadAndUpdateProfileImage(
+    file: File,
+    tipoUsuario: "usuario" | "empresa" | "cliente" | "superadmin",
+    userId: string
+  ): Promise<IImagenPerfilResponse> {
     try {
       const formData = new FormData();
       formData.append("image", file);
+      formData.append("tipoUsuario", tipoUsuario);
+      formData.append("userId", userId);
 
       const response = await baseService.post<{
         imageUrl: string;
         fileName: string;
-      }>(`${this.baseURL}/upload-image`, formData);
+        message: string;
+      }>(`${this.baseURL}/upload`, formData);
 
       return {
         success: true,
-        data: response.data,
-        message: "Imagen subida exitosamente",
+        data: response.data || {},
+        message: response.data?.message || "Imagen de perfil actualizada exitosamente",
       };
     } catch (error: any) {
       return {
         success: false,
-        error: error.response?.data?.message || "Error al subir imagen",
+        error: error.response?.data?.error || "Error al procesar la imagen de perfil",
       };
     }
   }
 
-  /**
-   * Actualizar imagen de perfil del usuario
-   */
-  static async updateProfileImage(
-    data: IUpdateProfileImageRequest
-  ): Promise<IImagenPerfilResponse> {
-    try {
-      // Cast a any para evitar error de tipo
-      const response: any = await baseService.post(
-        `${this.baseURL}/update-profile-image`,
-        data
-      );
-
-      return {
-        success: true,
-        data: response.data,
-        message: "Imagen de perfil actualizada exitosamente",
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        error:
-          error.response?.data?.message ||
-          "Error al actualizar imagen de perfil",
-      };
-    }
-  }
-
-  /**
-   * Obtener imagen de perfil actual
-   */
   static async getProfileImage(
     tipoUsuario: "usuario" | "empresa" | "cliente" | "superadmin",
     userId: string
   ): Promise<IImagenPerfilResponse> {
     try {
-      // Cast a any para evitar error de tipo
       const response: any = await baseService.get(
-        `${this.baseURL}/profile-image/${tipoUsuario}/${userId}`
+        `${this.baseURL}/${tipoUsuario}/${userId}`
       );
 
       return {
@@ -101,17 +73,13 @@ export class ImagenPerfilService {
     }
   }
 
-  /**
-   * Eliminar imagen de perfil
-   */
   static async deleteProfileImage(
     tipoUsuario: "usuario" | "empresa" | "cliente" | "superadmin",
     userId: string
   ): Promise<IImagenPerfilResponse> {
     try {
-      // Cast a any para evitar error de tipo
       const response: any = await baseService.delete(
-        `${this.baseURL}/profile-image/${tipoUsuario}/${userId}`
+        `${this.baseURL}/${tipoUsuario}/${userId}`
       );
 
       return {
@@ -128,54 +96,7 @@ export class ImagenPerfilService {
     }
   }
 
-  /**
-   * Subir y actualizar imagen de perfil en un solo paso
-   */
-  static async uploadAndUpdateProfileImage(
-    file: File,
-    tipoUsuario: "usuario" | "empresa" | "cliente" | "superadmin",
-    userId: string
-  ): Promise<IImagenPerfilResponse> {
-    try {
-      // 1. Subir imagen
-      const uploadResult = await this.uploadImage(file);
-      if (!uploadResult.success || !uploadResult.data?.imageUrl) {
-        return uploadResult;
-      }
-
-      // 2. Actualizar perfil
-      const updateResult = await this.updateProfileImage({
-        imageUrl: uploadResult.data.imageUrl,
-        tipoUsuario,
-        userId,
-      });
-
-      if (!updateResult.success) {
-        return updateResult;
-      }
-
-      return {
-        success: true,
-        data: {
-          ...updateResult.data,
-          imageUrl: uploadResult.data.imageUrl,
-          fileName: uploadResult.data.fileName,
-        },
-        message: "Imagen de perfil actualizada exitosamente",
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        error: "Error al procesar la imagen de perfil",
-      };
-    }
-  }
-
-  /**
-   * Validar archivo de imagen
-   */
   static validateImageFile(file: File): { isValid: boolean; error?: string } {
-    // Validar tipo de archivo
     const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
       return {
@@ -185,8 +106,7 @@ export class ImagenPerfilService {
       };
     }
 
-    // Validar tamaño (máximo 5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
       return {
         isValid: false,
@@ -197,17 +117,12 @@ export class ImagenPerfilService {
     return { isValid: true };
   }
 
-  /**
-   * Obtener URL de imagen por defecto basada en tipo de usuario
-   */
   static getDefaultImageUrl(tipoUsuario: string): string {
-    // Usamos un servicio de avatares generados automáticamente
-    // https://ui-avatars.com/ genera avatares con iniciales
     const colors = {
-      empresa: "FF6B00", // Naranja para empresas
-      cliente: "0EA5E9", // Azul para clientes
-      superadmin: "DC2626", // Rojo para superadmin
-      default: "6B7280", // Gris por defecto
+      empresa: "FF6B00",
+      cliente: "0EA5E9",
+      superadmin: "DC2626",
+      default: "6B7280",
     };
 
     const bgColor =
@@ -217,9 +132,6 @@ export class ImagenPerfilService {
     return `https://ui-avatars.com/api/?name=${initials}&background=${bgColor}&color=ffffff&size=200&font-size=0.5&bold=true`;
   }
 
-  /**
-   * Crear URL de imagen con fallback
-   */
   static createImageUrlWithFallback(
     imageUrl: string | null | undefined,
     tipoUsuario: string

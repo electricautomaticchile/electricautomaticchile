@@ -9,10 +9,12 @@ import { AlertasSistemaLista } from './AlertasSistemaLista';
 import { AlertasSistemaReducido } from './AlertasSistemaReducido';
 import { Button } from "@/components/ui/button";
 import { Trash2, Settings } from "lucide-react";
+import { ExportService } from "@/lib/api/services/exportService";
+import { useToast } from "@/components/ui/use-toast";
 
 export function AlertasSistema({ reducida = false }: AlertasSistemaProps) {
+  const { toast } = useToast();
   const {
-    // Estados
     alertas,
     alertaExpandida,
     resumenAlertas,
@@ -20,7 +22,6 @@ export function AlertasSistema({ reducida = false }: AlertasSistemaProps) {
     filtros,
     isConnected,
 
-    // Acciones
     toggleAlerta,
     simularAlerta,
     asignarAlerta,
@@ -29,20 +30,32 @@ export function AlertasSistema({ reducida = false }: AlertasSistemaProps) {
     eliminarAlerta,
     marcarTodasLeidas,
 
-    // Filtros
     cambiarFiltroTipo,
     cambiarFiltroEstado,
     cambiarBusqueda,
 
-    // Utilidades
     clearAll,
   } = useAlertasSistema();
 
-  // Extraer valores de filtros
   const { busqueda, tipo: filtroTipo, estado: filtroEstado } = filtros;
   const loading = estadosCarga.alertas || estadosCarga.accion;
 
-  // Versión reducida del componente
+  const handleExportarExcel = async () => {
+    try {
+      await ExportService.exportarAlertasExcel();
+      toast({
+        title: "Exportación exitosa",
+        description: "El archivo Excel se ha descargado correctamente.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error al exportar",
+        description: error instanceof Error ? error.message : "Error desconocido",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (reducida) {
     return (
       <AlertasSistemaReducido
@@ -53,11 +66,9 @@ export function AlertasSistema({ reducida = false }: AlertasSistemaProps) {
     );
   }
 
-  // Versión completa del componente
   return (
     <div className="bg-background p-6 rounded-lg border border-gray-200 dark:border-gray-700">
       <div className="space-y-6">
-        {/* Encabezado con acciones principales */}
         <AlertasSistemaAcciones
           isConnected={isConnected}
           busqueda={busqueda}
@@ -66,15 +77,14 @@ export function AlertasSistema({ reducida = false }: AlertasSistemaProps) {
           onMarcarTodasLeidas={marcarTodasLeidas}
           resumenAlertas={resumenAlertas}
           loading={loading}
+          onExportarExcel={handleExportarExcel}
         />
 
-        {/* Estadísticas y métricas */}
         <AlertasSistemaStats
           resumen={resumenAlertas}
           loading={loading}
         />
 
-        {/* Sistema de filtros */}
         <AlertasSistemaFiltros
           filtroTipo={filtroTipo}
           filtroEstado={filtroEstado}
@@ -83,7 +93,6 @@ export function AlertasSistema({ reducida = false }: AlertasSistemaProps) {
           resumenAlertas={resumenAlertas}
         />
 
-        {/* Lista de alertas */}
         <AlertasSistemaLista
           alertas={alertas}
           alertaExpandida={alertaExpandida}
@@ -96,7 +105,6 @@ export function AlertasSistema({ reducida = false }: AlertasSistemaProps) {
           busqueda={busqueda}
         />
 
-        {/* Footer con acciones globales */}
         <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="text-sm text-gray-500 dark:text-gray-400">
             Mostrando {alertas.length} de {resumenAlertas.total} alertas •{" "}

@@ -77,6 +77,8 @@ export interface DispositivosAccionesProps {
   onRefresh: () => void;
   totalDispositivos: number;
   isWebSocketConnected?: boolean;
+  onExportarExcel?: () => void;
+  onExportarPDF?: () => void;
 }
 
 export interface DispositivosReducidoProps {

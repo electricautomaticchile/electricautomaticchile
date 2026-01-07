@@ -20,8 +20,8 @@ import {
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { ICliente } from "@/lib/api/apiService";
+import { TarifasService, Tarifa } from "@/lib/api/services/tarifasService";
 
-// Importar los hooks de React Query
 import {
   useCreateClienteMutation,
   useUpdateClienteMutation,
@@ -49,7 +49,13 @@ export function ClienteModal({
     rut: "",
     tipoCliente: "particular" as "particular" | "empresa",
     empresa: "",
+    comuna: "",
+    tipoTarifa: "BT1",
+    tarifaId: "",
   });
+
+  const [tarifas, setTarifas] = useState<Tarifa[]>([]);
+  const [tarifasFiltradas, setTarifasFiltradas] = useState<Tarifa[]>([]);
 
   const { toast } = useToast();
 
@@ -111,6 +117,32 @@ export function ClienteModal({
   const isLoading = createMutation.isPending || updateMutation.isPending;
 
   useEffect(() => {
+    const cargarTarifas = async () => {
+      const response = await TarifasService.obtenerTarifas();
+      if (response.success && response.data) {
+        setTarifas(response.data);
+      }
+    };
+    if (isOpen) {
+      cargarTarifas();
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (formData.comuna && formData.tipoTarifa) {
+      const filtradas = tarifas.filter(
+        t => t.comuna === formData.comuna && t.tipoTarifa === formData.tipoTarifa && t.activa
+      );
+      setTarifasFiltradas(filtradas);
+      if (filtradas.length === 1) {
+        setFormData(prev => ({ ...prev, tarifaId: filtradas[0]._id }));
+      }
+    } else {
+      setTarifasFiltradas([]);
+    }
+  }, [formData.comuna, formData.tipoTarifa, tarifas]);
+
+  useEffect(() => {
     if (cliente) {
       setFormData({
         nombre: cliente.nombre || "",
@@ -121,6 +153,9 @@ export function ClienteModal({
         rut: cliente.rut || "",
         tipoCliente: cliente.tipoCliente || "particular",
         empresa: cliente.empresa || "",
+        comuna: (cliente as any).comuna || "",
+        tipoTarifa: (cliente as any).tipoTarifa || "BT1",
+        tarifaId: (cliente as any).tarifaId || "",
       });
     } else {
       setFormData({
@@ -132,6 +167,9 @@ export function ClienteModal({
         rut: "",
         tipoCliente: "particular",
         empresa: "",
+        comuna: "",
+        tipoTarifa: "BT1",
+        tarifaId: "",
       });
     }
   }, [cliente, isOpen]);
@@ -276,7 +314,68 @@ export function ClienteModal({
                 disabled={isLoading}
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="comuna">Comuna *</Label>
+              <Select
+                value={formData.comuna}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, comuna: value })
+                }
+                disabled={isLoading}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona comuna" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Villa Alemana">Villa Alemana</SelectItem>
+                  <SelectItem value="Quilpué">Quilpué</SelectItem>
+                  <SelectItem value="La Calera">La Calera</SelectItem>
+                  <SelectItem value="Limache">Limache</SelectItem>
+                  <SelectItem value="Quillota">Quillota</SelectItem>
+                  <SelectItem value="Valparaíso">Valparaíso</SelectItem>
+                  <SelectItem value="Viña del Mar">Viña del Mar</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="tipoTarifa">Tipo de Tarifa *</Label>
+              <Select
+                value={formData.tipoTarifa}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, tipoTarifa: value })
+                }
+                disabled={isLoading}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="BT1">BT1 - Residencial</SelectItem>
+                  <SelectItem value="BT41">BT41 - Comercial</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
+          {tarifasFiltradas.length > 0 && (
+            <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+              <p className="text-sm text-green-800 dark:text-green-200">
+                ✓ Tarifa asignada: {tarifasFiltradas[0].distribuidora} - {tarifasFiltradas[0].tipoTarifa} ({tarifasFiltradas[0].comuna})
+                <br />
+                <span className="font-semibold">Precio base: ${tarifasFiltradas[0].precioKwhBase.toFixed(3)}/kWh</span>
+              </p>
+            </div>
+          )}
+
+          {formData.comuna && formData.tipoTarifa && tarifasFiltradas.length === 0 && (
+            <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                ⚠ No hay tarifa disponible para {formData.comuna} - {formData.tipoTarifa}
+              </p>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="direccion">Dirección</Label>

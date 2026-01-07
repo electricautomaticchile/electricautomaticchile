@@ -305,7 +305,6 @@ export function EncabezadoEmpresa({
                   tipoUsuario={userType || userRole || "empresa"}
                   userName={nombreEmpresa}
                   size="sm"
-                  showEditButton={false}
                   className="h-8 w-8"
                 />
                 <div className="hidden md:flex flex-col items-start">
@@ -328,7 +327,6 @@ export function EncabezadoEmpresa({
                     tipoUsuario={userType || userRole || "empresa"}
                     userName={nombreEmpresa}
                     size="md"
-                    showEditButton={true}
                   />
                   <div className="flex flex-col space-y-1 flex-1">
                     <p className="text-sm font-medium leading-none">

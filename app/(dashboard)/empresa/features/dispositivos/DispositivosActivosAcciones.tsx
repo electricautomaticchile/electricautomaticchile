@@ -15,6 +15,8 @@ import {
   XCircle,
   RotateCw,
   AlertTriangle,
+  FileSpreadsheet,
+  FileText,
 } from "lucide-react";
 import { DispositivosAccionesProps } from "./types";
 import { TABS_DISPOSITIVOS } from "./config";
@@ -28,6 +30,8 @@ export function DispositivosActivosAcciones({
   onRefresh,
   totalDispositivos,
   isWebSocketConnected,
+  onExportarExcel,
+  onExportarPDF,
 }: DispositivosAccionesProps) {
   const [refreshing, setRefreshing] = useState(false);
 
@@ -95,6 +99,30 @@ export function DispositivosActivosAcciones({
             />
             {refreshing ? "Actualizando..." : "Refrescar"}
           </Button>
+
+          {onExportarExcel && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onExportarExcel}
+              className="flex items-center gap-2"
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+              Excel
+            </Button>
+          )}
+
+          {onExportarPDF && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onExportarPDF}
+              className="flex items-center gap-2"
+            >
+              <FileText className="h-4 w-4" />
+              PDF
+            </Button>
+          )}
 
           <Button
             variant="outline"

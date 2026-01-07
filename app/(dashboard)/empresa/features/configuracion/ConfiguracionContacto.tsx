@@ -113,7 +113,6 @@ export function ConfiguracionContacto({
                   tipoUsuario={(userType as any) || "empresa"}
                   userName={userName || "Empresa"}
                   size="lg"
-                  showEditButton={true}
                   className="w-full"
                 />
               )}

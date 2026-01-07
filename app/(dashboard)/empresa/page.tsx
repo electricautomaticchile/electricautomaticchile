@@ -24,6 +24,8 @@ import { GestionClientes } from "./features/clientes";
 import { DispositivosActivos } from "./features/dispositivos";
 import { AlertasSistema } from "./features/alertas";
 import { GestionArduino } from "./features/arduino";
+import { GestionTarifas } from "./features/tarifas/GestionTarifas";
+import { EstadisticasAvanzadas } from "./features/estadisticas/EstadisticasAvanzadas";
 
 import { ConfiguracionEmpresa } from "./features/configuracion";
 import { MapaInteractivo } from "./features/gestion-geografica/MapaInteractivo";
@@ -46,6 +48,8 @@ import {
   ArrowRight,
   Headphones,
   Cpu,
+  Zap,
+  BarChart3,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
@@ -182,6 +186,8 @@ const MobileNavigation = ({
     { id: "dispositivos", label: "Dispositivos", icon: Battery },
     { id: "mapa-seguridad", label: "Mapa & Seguridad", icon: MapPin },
     { id: "arduino", label: "Arduino", icon: Cpu },
+    { id: "tarifas", label: "Tarifas", icon: Zap },
+    { id: "estadisticas", label: "Estadísticas", icon: BarChart3 },
     {
       id: "alertas",
       label: "Alertas",
@@ -308,6 +314,10 @@ function DashboardContent() {
         return <MapaSeguridadSection />;
       case "arduino":
         return <GestionArduino />;
+      case "tarifas":
+        return <GestionTarifas />;
+      case "estadisticas":
+        return <EstadisticasAvanzadas />;
       case "alertas":
         return <AlertasSistema />;
       case "soporte":
@@ -345,6 +355,8 @@ function DashboardContent() {
                     icon: MapPin,
                   },
                   { id: "arduino", label: "Arduino", icon: Cpu },
+                  { id: "tarifas", label: "Tarifas", icon: Zap },
+                  { id: "estadisticas", label: "Estadísticas", icon: BarChart3 },
                   {
                     id: "alertas",
                     label: "Alertas",
