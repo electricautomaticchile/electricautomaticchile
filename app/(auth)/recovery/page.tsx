@@ -46,16 +46,10 @@ export default function RecoveryPage() {
     setError("");
 
     try {
-
-      const response = await apiService.solicitarRecuperacion(emailOrNumber);
-
-      if (response.success) {
-        setSuccess(true);
-      } else {
-        setError(response.error || "Error al solicitar recuperación");
-      }
-    } catch (error) {
-      setError("Error de conexión. Intente nuevamente.");
+      await apiService.solicitarRecuperacion(emailOrNumber);
+      setSuccess(true);
+    } catch (error: any) {
+      setError(error.response?.data?.error || "Error de conexión. Intente nuevamente.");
     } finally {
       setIsLoading(false);
     }

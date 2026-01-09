@@ -74,8 +74,19 @@ const protectedRoutes = [
   "/empresa",
 ];
 
+// Rutas públicas que no requieren autenticación
+const publicRoutes = [
+  "/cliente/login",
+  "/empresa/login",
+];
+
 // Función para verificar si una ruta está protegida
 function isProtectedRoute(pathname: string): boolean {
+  // Si es una ruta pública, no está protegida
+  if (publicRoutes.some((route) => pathname.startsWith(route))) {
+    return false;
+  }
+  
   return protectedRoutes.some((route) => pathname.startsWith(route));
 }
 
@@ -138,7 +149,12 @@ export async function middleware(request: NextRequest) {
   if (!tokenPayload) {
     logger.warn(`Acceso denegado - Sin token válido para: ${pathname}`);
 
-    const url = new URL("/login", request.url);
+    let loginUrl = "/cliente/login";
+    if (pathname.startsWith("/empresa")) {
+      loginUrl = "/empresa/login";
+    }
+
+    const url = new URL(loginUrl, request.url);
     url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);
   }
@@ -159,7 +175,12 @@ export async function middleware(request: NextRequest) {
       tipoUsuario,
     });
 
-    const url = new URL("/login", request.url);
+    let loginUrl = "/cliente/login";
+    if (pathname.startsWith("/empresa")) {
+      loginUrl = "/empresa/login";
+    }
+
+    const url = new URL(loginUrl, request.url);
     url.searchParams.set("error", "insufficient_permissions");
     url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);

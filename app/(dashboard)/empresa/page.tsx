@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 import { CambioPasswordModal } from "@/components/ui/cambio-password-modal";
 import { ProveedorWebSocket } from "@/lib/websocket/ProveedorWebSocket";
 import { NotificacionesProvider, useNotificaciones } from "./context/NotificacionesContext";
-import { EncabezadoEmpresa } from "@/components/features/dashboard-empresa/layout/header";
 import {
   Card,
   CardContent,
@@ -26,6 +25,7 @@ import { AlertasSistema } from "./features/alertas";
 import { GestionArduino } from "./features/arduino";
 import { GestionTarifas } from "./features/tarifas/GestionTarifas";
 import { EstadisticasAvanzadas } from "./features/estadisticas/EstadisticasAvanzadas";
+import GestionUsuariosPage from "./usuarios/page";
 
 import { ConfiguracionEmpresa } from "./features/configuracion";
 import { MapaInteractivo } from "./features/gestion-geografica/MapaInteractivo";
@@ -322,6 +322,8 @@ function DashboardContent() {
         return <AlertasSistema />;
       case "soporte":
         return <GestionTickets />;
+      case "usuarios":
+        return <GestionUsuariosPage />;
       case "configuracion":
         return <ConfiguracionEmpresa />;
       default:
@@ -331,12 +333,6 @@ function DashboardContent() {
 
   return (
         <div className="min-h-screen flex flex-col bg-background">
-          <EncabezadoEmpresa
-            onCambiarPassword={() => setMostrarModalPassword(true)}
-            onToggleMobileMenu={toggleMobileMenu}
-            isMobileMenuOpen={isMobileMenuOpen}
-          />
-
           <div className="flex flex-1">
             {/* Sidebar Desktop */}
             <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r border-border bg-card sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
@@ -371,6 +367,11 @@ function DashboardContent() {
                       ticketsAbiertos > 0
                         ? ticketsAbiertos.toString()
                         : undefined,
+                  },
+                  {
+                    id: "usuarios",
+                    label: "Usuarios",
+                    icon: Users,
                   },
                   {
                     id: "configuracion",

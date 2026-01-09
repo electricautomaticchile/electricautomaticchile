@@ -1,72 +1,49 @@
-import { BaseApiService } from "../utils/baseService";
-import { TokenManager } from "../utils/tokenManager";
-import {
-  ApiResponse,
-  LoginCredentials,
-  AuthResponse,
-  AuthUser,
-} from "../types";
+import { apiClient } from '../client';
 
-export class AuthService extends BaseApiService {
-  async login(
-    credentials: LoginCredentials
-  ): Promise<ApiResponse<AuthResponse>> {
-    const response = await this.makeRequest<AuthResponse>("/auth/login", {
-      method: "POST",
-      body: JSON.stringify(credentials),
-    });
-
-    if (response.success && response.data) {
-      TokenManager.setToken(response.data.token);
-      TokenManager.setRefreshToken(response.data.refreshToken);
-      TokenManager.setUser(response.data.user);
-    }
-
-    return response;
-  }
-
-  async logout(): Promise<ApiResponse> {
-    const response = await this.makeRequest("/auth/logout", {
-      method: "POST",
-    });
-
-    TokenManager.clearTokens();
-    return response;
-  }
-
-  async getProfile(): Promise<ApiResponse<AuthUser>> {
-    return this.makeRequest<AuthUser>("/auth/me");
-  }
-
-  async cambiarPassword(
-    passwordActual: string,
-    passwordNueva: string
-  ): Promise<ApiResponse<{ passwordTemporal?: boolean }>> {
-    return this.makeRequest("/auth/cambiar-password", {
-      method: "POST",
-      body: JSON.stringify({ passwordActual, passwordNueva }),
-    });
-  }
-
-  async solicitarRecuperacion(
-    emailOrNumeroCliente: string
-  ): Promise<ApiResponse<any>> {
-    return this.makeRequest("/auth/solicitar-recuperacion", {
-      method: "POST",
-      body: JSON.stringify({ email: emailOrNumeroCliente }),
-    });
-  }
-
-  async restablecerPassword(
-    token: string,
-    nuevaPassword: string
-  ): Promise<ApiResponse<{ numeroCliente: string; tipoUsuario: string }>> {
-    return this.makeRequest("/auth/restablecer-password", {
-      method: "POST",
-      body: JSON.stringify({ token, password: nuevaPassword }),
-    });
-  }
+export interface LoginClienteRequest {
+  numeroCliente: string;
+  password: string;
 }
 
-// Exportar instancia única del servicio
-export const authService = new AuthService();
+export interface LoginClienteResponse {
+  token: string;
+  refreshToken: string;
+  user: {
+    _id: string;
+    nombre: string;
+    correo: string;
+    numeroCliente: string;
+    telefono?: string;
+    role: string;
+    tipoUsuario: string;
+    activo: boolean;
+    empresaId?: string;
+  };
+  requiereCambioPassword?: boolean;
+}
+
+export const authService = {
+  async login(data: LoginClienteRequest): Promise<LoginClienteResponse> {
+    const response = await apiClient.post('/api/auth/login', data);
+    return response.data;
+  },
+
+  async logout(): Promise<void> {
+    await apiClient.post('/api/auth/logout');
+  },
+
+  async cambiarPassword(passwordActual: string, passwordNuevo: string): Promise<void> {
+    await apiClient.post('/api/auth/cambiar-password', {
+      passwordActual,
+      passwordNuevo,
+    });
+  },
+
+  async solicitarRecuperacion(email: string): Promise<void> {
+    await apiClient.post('/api/auth/solicitar-recuperacion', { email });
+  },
+
+  async restablecerPassword(token: string, password: string): Promise<void> {
+    await apiClient.post('/api/auth/restablecer-password', { token, password });
+  },
+};

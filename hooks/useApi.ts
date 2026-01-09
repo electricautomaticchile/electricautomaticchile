@@ -97,24 +97,13 @@ class AuthManager {
         return;
       }
 
-      const response = await apiService.getProfile();
-      if (response.success && response.data) {
-        this.setState({
-          user: response.data,
-          isAuthenticated: true,
-          isRealAuthenticated: true,
-          isLoading: false,
-        });
-        this.saveUser(response.data);
-      } else {
-        this.clearAuthData();
-        this.setState({
-          user: TEMP_USER,
-          isAuthenticated: false,
-          isRealAuthenticated: false,
-          isLoading: false,
-        });
-      }
+      this.clearAuthData();
+      this.setState({
+        user: TEMP_USER,
+        isAuthenticated: false,
+        isRealAuthenticated: false,
+        isLoading: false,
+      });
       this.hasInitialized = true;
     } catch (error) {
       this.setState({
@@ -134,18 +123,30 @@ class AuthManager {
   async login(credentials: LoginCredentials): Promise<ApiAuthResponse> {
     try {
       const response = await apiService.login(credentials);
-      if (response.success && response.data) {
-        this.setState({
-          user: response.data.user,
-          isAuthenticated: true,
-          isRealAuthenticated: true,
-          isLoading: false,
-        });
-        this.saveUser(response.data.user);
-      }
-      return response;
-    } catch (error) {
-      return { success: false, error: "Error de conexión" };
+      this.setState({
+        user: {
+          id: response.user._id,
+          name: response.user.nombre,
+          email: response.user.correo,
+          role: response.user.role as any,
+          type: response.user.tipoUsuario as any,
+          isActive: response.user.activo,
+        },
+        isAuthenticated: true,
+        isRealAuthenticated: true,
+        isLoading: false,
+      });
+      this.saveUser({
+        id: response.user._id,
+        name: response.user.nombre,
+        email: response.user.correo,
+        role: response.user.role as any,
+        type: response.user.tipoUsuario as any,
+        isActive: response.user.activo,
+      });
+      return { success: true, data: { user: response.user as any, token: response.token, refreshToken: response.refreshToken } };
+    } catch (error: any) {
+      return { success: false, error: error.response?.data?.error || "Error de conexión" };
     }
   }
 

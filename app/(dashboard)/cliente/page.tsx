@@ -11,13 +11,7 @@ import { PerfilUsuario } from "@/components/features/dashboard-cliente/perfil-us
 import { MapaBasico } from "@/components/features/dashboard-cliente/ubicacion/MapaBasico";
 import { ControlServicio } from "@/components/features/dashboard-cliente/control-servicio";
 import { NotificacionesCliente } from "@/components/features/dashboard-cliente/notificaciones-cliente";
-import HeaderCliente from "@/components/features/dashboard-cliente/layout/header";
 import NavigationCliente from "@/components/features/dashboard-cliente/layout/navigation";
-
-/**
- * Dashboard para Clientes Finales (Usuarios de las Empresas)
- * Permite visualizar consumo, gestionar pagos y activar/desactivar servicio
- */
 import { useApi } from "@/hooks/useApi";
 
 export default function DashboardCliente() {
@@ -323,7 +317,6 @@ export default function DashboardCliente() {
     return (
       <ProveedorWebSocket>
         <div className="min-h-screen flex flex-col bg-background">
-          <HeaderCliente />
           <div className="flex flex-1 items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
@@ -340,7 +333,6 @@ export default function DashboardCliente() {
   return (
     <ProveedorWebSocket>
       <div className="min-h-screen flex flex-col bg-background">
-        <HeaderCliente />
         <div className="flex flex-1">
           <NavigationCliente
             onNavigate={setComponenteActivo}

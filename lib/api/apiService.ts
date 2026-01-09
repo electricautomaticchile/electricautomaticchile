@@ -31,7 +31,6 @@ class ApiService {
   // =================== AUTENTICACIÓN ===================
   login = authService.login.bind(authService);
   logout = authService.logout.bind(authService);
-  getProfile = authService.getProfile.bind(authService);
   cambiarPassword = authService.cambiarPassword.bind(authService);
   solicitarRecuperacion = authService.solicitarRecuperacion.bind(authService);
   restablecerPassword = authService.restablecerPassword.bind(authService);

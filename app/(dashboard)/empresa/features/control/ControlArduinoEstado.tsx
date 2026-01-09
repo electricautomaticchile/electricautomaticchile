@@ -155,6 +155,9 @@ export function ControlArduinoEstado({
             <div className="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg space-y-1 max-h-48 overflow-y-auto">
               {status.recent_messages.map((message, index) => {
                 const isPhysical = VALIDATORS.isPhysicalButton(message);
+                const messageText = typeof message === 'object' && message !== null 
+                  ? (message.message || JSON.stringify(message))
+                  : String(message);
                 return (
                   <div
                     key={index}
@@ -168,7 +171,7 @@ export function ControlArduinoEstado({
                     <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">
                       [{new Date().toLocaleTimeString('es-CL')}]
                     </span>
-                    {message}
+                    {messageText}
                   </div>
                 );
               })}

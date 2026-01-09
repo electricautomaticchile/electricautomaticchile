@@ -82,9 +82,10 @@ export function useNotificacionesEmpresa() {
         });
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "No se pudo conectar con el servidor";
       toast({
         title: "Error de conexión",
-        description: "No se pudo conectar con el servidor",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -121,6 +122,7 @@ export function useNotificacionesEmpresa() {
         setEstadisticas(data.data);
       }
     } catch (error) {
+      console.error("Error cargando estadísticas:", error);
     }
   }, [empresaId]);
 
@@ -157,6 +159,7 @@ export function useNotificacionesEmpresa() {
         );
       }
     } catch (error) {
+      console.error("Error marcando como leída:", error);
     }
   }, []);
 
@@ -196,9 +199,10 @@ export function useNotificacionesEmpresa() {
         });
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "No se pudieron marcar las notificaciones";
       toast({
         title: "Error",
-        description: "No se pudieron marcar las notificaciones",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -238,9 +242,10 @@ export function useNotificacionesEmpresa() {
         });
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "No se pudo eliminar la notificación";
       toast({
         title: "Error",
-        description: "No se pudo eliminar la notificación",
+        description: errorMessage,
         variant: "destructive",
       });
     }

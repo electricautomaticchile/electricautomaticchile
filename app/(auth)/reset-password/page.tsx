@@ -82,24 +82,15 @@ const ResetPasswordContent = () => {
     setError("");
 
     try {
+      await apiService.restablecerPassword(token, newPassword);
+      setSuccess(true);
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.error || "Error de conexión. Intente nuevamente.";
+      setError(errorMsg);
 
-      const response = await apiService.restablecerPassword(token, newPassword);
-
-      if (response.success) {
-        setSuccess(true);
-      } else {
-        setError(response.error || "Error al restablecer contraseña");
-
-        // Si el token es inválido, marcar como tal
-        if (
-          response.error?.includes("inválido") ||
-          response.error?.includes("expirado")
-        ) {
-          setTokenValid(false);
-        }
+      if (errorMsg.includes("inválido") || errorMsg.includes("expirado")) {
+        setTokenValid(false);
       }
-    } catch (error) {
-      setError("Error de conexión. Intente nuevamente.");
     } finally {
       setIsLoading(false);
     }

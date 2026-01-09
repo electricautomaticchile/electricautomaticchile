@@ -2,7 +2,7 @@
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Menu } from "lucide-react";
+import { Menu, LogOut } from "lucide-react";
 import {
   NavigationMenu,
   NavigationMenuList,
@@ -10,12 +10,13 @@ import {
 } from "@/components/ui/navigation-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
-import { useApi } from '@/hooks/useApi';
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Component() {
-  const { logout, isAuthenticated, user } = useApi();
+  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Efecto para detectar scroll
   useEffect(() => {
@@ -34,26 +35,18 @@ export default function Component() {
     };
   }, []);
 
-  const handleLogout = async () => {
-    await logout();
-  };
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsAuthenticated(!!token);
+  }, []);
 
-  const getDashboardUrl = () => {
-    if (!user) return "/auth/login";
-
-    // Obtener tipo y rol con fallbacks para compatibilidad
-    const userRole = user.role;
-    const userType = user.type || (user as any).tipoUsuario;
-
-    // Lógica mejorada para determinar el dashboard
-    if (userRole === "cliente" || userType === "cliente") {
-      return "/cliente";
-    } else if (userRole === "empresa" || userType === "empresa") {
-      return "/empresa";
-    } else {
-      // Default fallback
-      return "/empresa";
-    }
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("permisos");
+    localStorage.removeItem("userType");
+    document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    window.location.href = "/";
   };
 
   return (
@@ -109,13 +102,32 @@ export default function Component() {
               >
                 Contacto
               </Link>
-              <Link
-                href="/login"
-                className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-orange-500"
-                prefetch={false}
-              >
-                Portal Clientes
-              </Link>
+              {!isAuthenticated ? (
+                <>
+                  <Link
+                    href="/cliente/login"
+                    className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-blue-500"
+                    prefetch={false}
+                  >
+                    Portal Clientes
+                  </Link>
+                  <Link
+                    href="/empresa/login"
+                    className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-orange-500"
+                    prefetch={false}
+                  >
+                    Portal Empresas
+                  </Link>
+                </>
+              ) : (
+                <button
+                  onClick={handleLogout}
+                  className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-red-500"
+                >
+                  <LogOut className="mr-2 h-5 w-5" />
+                  Cerrar Sesión
+                </button>
+              )}
             </div>
           </SheetContent>
         </Sheet>
@@ -175,32 +187,34 @@ export default function Component() {
         </NavigationMenu>
 
         <div className="ml-auto flex gap-2">
-          {isAuthenticated && user ? (
+          {!isAuthenticated ? (
             <>
-              <Link href={getDashboardUrl()}>
+              <Link href="/cliente/login">
                 <Button
                   variant="outline"
-                  className="transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 hover:border-orange-500"
+                  className="transition-all duration-200 hover:bg-blue-500/10 hover:text-blue-500 hover:border-blue-500"
                 >
                   Portal Clientes
                 </Button>
               </Link>
-              <Button
-                className="transition-all duration-200 hover:bg-orange-600"
-                onClick={handleLogout}
-              >
-                Cerrar sesión
-              </Button>
+              <Link href="/empresa/login">
+                <Button
+                  variant="outline"
+                  className="transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 hover:border-orange-500"
+                >
+                  Portal Empresas
+                </Button>
+              </Link>
             </>
           ) : (
-            <Link href="/login">
-              <Button
-                variant="outline"
-                className="transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 hover:border-orange-500"
-              >
-                Portal Clientes
-              </Button>
-            </Link>
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              className="transition-all duration-200 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Cerrar Sesión
+            </Button>
           )}
           <ThemeToggle />
         </div>

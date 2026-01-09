@@ -270,7 +270,9 @@ export function NotificacionesCliente() {
                                   {key.replace(/([A-Z])/g, ' $1').trim()}:
                                 </span>
                                 <span className="font-medium">
-                                  {typeof value === 'number' && key.includes('monto') 
+                                  {typeof value === 'object' && value !== null
+                                    ? JSON.stringify(value)
+                                    : typeof value === 'number' && key.includes('monto') 
                                     ? `$${value.toLocaleString('es-CL')}`
                                     : String(value)
                                   }
