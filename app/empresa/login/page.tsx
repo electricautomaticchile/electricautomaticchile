@@ -26,6 +26,43 @@ export default function LoginEmpresaPage() {
       const response = await apiClient.post('/api/auth/login/empresa', { email, password });
       
       if (response.data) {
+        const userData = response.data.user;
+        const permisos = response.data.permisos;
+        
+        if (typeof window !== 'undefined') {
+          const isProduction = window.location.protocol === 'https:';
+          const cookieOptions = [
+            `user_data=${encodeURIComponent(JSON.stringify({
+              id: userData._id,
+              _id: userData._id,
+              nombre: userData.nombre,
+              correo: userData.correo,
+              role: userData.role,
+              empresaId: userData.empresaId,
+              activo: userData.activo,
+              tipoCliente: userData.tipoCliente
+            }))}`,
+            'path=/',
+            `max-age=${24 * 60 * 60}`,
+            'samesite=strict',
+          ];
+          if (isProduction) {
+            cookieOptions.push('secure');
+          }
+          document.cookie = cookieOptions.join('; ');
+          
+          const permisosOptions = [
+            `permisos=${encodeURIComponent(JSON.stringify(permisos))}`,
+            'path=/',
+            `max-age=${24 * 60 * 60}`,
+            'samesite=strict',
+          ];
+          if (isProduction) {
+            permisosOptions.push('secure');
+          }
+          document.cookie = permisosOptions.join('; ');
+        }
+        
         window.location.href = "/empresa";
       }
     } catch (err: any) {
