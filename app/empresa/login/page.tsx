@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { authEmpresaService } from "@/lib/api/services/authEmpresaService";
+import { apiClient } from "@/lib/api/client";
 import { Building2, Mail, Lock, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -23,23 +23,11 @@ export default function LoginEmpresaPage() {
     setLoading(true);
 
     try {
-      const response = await authEmpresaService.login({ email, password });
-     
-      localStorage.setItem("user", JSON.stringify({
-        id: response.user._id,
-        nombre: response.user.nombre,
-        correo: response.user.correo,
-        role: response.user.role,
-        empresaId: response.user.empresaId,
-        activo: response.user.activo,
-        tipoCliente: response.user.tipoCliente
-      }));
-      localStorage.setItem("permisos", JSON.stringify(response.permisos));
-      localStorage.setItem("userType", "empresa");
+      const response = await apiClient.post('/api/auth/login/empresa', { email, password });
       
-      setTimeout(() => {
+      if (response.data) {
         window.location.href = "/empresa";
-      }, 100);
+      }
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || err.response?.data?.message || err.message || "Error al iniciar sesión";
       setError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
