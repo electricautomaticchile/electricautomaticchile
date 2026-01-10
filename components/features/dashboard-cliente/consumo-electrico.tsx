@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -20,8 +20,6 @@ import {
 } from "lucide-react";
 import { apiService } from "@/lib/api/apiService";
 import { baseService } from "@/lib/api/utils/baseService";
-import { useWebSocket } from "@/lib/websocket/useWebSocket";
-import type { ActualizacionPotenciaDispositivo } from "@/lib/websocket/tipos";
 import { Badge } from "@/components/ui/badge";
 import { useApi } from '@/hooks/useApi';
 import { HistorialConsumoReal } from "./historial-consumo-real";
@@ -65,10 +63,8 @@ export function ConsumoElectrico({
   reducida = false,
   clienteId,
 }: ConsumoElectricoProps) {
-  // Obtener el usuario autenticado
-  const { user } = useApi();
+  const { user, isRealAuthenticated } = useApi();
 
-  // Usar el ID del usuario autenticado o el clienteId proporcionado
   const idCliente =
     clienteId || (user as any)?._id?.toString() || user?.id?.toString() || null;
   const [datosConsumo, setDatosConsumo] = useState<DatosConsumo | null>(null);
@@ -77,104 +73,45 @@ export function ConsumoElectrico({
   const [dispositivoAsignado, setDispositivoAsignado] =
     useState<string>("arduino_uno");
 
-  // Estado para datos en tiempo real
   const [consumoTiempoReal, setConsumoTiempoReal] = useState<number | null>(
     null
   );
   const [costoTiempoReal, setCostoTiempoReal] = useState<number | null>(null);
   const [ultimaActualizacionTiempoReal, setUltimaActualizacionTiempoReal] =
     useState<Date | null>(null);
+  const [estaConectado, setEstaConectado] = useState(false);
 
-  // Hook de WebSocket
-  const { estaConectado } = useWebSocket();
-
-  /**
-   * Manejar actualizaciones de potencia en tiempo real
-   */
-  const manejarActualizacionPotencia = useCallback(
-    (datos: ActualizacionPotenciaDispositivo) => {
-      // Actualizar consumo en tiempo real (convertir W a kWh)
-      const consumoKwh = datos.energia || datos.potenciaActiva / 1000;
-      setConsumoTiempoReal(consumoKwh);
-
-      // Actualizar costo en tiempo real
-      if (datos.costo !== undefined) {
-        setCostoTiempoReal(datos.costo);
-      } else {
-        // Calcular costo si no viene en los datos (usar tarifa por defecto)
-        const tarifa = 185;
-        const costoCalculado = consumoKwh * tarifa;
-        setCostoTiempoReal(costoCalculado);
-      }
-
-      // Actualizar timestamp
-      setUltimaActualizacionTiempoReal(new Date(datos.marcaTiempo));
-
-      // Actualizar datosConsumo usando el estado más reciente
-      setDatosConsumo((prevDatos) => {
-        if (!prevDatos) return prevDatos;
-        
-        const tarifa = prevDatos.tarifaKwh || 185;
-        const consumoPrevio = prevDatos.consumoActual || 0;
-        const tendencia = consumoKwh > consumoPrevio ? "↑ Aumentando" : 
-                         consumoKwh < consumoPrevio ? "↓ Disminuyendo" : 
-                         "→ Estable";
-        
-        
-        return {
-          ...prevDatos,
-          consumoActual: consumoKwh,
-          costoEstimado: datos.costo || consumoKwh * tarifa,
-          resumen: prevDatos.resumen
-            ? {
-                ...prevDatos.resumen,
-                ultimaActualizacion: datos.marcaTiempo,
-                tendencia: tendencia,
-              }
-            : {
-                dispositivosActivos: 1,
-                ultimaActualizacion: datos.marcaTiempo,
-                tendencia: tendencia,
-              },
-        };
-      });
-    },
-    [] // Sin dependencias para evitar recreación del callback
-  );
-
-  // Escuchar eventos de actualización de potencia
-  const { socket, estaConectado: wsConectado } =
-    useWebSocket<ActualizacionPotenciaDispositivo>(
-      "dispositivo:actualizacion_potencia",
-      manejarActualizacionPotencia
-    );
-
-  // Log de debug
   useEffect(() => {
-    // Escuchar TODOS los eventos para debug
-    if (socket) {
-      // Socket.IO tiene un evento especial para capturar todos los eventos
-      socket.onAny((eventName, ...args) => {
-        // Si es el evento que buscamos, resaltarlo
-        if (eventName === "dispositivo:actualizacion_potencia") {
+    if (!idCliente || !isRealAuthenticated) return;
+
+    const cargarDatosTiempoReal = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/cliente/resumen`, {
+          credentials: 'include',
+        });
+        const data = await response.json();
+        
+        if (data.success && data.data?.estadisticas) {
+          const stats = data.data.estadisticas;
+          setConsumoTiempoReal(stats.consumoMensual || 0);
+          setCostoTiempoReal(stats.costoMensual || 0);
+          setUltimaActualizacionTiempoReal(new Date());
+          setEstaConectado(true);
         }
-      });
+      } catch (err) {
+        setEstaConectado(false);
+      }
+    };
 
-      // También escuchar eventos de sala
-      socket.on("room:joined", (data) => {
-      });
+    cargarDatosTiempoReal();
+    const interval = setInterval(cargarDatosTiempoReal, 5000);
 
-      return () => {
-        socket.offAny();
-        socket.off("room:joined");
-      };
-    }
-  }, [socket, wsConectado, estaConectado]);
+    return () => clearInterval(interval);
+  }, [idCliente, isRealAuthenticated]);
 
-  // Obtener dispositivo asignado al cliente
   useEffect(() => {
     const obtenerDispositivoAsignado = async () => {
-      if (!idCliente) return;
+      if (!idCliente || !isRealAuthenticated) return;
 
       try {
         const response = await baseService.get<{
@@ -191,15 +128,12 @@ export function ConsumoElectrico({
     };
 
     obtenerDispositivoAsignado();
-  }, [idCliente]);
+  }, [idCliente, isRealAuthenticated]);
 
-  // Cargar datos básicos desde la API
   useEffect(() => {
     const cargarDatosConsumo = async () => {
-      // No cargar si no hay un ID de cliente válido
-      if (!idCliente) {
+      if (!idCliente || !isRealAuthenticated) {
         setCargando(false);
-        setError("No se pudo identificar al cliente");
         return;
       }
 
@@ -207,30 +141,40 @@ export function ConsumoElectrico({
         setCargando(true);
         setError(null);
 
-        const parametros = {
-          periodo: "mensual" as "mensual" | "diario" | "horario",
-          año: new Date().getFullYear(),
-        };
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/cliente/resumen`, {
+          credentials: 'include',
+        });
+        const data = await response.json();
 
-        const response = await apiService.obtenerEstadisticasConsumoCliente(
-          idCliente,
-          parametros
-        );
-
-        if (response.success && response.data) {
-          setDatosConsumo(response.data);
+        if (data.success && data.data) {
+          setDatosConsumo({
+            periodo: "mensual",
+            fechaInicio: new Date().toISOString(),
+            fechaFin: new Date().toISOString(),
+            consumoActual: data.data.estadisticas?.consumoMensual || 0,
+            costoEstimado: data.data.estadisticas?.costoMensual || 0,
+            consumoPromedio: data.data.estadisticas?.consumoMensual || 0,
+            consumoMaximo: 0,
+            consumoMinimo: 0,
+            tarifaKwh: 185,
+            resumen: {
+              dispositivosActivos: data.data.estadisticas?.dispositivosActivos || 0,
+              ultimaActualizacion: new Date().toISOString(),
+              tendencia: "Estable",
+            },
+          });
         } else {
-          setError(response.message || "Error al cargar datos de consumo");
+          setError("No hay datos de consumo disponibles");
         }
       } catch (err) {
-        setError("Error de conexión al cargar datos");
+        setError("Error al cargar datos de consumo");
       } finally {
         setCargando(false);
       }
     };
 
     cargarDatosConsumo();
-  }, [idCliente]);
+  }, [idCliente, isRealAuthenticated]);
 
 
 

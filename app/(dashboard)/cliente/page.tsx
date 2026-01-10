@@ -1,8 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { CambioPasswordModal } from "@/components/ui/cambio-password-modal";
-import { ProveedorWebSocket } from "@/lib/websocket/ProveedorWebSocket";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ConsumoElectrico } from "@/components/features/dashboard-cliente/consumo-electrico";
 import { EstadoServicio } from "@/components/features/dashboard-cliente/estado-servicio";
 import { PagosFacturas } from "@/components/features/dashboard-cliente/pagos-facturas";
@@ -13,9 +11,10 @@ import { ControlServicio } from "@/components/features/dashboard-cliente/control
 import { NotificacionesCliente } from "@/components/features/dashboard-cliente/notificaciones-cliente";
 import NavigationCliente from "@/components/features/dashboard-cliente/layout/navigation";
 import { useApi } from "@/hooks/useApi";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function DashboardCliente() {
-  const { user, isLoading: loadingCliente } = useApi();
+  const { user, isLoading: loadingCliente, isRealAuthenticated } = useApi();
   const [componenteActivo, setComponenteActivo] = useState<string | null>(null);
   const [estadoServicio, setEstadoServicio] = useState<
     "activo" | "desactivado" | "suspendido"
@@ -38,6 +37,10 @@ export default function DashboardCliente() {
   }, []);
 
   useEffect(() => {
+    if (!isRealAuthenticated) {
+      return;
+    }
+    
     const cargarResumen = async () => {
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/cliente/resumen`, {
@@ -57,16 +60,17 @@ export default function DashboardCliente() {
     };
 
     cargarResumen();
-  }, []);
+  }, [isRealAuthenticated]);
+
   const datosCliente = {
     _id: (user as any)?._id?.toString() || user?.id?.toString(),
     id: user?.id?.toString() || (user as any)?._id?.toString(),
     nombre: resumenData?.cliente?.nombre || (user as any)?.nombre || user?.name || "Cliente",
     numeroCliente: resumenData?.cliente?.numeroCliente || (user as any)?.numeroCliente || "---",
-    direccion: (user as any)?.direccion || "No especificada",
+    direccion: resumenData?.cliente?.direccion || (user as any)?.direccion || "No especificada",
     correo: resumenData?.cliente?.correo || (user as any)?.correo || user?.email || "",
     email: user?.email || (user as any)?.correo || "",
-    telefono: (user as any)?.telefono || "",
+    telefono: resumenData?.cliente?.telefono || (user as any)?.telefono || "",
     ultimoPago: (user as any)?.ultimoPago || "---",
     consumoActual: resumenData?.estadisticas?.consumoMensual || (user as any)?.consumoActual || 0,
     ubicacion: (user as any)?.ubicacion || { lat: -33.4489, lng: -70.6693 },
@@ -79,7 +83,6 @@ export default function DashboardCliente() {
     },
   };
 
-  // Control de tiempo de inactividad (30 minutos)
   useEffect(() => {
     let temporizador: NodeJS.Timeout;
 
@@ -200,10 +203,8 @@ export default function DashboardCliente() {
       case "resumen":
       case null:
       default:
-        // Vista por defecto: dashboard general simplificado
         return (
           <>
-            {/* Cards principales - 3 cards grandes */}
             <div className="grid gap-6 md:grid-cols-3 mb-6">
               <div
                 className="p-6 bg-card border border-border rounded-lg shadow-lg hover:shadow-xl hover:border-muted transition-all cursor-pointer"
@@ -275,7 +276,6 @@ export default function DashboardCliente() {
               </div>
             </div>
 
-            {/* Widgets informativos - Solo 2 widgets compactos */}
             <div className="grid gap-6 md:grid-cols-2">
               <div
                 onClick={() => setComponenteActivo("consumo")}
@@ -312,53 +312,48 @@ export default function DashboardCliente() {
     }
   };
 
-  // Mostrar loading mientras se cargan los datos
   if (loadingCliente) {
     return (
-      <ProveedorWebSocket>
-        <div className="min-h-screen flex flex-col bg-background">
-          <div className="flex flex-1 items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-              <p className="text-muted-foreground">
-                Cargando datos del cliente...
-              </p>
-            </div>
+      <div className="min-h-screen flex flex-col bg-background">
+        <div className="flex flex-1 items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+            <p className="text-muted-foreground">
+              Cargando datos del cliente...
+            </p>
           </div>
         </div>
-      </ProveedorWebSocket>
+      </div>
     );
   }
 
   return (
-    <ProveedorWebSocket>
-      <div className="min-h-screen flex flex-col bg-background">
-        <div className="flex flex-1">
-          <NavigationCliente
-            onNavigate={setComponenteActivo}
-            activeItem={componenteActivo}
-          />
-          <main className="flex-1 bg-background p-6">
-            {componenteActivo === null || componenteActivo === "resumen" ? (
-              <>
-                <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-foreground">
-                    Bienvenido, {datosCliente.nombre}
-                  </h2>
-                  <p className="text-muted-foreground">
-                    Cliente N° {datosCliente.numeroCliente}
-                  </p>
-                </div>
-                {renderizarComponenteActivo()}
-              </>
-            ) : (
-              renderizarComponenteActivo()
-            )}
-          </main>
-        </div>
+    <div className="min-h-screen flex flex-col bg-background">
+      <div className="flex flex-1">
+        <NavigationCliente
+          onNavigate={setComponenteActivo}
+          activeItem={componenteActivo}
+        />
+        <main className="flex-1 bg-background p-6">
+          {componenteActivo === null || componenteActivo === "resumen" ? (
+            <>
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-foreground">
+                  Bienvenido, {datosCliente.nombre}
+                </h2>
+                <p className="text-muted-foreground">
+                  Cliente N° {datosCliente.numeroCliente}
+                </p>
+              </div>
+              {renderizarComponenteActivo()}
+            </>
+          ) : (
+            renderizarComponenteActivo()
+          )}
+        </main>
+      </div>
 
-        {/* Modal de cambio de contraseña */}
-        <CambioPasswordModal
+      <CambioPasswordModal
           open={mostrarModalPassword}
           onOpenChange={(open) => {
             if (!requiereCambioPassword) {
@@ -396,6 +391,6 @@ export default function DashboardCliente() {
           esForzado={requiereCambioPassword}
         />
       </div>
-    </ProveedorWebSocket>
+    
   );
 }

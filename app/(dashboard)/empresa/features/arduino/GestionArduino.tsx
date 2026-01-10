@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { arduinoService, ArduinoStatus, ArduinoDeviceInfo } from "@/lib/api/services/arduinoService";
-import { useWebSocketEvents } from "@/hooks/useWebSocketEvents";
 import { 
   Cpu, 
   Power, 
@@ -54,11 +53,13 @@ export function GestionArduino() {
   useEffect(() => {
     cargarEstado();
     cargarPuertos();
+    
+    const interval = setInterval(() => {
+      cargarEstado();
+    }, 5000);
+    
+    return () => clearInterval(interval);
   }, [cargarEstado, cargarPuertos]);
-
-  useWebSocketEvents("device_update", () => {
-    cargarEstado();
-  });
 
   const handleConectar = async () => {
     setConectando(true);
@@ -221,19 +222,19 @@ function DispositivoCard({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Voltaje</p>
-                <p className="text-lg font-semibold">{reading.Voltage.toFixed(2)}V</p>
+                <p className="text-lg font-semibold">{reading.voltaje?.toFixed(2) || '0.00'}V</p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Corriente</p>
-                <p className="text-lg font-semibold">{(reading.Current * 1000).toFixed(2)}mA</p>
+                <p className="text-lg font-semibold">{((reading.corriente || 0) * 1000).toFixed(2)}mA</p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Potencia</p>
-                <p className="text-lg font-semibold">{reading.Power.toFixed(3)}W</p>
+                <p className="text-lg font-semibold">{reading.potenciaActiva?.toFixed(3) || '0.000'}W</p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Energía</p>
-                <p className="text-lg font-semibold">{reading.Energy.toFixed(4)}kWh</p>
+                <p className="text-lg font-semibold">{reading.energia?.toFixed(4) || '0.0000'}kWh</p>
               </div>
             </div>
 
@@ -242,28 +243,28 @@ function DispositivoCard({
                 <Zap className="h-4 w-4 text-orange-500" />
                 <span className="text-sm font-medium">Costo acumulado</span>
               </div>
-              <span className="text-lg font-bold">${reading.Cost.toFixed(2)}</span>
+              <span className="text-lg font-bold">${reading.costo?.toFixed(2) || '0.00'}</span>
             </div>
 
             <div className="space-y-2">
-              <p className="text-sm font-medium">Control de LEDs</p>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  onClick={() => onComando(reading.LED1 ? "LED1_OFF" : "LED1_ON")}
-                  variant={reading.LED1 ? "default" : "outline"}
-                  className="gap-2"
-                >
-                  <Lightbulb className="h-4 w-4" />
-                  LED 1 {reading.LED1 ? "ON" : "OFF"}
-                </Button>
-                <Button
-                  onClick={() => onComando(reading.LED2 ? "LED2_OFF" : "LED2_ON")}
-                  variant={reading.LED2 ? "default" : "outline"}
-                  className="gap-2"
-                >
-                  <Lightbulb className="h-4 w-4" />
-                  LED 2 {reading.LED2 ? "ON" : "OFF"}
-                </Button>
+              <p className="text-sm font-medium">Estado del Servicio</p>
+              <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <div className="flex items-center gap-2">
+                  {reading.servicioActivo ? (
+                    <>
+                      <Power className="h-5 w-5 text-green-500" />
+                      <span className="font-medium text-green-700 dark:text-green-300">Servicio Activo</span>
+                    </>
+                  ) : (
+                    <>
+                      <PowerOff className="h-5 w-5 text-red-500" />
+                      <span className="font-medium text-red-700 dark:text-red-300">Servicio Desactivado</span>
+                    </>
+                  )}
+                </div>
+                <Badge variant={reading.servicioActivo ? "default" : "destructive"}>
+                  {reading.servicioActivo ? "ON" : "OFF"}
+                </Badge>
               </div>
             </div>
 
@@ -276,13 +277,23 @@ function DispositivoCard({
                 <RefreshCw className="h-4 w-4" />
                 Reset
               </Button>
-              <Button onClick={() => onComando("CORTAR_SERVICIO")} variant="destructive" size="sm" className="gap-2">
-                <PowerOff className="h-4 w-4" />
-                Cortar
-              </Button>
-              <Button onClick={() => onComando("RESTABLECER_SERVICIO")} variant="default" size="sm" className="gap-2">
-                <Power className="h-4 w-4" />
-                Restablecer
+              <Button 
+                onClick={() => onComando(reading.servicioActivo ? "DESACTIVAR_SERVICIO" : "ACTIVAR_SERVICIO")} 
+                variant={reading.servicioActivo ? "destructive" : "default"} 
+                size="sm" 
+                className="gap-2"
+              >
+                {reading.servicioActivo ? (
+                  <>
+                    <PowerOff className="h-4 w-4" />
+                    Desactivar
+                  </>
+                ) : (
+                  <>
+                    <Power className="h-4 w-4" />
+                    Activar
+                  </>
+                )}
               </Button>
             </div>
           </>

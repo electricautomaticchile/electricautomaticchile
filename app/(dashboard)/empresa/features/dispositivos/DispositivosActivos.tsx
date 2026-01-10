@@ -93,6 +93,7 @@ export function DispositivosActivos({
           dispositivos={dispositivos}
           loading={loading}
           onControl={controlarDispositivo}
+          onRefresh={refrescarDatos}
         />
       </div>
     </div>

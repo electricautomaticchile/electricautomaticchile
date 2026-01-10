@@ -2,6 +2,7 @@
 export interface Dispositivo {
   id: string;
   nombre: string;
+  numeroDispositivo: string;
   ubicacion: string;
   estado: "activo" | "inactivo" | "mantenimiento" | "alerta";
   bateria: number;
@@ -11,6 +12,11 @@ export interface Dispositivo {
   firmware: string;
   temperaturaOperacion?: number;
   senal?: number;
+  cliente?: {
+    id: string;
+    nombre: string;
+    direccion: string;
+  };
   ubicacionDetallada?: {
     edificio: string;
     piso: number;
@@ -61,6 +67,7 @@ export interface DispositivosTablaProps {
   dispositivos: Dispositivo[];
   loading?: boolean;
   onControl: (id: string, accion: string) => void;
+  onRefresh?: () => void;
   onSort?: (campo: string) => void;
   sortConfig?: {
     key: string;

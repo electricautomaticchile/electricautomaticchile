@@ -72,7 +72,7 @@ export function AsignarDispositivoModal({
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/dispositivos/${dispositivo._id}/asignar`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/dispositivos/${dispositivo?.id || dispositivo?._id}/asignar`,
         {
           method: "PUT",
           headers: {
@@ -102,7 +102,7 @@ export function AsignarDispositivoModal({
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/dispositivos/${dispositivo._id}/desasignar`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/dispositivos/${dispositivo?.id || dispositivo?._id}/desasignar`,
         {
           method: "PUT",
           credentials: "include",

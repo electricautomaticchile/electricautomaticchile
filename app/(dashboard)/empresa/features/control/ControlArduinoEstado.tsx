@@ -156,7 +156,7 @@ export function ControlArduinoEstado({
               {status.recent_messages.map((message, index) => {
                 const isPhysical = VALIDATORS.isPhysicalButton(message);
                 const messageText = typeof message === 'object' && message !== null 
-                  ? (message.message || JSON.stringify(message))
+                  ? ((message as any).message || JSON.stringify(message))
                   : String(message);
                 return (
                   <div

@@ -28,7 +28,7 @@ interface PagosFacturasProps {
 }
 
 export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
-  const { user } = useApi();
+  const { user, isRealAuthenticated } = useApi();
   const { toast } = useToast();
   const [tabActiva, setTabActiva] = useState('facturas');
   const [boletas, setBoletas] = useState<Boleta[]>([]);
@@ -38,6 +38,11 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
   const clienteId = (user as any)?._id?.toString() || user?.id?.toString();
 
   const cargarBoletas = useCallback(async () => {
+    if (!clienteId || !isRealAuthenticated) {
+      setCargando(false);
+      return;
+    }
+    
     try {
       setCargando(true);
       const response = await baseService.get(`/boletas/cliente/${clienteId}`);
@@ -54,13 +59,13 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
     } finally {
       setCargando(false);
     }
-  }, [clienteId, toast]);
+  }, [clienteId, isRealAuthenticated, toast]);
 
   useEffect(() => {
-    if (clienteId) {
+    if (clienteId && isRealAuthenticated) {
       cargarBoletas();
     }
-  }, [clienteId, cargarBoletas]);
+  }, [clienteId, isRealAuthenticated, cargarBoletas]);
 
   const pagarBoleta = async (boletaId: string) => {
     try {

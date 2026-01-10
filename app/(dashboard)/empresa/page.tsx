@@ -6,7 +6,6 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
 import { CambioPasswordModal } from "@/components/ui/cambio-password-modal";
-import { ProveedorWebSocket } from "@/lib/websocket/ProveedorWebSocket";
 import { NotificacionesProvider, useNotificaciones } from "./context/NotificacionesContext";
 import {
   Card,
@@ -22,7 +21,6 @@ import { Badge } from "@/components/ui/badge";
 import { GestionClientes } from "./features/clientes";
 import { DispositivosActivos } from "./features/dispositivos";
 import { AlertasSistema } from "./features/alertas";
-import { GestionArduino } from "./features/arduino";
 import { GestionTarifas } from "./features/tarifas/GestionTarifas";
 import { EstadisticasAvanzadas } from "./features/estadisticas/EstadisticasAvanzadas";
 import GestionUsuariosPage from "./usuarios/page";
@@ -185,7 +183,6 @@ const MobileNavigation = ({
     { id: "clientes", label: "Clientes", icon: Users },
     { id: "dispositivos", label: "Dispositivos", icon: Battery },
     { id: "mapa-seguridad", label: "Mapa & Seguridad", icon: MapPin },
-    { id: "arduino", label: "Arduino", icon: Cpu },
     { id: "tarifas", label: "Tarifas", icon: Zap },
     { id: "estadisticas", label: "Estadísticas", icon: BarChart3 },
     {
@@ -312,8 +309,6 @@ function DashboardContent() {
         return <DispositivosSection />;
       case "mapa-seguridad":
         return <MapaSeguridadSection />;
-      case "arduino":
-        return <GestionArduino />;
       case "tarifas":
         return <GestionTarifas />;
       case "estadisticas":
@@ -350,7 +345,6 @@ function DashboardContent() {
                     label: "Mapa & Seguridad",
                     icon: MapPin,
                   },
-                  { id: "arduino", label: "Arduino", icon: Cpu },
                   { id: "tarifas", label: "Tarifas", icon: Zap },
                   { id: "estadisticas", label: "Estadísticas", icon: BarChart3 },
                   {
@@ -626,10 +620,8 @@ function DashboardContent() {
 
 export default function DashboardEmpresa() {
   return (
-    <ProveedorWebSocket>
-      <NotificacionesProvider>
-        <DashboardContent />
-      </NotificacionesProvider>
-    </ProveedorWebSocket>
+    <NotificacionesProvider>
+      <DashboardContent />
+    </NotificacionesProvider>
   );
 }

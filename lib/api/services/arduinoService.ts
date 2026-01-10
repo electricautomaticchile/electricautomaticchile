@@ -5,17 +5,15 @@ export interface ArduinoDeviceInfo {
   ClienteID: string;
   EmpresaID: string;
   LastReading?: {
-    DeviceID: string;
-    ClienteID: string;
-    Voltage: number;
-    Current: number;
-    Power: number;
-    Energy: number;
-    Cost: number;
-    LED1: boolean;
-    LED2: boolean;
-    Uptime: number;
-    Timestamp: number;
+    idDispositivo: string;
+    voltaje: number;
+    corriente: number;
+    potenciaActiva: number;
+    energia: number;
+    costo: number;
+    servicioActivo: boolean;
+    uptime: number;
+    marcaTiempo: string;
   };
 }
 

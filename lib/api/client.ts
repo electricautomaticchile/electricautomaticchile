@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 export const apiClient = axios.create({
   baseURL: API_URL,
@@ -12,9 +12,13 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (typeof window !== 'undefined') {
+      const cookies = document.cookie.split(';');
+      const authCookie = cookies.find(c => c.trim().startsWith('auth_token='));
+      if (authCookie) {
+        const token = authCookie.split('=')[1];
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
@@ -44,10 +48,13 @@ apiClient.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      localStorage.removeItem('permisos');
-      window.location.href = '/';
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('user');
+        localStorage.removeItem('permisos');
+        localStorage.removeItem('userType');
+        document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        window.location.href = '/';
+      }
     }
     return Promise.reject(error);
   }

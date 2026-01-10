@@ -36,12 +36,16 @@ export default function Component() {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    setIsAuthenticated(!!token);
+    const checkAuth = () => {
+      const cookies = document.cookie.split(';');
+      const authCookie = cookies.find(c => c.trim().startsWith('auth_token='));
+      setIsAuthenticated(!!authCookie);
+    };
+    
+    checkAuth();
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("permisos");
     localStorage.removeItem("userType");

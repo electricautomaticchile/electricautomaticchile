@@ -6,11 +6,19 @@ export type UserType = "cliente" | "empresa";
 
 export interface AuthUser {
   id: string;
+  _id?: string;
   name: string;
+  nombre?: string;
   email: string;
+  correo?: string;
+  numeroCliente?: string;
+  telefono?: string;
   role: UserRole;
   type: UserType;
+  tipoUsuario?: string;
   isActive: boolean;
+  activo?: boolean;
+  empresaId?: string;
   lastLogin?: Date;
 }
 

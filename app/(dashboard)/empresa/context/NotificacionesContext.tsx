@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, ReactNode, useEffect } from "react";
 import { useNotificacionesEmpresa } from "../features/alertas/useNotificacionesEmpresa";
-import { useWebSocketNotifications } from "@/hooks/useWebSocketEvents";
 
 interface Notificacion {
     _id: string;
@@ -66,9 +65,13 @@ interface NotificacionesProviderProps {
 export function NotificacionesProvider({ children }: NotificacionesProviderProps) {
     const notificacionesData = useNotificacionesEmpresa();
 
-    useWebSocketNotifications((notification) => {
-        notificacionesData.recargar();
-    });
+    useEffect(() => {
+        const interval = setInterval(() => {
+            notificacionesData.recargar();
+        }, 30000);
+        
+        return () => clearInterval(interval);
+    }, [notificacionesData]);
 
     return (
         <NotificacionesContext.Provider value={notificacionesData}>

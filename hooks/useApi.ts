@@ -118,32 +118,41 @@ class AuthManager {
     }
   }
 
+  forceReInitialize(): void {
+    this.hasInitialized = false;
+    this.isInitializing = false;
+    this.initializeAuth();
+  }
+
 
 
   async login(credentials: LoginCredentials): Promise<ApiAuthResponse> {
     try {
       const response = await apiService.login(credentials);
+      const userData = {
+        id: response.user._id,
+        _id: response.user._id,
+        name: response.user.nombre,
+        nombre: response.user.nombre,
+        email: response.user.correo,
+        correo: response.user.correo,
+        numeroCliente: response.user.numeroCliente,
+        telefono: response.user.telefono,
+        role: response.user.role as any,
+        type: response.user.tipoUsuario as any,
+        tipoUsuario: response.user.tipoUsuario,
+        isActive: response.user.activo,
+        activo: response.user.activo,
+        empresaId: response.user.empresaId,
+      };
+      
       this.setState({
-        user: {
-          id: response.user._id,
-          name: response.user.nombre,
-          email: response.user.correo,
-          role: response.user.role as any,
-          type: response.user.tipoUsuario as any,
-          isActive: response.user.activo,
-        },
+        user: userData,
         isAuthenticated: true,
         isRealAuthenticated: true,
         isLoading: false,
       });
-      this.saveUser({
-        id: response.user._id,
-        name: response.user.nombre,
-        email: response.user.correo,
-        role: response.user.role as any,
-        type: response.user.tipoUsuario as any,
-        isActive: response.user.activo,
-      });
+      this.saveUser(userData);
       return { success: true, data: { user: response.user as any, token: response.token, refreshToken: response.refreshToken } };
     } catch (error: any) {
       return { success: false, error: error.response?.data?.error || "Error de conexión" };
@@ -247,6 +256,7 @@ export function useApi() {
   }, [authManager]);
 
   const refreshAuth = useCallback(async (): Promise<void> => {
+    authManager.forceReInitialize();
     return authManager.initializeAuth();
   }, [authManager]);
 

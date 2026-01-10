@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { TokenManager } from "@/lib/api/utils/tokenManager";
+import { useApi } from "./useApi";
 
 interface NotificacionCliente {
   _id: string;
@@ -20,23 +21,18 @@ interface NotificacionCliente {
   createdAt: Date;
 }
 
-/**
- * Hook para gestionar notificaciones de cliente
- * Tipos de notificaciones:
- * - Dispositivo desconectado
- * - Fallas en el sistema
- * - Boletas vencidas (3+)
- * - Reporte quincenal de consumo
- */
 export function useNotificacionesCliente() {
   const [notificaciones, setNotificaciones] = useState<NotificacionCliente[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { isRealAuthenticated } = useApi();
 
-  /**
-   * Cargar notificaciones desde el backend
-   */
   const cargarNotificaciones = useCallback(async () => {
+    if (!isRealAuthenticated) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       setLoading(true);
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -67,12 +63,11 @@ export function useNotificacionesCliente() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isRealAuthenticated]);
 
-  /**
-   * Marcar notificación como leída
-   */
   const marcarComoLeida = useCallback(async (notificacionId: string) => {
+    if (!isRealAuthenticated) return;
+    
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
       const token = TokenManager.getToken();
@@ -102,12 +97,11 @@ export function useNotificacionesCliente() {
       }
     } catch (error) {
     }
-  }, []);
+  }, [isRealAuthenticated]);
 
-  /**
-   * Eliminar notificación
-   */
   const eliminarNotificacion = useCallback(async (notificacionId: string) => {
+    if (!isRealAuthenticated) return;
+    
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
       const token = TokenManager.getToken();
@@ -137,12 +131,11 @@ export function useNotificacionesCliente() {
       }
     } catch (error) {
     }
-  }, [toast]);
+  }, [toast, isRealAuthenticated]);
 
-  /**
-   * Marcar todas como leídas
-   */
   const marcarTodasComoLeidas = useCallback(async () => {
+    if (!isRealAuthenticated) return;
+    
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
       const token = TokenManager.getToken();
@@ -174,7 +167,7 @@ export function useNotificacionesCliente() {
       }
     } catch (error) {
     }
-  }, [toast]);
+  }, [toast, isRealAuthenticated]);
 
   // Cargar notificaciones al montar
   useEffect(() => {

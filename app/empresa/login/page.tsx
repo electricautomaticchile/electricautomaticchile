@@ -24,8 +24,7 @@ export default function LoginEmpresaPage() {
 
     try {
       const response = await authEmpresaService.login({ email, password });
-      
-      localStorage.setItem("token", response.token);
+     
       localStorage.setItem("user", JSON.stringify({
         id: response.user._id,
         nombre: response.user.nombre,
@@ -38,7 +37,9 @@ export default function LoginEmpresaPage() {
       localStorage.setItem("permisos", JSON.stringify(response.permisos));
       localStorage.setItem("userType", "empresa");
       
-      window.location.href = "/empresa";
+      setTimeout(() => {
+        window.location.href = "/empresa";
+      }, 100);
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || err.response?.data?.message || err.message || "Error al iniciar sesión";
       setError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));

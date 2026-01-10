@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { dashboardService, EstadisticasDashboard } from '@/lib/api/services/dashboardService';
-import { useWebSocketEvents } from './useWebSocketEvents';
 
 export function useDashboardStats() {
   const [stats, setStats] = useState<EstadisticasDashboard>({
@@ -28,19 +27,13 @@ export function useDashboardStats() {
 
   useEffect(() => {
     cargarEstadisticas();
+    
+    const interval = setInterval(() => {
+      cargarEstadisticas();
+    }, 30000);
+    
+    return () => clearInterval(interval);
   }, []);
-
-  useWebSocketEvents('alert', () => {
-    cargarEstadisticas();
-  });
-
-  useWebSocketEvents('device_update', () => {
-    cargarEstadisticas();
-  });
-
-  useWebSocketEvents('notification', () => {
-    cargarEstadisticas();
-  });
 
   return { stats, loading, recargar: cargarEstadisticas };
 }

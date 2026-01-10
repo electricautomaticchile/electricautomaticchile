@@ -18,6 +18,9 @@ import {
   User,
   X,
   UserPlus,
+  Power,
+  PowerOff,
+  RefreshCw,
 } from "lucide-react";
 import {
   IconoConexion,
@@ -39,6 +42,7 @@ import { AsignarDispositivoModal } from "@/components/features/dashboard-empresa
 export function DispositivosActivosTabla({
   dispositivos,
   loading,
+  onRefresh,
 }: DispositivosTablaProps) {
   const { toast } = useToast();
   const [dispositivoSeleccionado, setDispositivoSeleccionado] =
@@ -49,6 +53,8 @@ export function DispositivosActivosTabla({
   const [cargandoEstado, setCargandoEstado] = useState(false);
   const [modalAsignarOpen, setModalAsignarOpen] = useState(false);
   const [dispositivoAsignar, setDispositivoAsignar] = useState<any>(null);
+  const [servicioActivo, setServicioActivo] = useState<boolean>(true);
+  const [controlandoServicio, setControlandoServicio] = useState(false);
 
   // Estado para consumo y costo en tiempo real (del modal)
   const [consumoTiempoReal, setConsumoTiempoReal] = useState<number | null>(null);
@@ -80,44 +86,86 @@ export function DispositivosActivosTabla({
   // Cargar consumo y costo
   const cargarConsumoYCosto = useCallback(async (dispositivoId: string) => {
     try {
-
-      // Obtener datos del dispositivo desde la API usando el _id
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       const url = `${apiUrl}/api/dispositivos/${dispositivoId}`;
 
-
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        credentials: 'include',
+      });
       const data = await response.json();
 
-
       if (data.success && data.data?.ultimaLectura) {
-        const { energia, costo } = data.data.ultimaLectura;
-        setConsumoTiempoReal(energia || 0);
-        setCostoTiempoReal(costo || 0);
+        const { energy, cost } = data.data.ultimaLectura;
+        setConsumoTiempoReal(energy || 0);
+        setCostoTiempoReal(cost || 0);
         setUltimaActualizacion(new Date());
       }
     } catch (error) {
     }
   }, []);
 
+  const controlarServicio = useCallback(async (comando: string) => {
+    setControlandoServicio(true);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const response = await fetch(`${apiUrl}/api/arduino/command`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ command: comando }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setServicioActivo(comando === 'ACTIVAR_SERVICIO');
+        toast({
+          title: "Éxito",
+          description: comando === 'ACTIVAR_SERVICIO' 
+            ? "Servicio eléctrico restablecido" 
+            : "Suministro eléctrico cortado",
+        });
+        
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        if (dispositivoSeleccionado) {
+          cargarConsumoYCosto(dispositivoSeleccionado);
+        }
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo controlar el servicio",
+        variant: "destructive",
+      });
+    } finally {
+      setControlandoServicio(false);
+    }
+  }, [dispositivoSeleccionado, cargarConsumoYCosto, toast]);
+
   // Cargar datos de todos los dispositivos
   const cargarDatosTodosDispositivos = useCallback(async () => {
     try {
-
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       const nuevosDatos = new Map<string, { consumo: number; costo: number }>();
 
-      // Cargar datos de todos los dispositivos en paralelo
       const promesas = dispositivos.map(async (dispositivo) => {
         try {
-          const response = await fetch(`${apiUrl}/api/dispositivos/${dispositivo.id}`);
+          const response = await fetch(`${apiUrl}/api/dispositivos/${dispositivo.id}`, {
+            credentials: 'include',
+          });
           const data = await response.json();
 
           if (data.success && data.data?.ultimaLectura) {
-            const { energia, costo } = data.data.ultimaLectura;
+            const { energy, cost } = data.data.ultimaLectura;
             nuevosDatos.set(dispositivo.id, {
-              consumo: energia || 0,
-              costo: costo || 0
+              consumo: energy || 0,
+              costo: cost || 0
             });
           }
         } catch (error) {
@@ -126,7 +174,6 @@ export function DispositivosActivosTabla({
 
       await Promise.all(promesas);
       setDatosDispositivos(nuevosDatos);
-
     } catch (error) {
     }
   }, [dispositivos]);
@@ -211,14 +258,14 @@ export function DispositivosActivosTabla({
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <span>{dispositivo.id}</span>
+                  <span>{dispositivo.cliente?.nombre || dispositivo.nombre}</span>
                   <IconoConexion
                     tipo={dispositivo.tipoConexion}
                     senal={dispositivo.senal}
                   />
                 </CardTitle>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  {dispositivo.nombre}
+                  {dispositivo.numeroDispositivo}
                 </p>
               </div>
 
@@ -227,31 +274,14 @@ export function DispositivosActivosTabla({
 
             <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400 mt-2">
               <MapPin className="h-4 w-4" />
-              <span>{dispositivo.ubicacion}</span>
+              <span>{dispositivo.cliente?.direccion || dispositivo.ubicacion}</span>
             </div>
           </CardHeader>
 
           <CardContent className="space-y-4">
-            {/* Estado del dispositivo */}
             <div className="space-y-3">
               <EstadoDispositivo estado={dispositivo.estado} />
 
-              {/* Métricas principales */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="text-xs text-gray-500 mb-1">Batería</div>
-                  <NivelBateria valor={dispositivo.bateria} />
-                </div>
-                <div>
-                  <div className="text-xs text-gray-500 mb-1">Señal</div>
-                  <NivelSenal
-                    valor={dispositivo.senal || 0}
-                    tipo={dispositivo.tipoConexion}
-                  />
-                </div>
-              </div>
-
-              {/* Información adicional */}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <div className="text-xs text-gray-500 mb-1">Consumo</div>
@@ -272,7 +302,6 @@ export function DispositivosActivosTabla({
                 </div>
               </div>
 
-              {/* Temperatura si está disponible */}
               {dispositivo.temperaturaOperacion && (
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-500">Temperatura</span>
@@ -303,21 +332,22 @@ export function DispositivosActivosTabla({
                 <span>{dispositivo.ultimaTransmision}</span>
               </div>
 
-              {/* Indicador de click */}
               <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDispositivoAsignar(dispositivo);
-                    setModalAsignarOpen(true);
-                  }}
-                >
-                  <UserPlus className="h-4 w-4 mr-1" />
-                  Asignar
-                </Button>
+                {!dispositivo.cliente && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDispositivoAsignar(dispositivo);
+                      setModalAsignarOpen(true);
+                    }}
+                  >
+                    <UserPlus className="h-4 w-4 mr-1" />
+                    Asignar
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   variant="ghost"
@@ -342,6 +372,9 @@ export function DispositivosActivosTabla({
             title: "Éxito",
             description: "Dispositivo asignado correctamente",
           });
+          if (onRefresh) {
+            onRefresh();
+          }
           cargarDatosTodosDispositivos();
         }}
       />
@@ -398,54 +431,126 @@ export function DispositivosActivosTabla({
                     <CardContent>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <p className="text-sm text-muted-foreground">ID</p>
-                          <p className="font-medium">{dispositivo.id}</p>
+                          <p className="text-sm text-muted-foreground">Nombre</p>
+                          <p className="font-medium">
+                            {dispositivo.cliente?.nombre || dispositivo.nombre}
+                          </p>
                         </div>
                         <div>
-                          <p className="text-sm text-muted-foreground">Nombre</p>
-                          <p className="font-medium">{dispositivo.nombre}</p>
+                          <p className="text-sm text-muted-foreground">Número Dispositivo</p>
+                          <p className="font-medium">{dispositivo.numeroDispositivo}</p>
                         </div>
                         <div>
                           <p className="text-sm text-muted-foreground">Ubicación</p>
                           <p className="font-medium flex items-center gap-1">
                             <MapPin className="h-4 w-4" />
-                            {dispositivo.ubicacion}
+                            {dispositivo.cliente?.direccion || dispositivo.ubicacion}
                           </p>
                         </div>
                         <div>
                           <p className="text-sm text-muted-foreground">Estado</p>
                           <BadgeEstado estado={dispositivo.estado} />
                         </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Costo Acumulado</p>
-                          <p className="font-medium text-green-600">
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Zap className="h-5 w-5 text-orange-600" />
+                        Consumo en Tiempo Real
+                        {ultimaActualizacion && (
+                          <span className="text-xs text-muted-foreground font-normal ml-auto">
+                            Actualizado: {ultimaActualizacion.toLocaleTimeString()}
+                          </span>
+                        )}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm text-muted-foreground">Energía Consumida</p>
+                            <Zap className="h-4 w-4 text-blue-500" />
+                          </div>
+                          <p className="text-3xl font-bold text-blue-600">
+                            {consumoTiempoReal !== null ? consumoTiempoReal.toFixed(3) : '0.000'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">kWh</p>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm text-muted-foreground">Costo Acumulado</p>
+                            <span className="text-green-600">$</span>
+                          </div>
+                          <p className="text-3xl font-bold text-green-600">
                             {new Intl.NumberFormat('es-CL', {
-                              style: 'currency',
-                              currency: 'CLP',
                               minimumFractionDigits: 0,
                               maximumFractionDigits: 0
                             }).format(costoTiempoReal !== null ? costoTiempoReal : 0)}
                           </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Consumo Acumulado</p>
-                          <p className="font-medium text-blue-600">
-                            {consumoTiempoReal !== null ? consumoTiempoReal.toFixed(6) : '0.000000'} kWh
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Batería</p>
-                          <NivelBateria valor={dispositivo.bateria} />
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Señal</p>
-                          <NivelSenal valor={dispositivo.senal || 0} tipo={dispositivo.tipoConexion} />
+                          <p className="text-xs text-muted-foreground">CLP</p>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
 
-                  {/* Control de Servicio Eléctrico */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Power className="h-5 w-5 text-orange-600" />
+                        Control de Suministro Eléctrico
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                        <div className="flex items-center gap-3">
+                          {servicioActivo ? (
+                            <>
+                              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+                              <div>
+                                <p className="font-medium">Servicio Activo</p>
+                                <p className="text-sm text-muted-foreground">El suministro eléctrico está funcionando</p>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-3 h-3 bg-red-500 rounded-full" />
+                              <div>
+                                <p className="font-medium">Servicio Cortado</p>
+                                <p className="text-sm text-muted-foreground">El suministro eléctrico está desactivado</p>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                        <Button
+                          variant={servicioActivo ? "destructive" : "default"}
+                          onClick={() => controlarServicio(servicioActivo ? 'DESACTIVAR_SERVICIO' : 'ACTIVAR_SERVICIO')}
+                          disabled={controlandoServicio}
+                          className="gap-2"
+                        >
+                          {controlandoServicio ? (
+                            <>
+                              <RefreshCw className="h-4 w-4 animate-spin" />
+                              Procesando...
+                            </>
+                          ) : servicioActivo ? (
+                            <>
+                              <PowerOff className="h-4 w-4" />
+                              Cortar Suministro
+                            </>
+                          ) : (
+                            <>
+                              <Power className="h-4 w-4" />
+                              Restablecer Energía
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
                   {cargandoEstado ? (
                     <LoadingState message="Cargando estado del servicio..." />
                   ) : estadoServicio ? (
@@ -454,16 +559,7 @@ export function DispositivosActivosTabla({
                       estadoServicio={estadoServicio}
                       onActualizar={() => cargarEstadoServicio(dispositivoSeleccionado)}
                     />
-                  ) : (
-                    <Card>
-                      <CardContent className="py-12 text-center">
-                        <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground">
-                          No se pudo cargar la información del servicio
-                        </p>
-                      </CardContent>
-                    </Card>
-                  )}
+                  ) : null}
                 </>
               );
             })()}

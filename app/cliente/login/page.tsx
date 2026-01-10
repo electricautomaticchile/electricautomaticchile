@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { authService } from "@/lib/api/services/authService";
+import { useApi } from "@/hooks/useApi";
 import { User, Hash, Lock, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function LoginClientePage() {
   const router = useRouter();
+  const { login } = useApi();
   const [numeroCliente, setNumeroCliente] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,32 +24,15 @@ export default function LoginClientePage() {
     setLoading(true);
 
     try {
-      const response = await authService.login({ numeroCliente, password });
+      const response = await login({ numeroCliente, password });
       
-      console.log("Login response:", response);
-      
-      localStorage.setItem("token", response.token);
-      localStorage.setItem("user", JSON.stringify({
-        id: response.user._id,
-        nombre: response.user.nombre,
-        correo: response.user.correo,
-        numeroCliente: response.user.numeroCliente,
-        role: response.user.role,
-        tipoUsuario: response.user.tipoUsuario,
-        activo: response.user.activo,
-        empresaId: response.user.empresaId
-      }));
-      localStorage.setItem("userType", "cliente");
-      
-      console.log("Redirigiendo a:", response.requiereCambioPassword ? "/cliente/cambiar-password" : "/cliente");
-      
-      if (response.requiereCambioPassword) {
-        window.location.href = "/cliente/cambiar-password";
-      } else {
+      if (response.success) {
         window.location.href = "/cliente";
+      } else {
+        setError(response.error || "Error al iniciar sesión");
+        setLoading(false);
       }
     } catch (err: any) {
-      console.error("Error en login:", err);
       const errorMessage = err.response?.data?.error || err.response?.data?.message || err.message || "Error al iniciar sesión";
       setError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
       setLoading(false);
