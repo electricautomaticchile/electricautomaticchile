@@ -28,10 +28,23 @@ export default function LoginEmpresaPage() {
       if (response.data) {
         const userData = response.data.user;
         const permisos = response.data.permisos;
+        const token = response.data.token;
         
         if (typeof window !== 'undefined') {
           const isProduction = window.location.protocol === 'https:';
-          const cookieOptions = [
+          
+          const tokenOptions = [
+            `auth_token=${token}`,
+            'path=/',
+            `max-age=${24 * 60 * 60}`,
+            'samesite=lax',
+          ];
+          if (isProduction) {
+            tokenOptions.push('secure');
+          }
+          document.cookie = tokenOptions.join('; ');
+          
+          const userOptions = [
             `user_data=${encodeURIComponent(JSON.stringify({
               id: userData._id,
               _id: userData._id,
@@ -44,18 +57,18 @@ export default function LoginEmpresaPage() {
             }))}`,
             'path=/',
             `max-age=${24 * 60 * 60}`,
-            'samesite=strict',
+            'samesite=lax',
           ];
           if (isProduction) {
-            cookieOptions.push('secure');
+            userOptions.push('secure');
           }
-          document.cookie = cookieOptions.join('; ');
+          document.cookie = userOptions.join('; ');
           
           const permisosOptions = [
             `permisos=${encodeURIComponent(JSON.stringify(permisos))}`,
             'path=/',
             `max-age=${24 * 60 * 60}`,
-            'samesite=strict',
+            'samesite=lax',
           ];
           if (isProduction) {
             permisosOptions.push('secure');
