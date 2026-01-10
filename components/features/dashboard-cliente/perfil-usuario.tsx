@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { FormField } from "@/components/shared";
+import { ImagenPerfil } from "@/components/shared/ImagenPerfil";
 import {
   User,
   Home,
@@ -46,6 +47,7 @@ interface PerfilUsuarioProps {
 }
 
 export function PerfilUsuario({ datos }: PerfilUsuarioProps) {
+  const [imagenPerfil, setImagenPerfil] = useState((datos as any).imagenPerfil || "");
   const [formData, setFormData] = useState({
     nombre: datos.nombre || "",
     email: datos.email || "usuario@ejemplo.com",
@@ -76,10 +78,9 @@ export function PerfilUsuario({ datos }: PerfilUsuarioProps) {
     setCargando(true);
 
     try {
-      // Preparar datos para enviar al backend
       const datosActualizacion = {
         nombre: formData.nombre,
-        correo: formData.email, // Mapear email a correo para el backend
+        correo: formData.email,
         telefono: formData.telefono,
         direccion: formData.direccion,
         preferenciasNotificacion: {
@@ -90,14 +91,13 @@ export function PerfilUsuario({ datos }: PerfilUsuarioProps) {
         },
       };
 
-      // Usar el número de cliente para la actualización (más confiable)
-      if (!datos.numeroCliente) {
-        throw new Error("Número de cliente no disponible");
+      const clienteId = datos._id || datos.id;
+      if (!clienteId) {
+        throw new Error("ID de cliente no disponible");
       }
 
-      // Usar actualizarCliente en lugar de actualizarUsuario
       const response = await apiService.actualizarCliente(
-        datos.numeroCliente,
+        clienteId,
         datosActualizacion as any
       );
 
@@ -168,6 +168,18 @@ export function PerfilUsuario({ datos }: PerfilUsuarioProps) {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              <div className="flex justify-center mb-6">
+                <ImagenPerfil
+                  imageUrl={imagenPerfil}
+                  tipoUsuario="cliente"
+                  userId={datos._id || datos.id || ""}
+                  size="lg"
+                  onImageUpdate={(newUrl) => setImagenPerfil(newUrl)}
+                />
+              </div>
+
+              <Separator />
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   label="Nombre Completo"

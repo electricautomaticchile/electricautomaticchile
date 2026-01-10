@@ -192,8 +192,9 @@ class AuthManager {
     );
     if (!userCookie) return null;
     try {
-      return JSON.parse(decodeURIComponent(userCookie.split("=")[1]));
-    } catch {
+      const userData = JSON.parse(decodeURIComponent(userCookie.split("=")[1]));
+      return userData;
+    } catch (error) {
       return null;
     }
   }
@@ -231,18 +232,24 @@ class AuthManager {
 
 export function useApi() {
   const authManager = AuthManager.getInstance();
-  const [authState, setAuthState] = useState<AuthState>(authManager.getState());
+  const [authState, setAuthState] = useState<AuthState>(() => authManager.getState());
 
   useEffect(() => {
-    const unsubscribe = authManager.subscribe(setAuthState);
+    const currentState = authManager.getState();
+    if (JSON.stringify(currentState) !== JSON.stringify(authState)) {
+      setAuthState(currentState);
+    }
+    
+    const unsubscribe = authManager.subscribe((newState) => {
+      setAuthState(newState);
+    });
 
-    // Inicializar autenticación si no se ha hecho
-    if (authState.isLoading) {
+    if (authState.isLoading && !authManager['isInitializing'] && !authManager['hasInitialized']) {
       authManager.initializeAuth();
     }
 
     return unsubscribe;
-  }, [authManager, authState.isLoading]);
+  }, [authManager]);
 
   const login = useCallback(
     async (credentials: LoginCredentials): Promise<ApiAuthResponse> => {

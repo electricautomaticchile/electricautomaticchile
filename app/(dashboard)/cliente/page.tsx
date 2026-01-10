@@ -71,6 +71,7 @@ export default function DashboardCliente() {
     correo: resumenData?.cliente?.correo || (user as any)?.correo || user?.email || "",
     email: user?.email || (user as any)?.correo || "",
     telefono: resumenData?.cliente?.telefono || (user as any)?.telefono || "",
+    imagenPerfil: resumenData?.cliente?.imagenPerfil || (user as any)?.imagenPerfil || "",
     ultimoPago: (user as any)?.ultimoPago || "---",
     consumoActual: resumenData?.estadisticas?.consumoMensual || (user as any)?.consumoActual || 0,
     ubicacion: (user as any)?.ubicacion || { lat: -33.4489, lng: -70.6693 },

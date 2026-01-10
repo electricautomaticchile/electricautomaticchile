@@ -23,6 +23,7 @@ export interface ContactoPrincipal {
   cargo: string;
   telefono: string;
   correo: string;
+  imagenPerfil?: string;
 }
 
 // Configuración de notificaciones

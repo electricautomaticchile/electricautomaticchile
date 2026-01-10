@@ -1,7 +1,6 @@
 "use client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ImagenPerfil } from "@/components/shared/ImagenPerfil";
 import { cn } from "@/lib/utils";
-import { ImagenPerfilService } from "@/lib/api/services/imagenPerfilService";
 
 interface ProfileImageManagerProps {
   userId: string;
@@ -10,6 +9,7 @@ interface ProfileImageManagerProps {
   imageUrl?: string;
   size?: "sm" | "md" | "lg";
   className?: string;
+  onImageUpdate?: (newUrl: string) => void;
 }
 
 export function ProfileImageManager({
@@ -19,29 +19,17 @@ export function ProfileImageManager({
   imageUrl,
   size = "md",
   className,
+  onImageUpdate,
 }: ProfileImageManagerProps) {
-  const sizeClasses = {
-    sm: "h-8 w-8",
-    md: "h-10 w-10",
-    lg: "h-12 w-12",
-  };
-
-  const initials = userName
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-
-  const displayUrl = ImagenPerfilService.createImageUrlWithFallback(
-    imageUrl,
-    tipoUsuario
-  );
-
   return (
-    <Avatar className={cn(sizeClasses[size], className)}>
-      <AvatarImage src={displayUrl} alt={userName} />
-      <AvatarFallback>{initials}</AvatarFallback>
-    </Avatar>
+    <div className={cn("flex justify-center", className)}>
+      <ImagenPerfil
+        imageUrl={imageUrl}
+        tipoUsuario={tipoUsuario as "cliente" | "empresa"}
+        userId={userId}
+        size={size}
+        onImageUpdate={onImageUpdate}
+      />
+    </div>
   );
 }

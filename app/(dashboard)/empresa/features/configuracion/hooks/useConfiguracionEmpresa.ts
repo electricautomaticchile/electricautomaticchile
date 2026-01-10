@@ -48,7 +48,6 @@ export function useConfiguracionEmpresa(): UseConfiguracionEmpresaReturn {
       setEstados((prev) => ({ ...prev, loading: true }));
       setError(undefined);
 
-
       const response = await apiService.obtenerEmpresa(empresaId);
 
       if (response.success && response.data) {
@@ -71,7 +70,6 @@ export function useConfiguracionEmpresa(): UseConfiguracionEmpresaReturn {
           },
         });
 
-        // Cargar configuraciones de notificaciones si existen
         if (empresa.configuraciones) {
           setConfiguracionNotificaciones((prev) => ({
             ...prev,
@@ -103,10 +101,11 @@ export function useConfiguracionEmpresa(): UseConfiguracionEmpresaReturn {
 
   // Cargar datos automáticamente cuando empresaId esté disponible
   useEffect(() => {
-    if (empresaId && !loadingEmpresaId) {
+    if (empresaId && !loadingEmpresaId && !estados.loading) {
       cargarDatosEmpresa();
     }
-  }, [empresaId, loadingEmpresaId, cargarDatosEmpresa]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [empresaId, loadingEmpresaId]);
 
   // Función para guardar datos de la empresa
   const guardarDatos = useCallback(async () => {
