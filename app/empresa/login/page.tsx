@@ -37,7 +37,7 @@ export default function LoginEmpresaPage() {
             `auth_token=${token}`,
             'path=/',
             `max-age=${24 * 60 * 60}`,
-            'samesite=lax',
+            'samesite=strict',
           ];
           if (isProduction) {
             tokenOptions.push('secure');
@@ -53,11 +53,10 @@ export default function LoginEmpresaPage() {
               role: userData.role,
               empresaId: userData.empresaId,
               activo: userData.activo,
-              tipoCliente: userData.tipoCliente
             }))}`,
             'path=/',
             `max-age=${24 * 60 * 60}`,
-            'samesite=lax',
+            'samesite=strict',
           ];
           if (isProduction) {
             userOptions.push('secure');
@@ -68,7 +67,7 @@ export default function LoginEmpresaPage() {
             `permisos=${encodeURIComponent(JSON.stringify(permisos))}`,
             'path=/',
             `max-age=${24 * 60 * 60}`,
-            'samesite=lax',
+            'samesite=strict',
           ];
           if (isProduction) {
             permisosOptions.push('secure');

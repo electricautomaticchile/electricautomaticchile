@@ -37,7 +37,7 @@ export default function LoginClientePage() {
             `auth_token=${token}`,
             'path=/',
             `max-age=${24 * 60 * 60}`,
-            'samesite=lax',
+            'samesite=strict',
           ];
           if (isProduction) {
             tokenOptions.push('secure');
@@ -51,16 +51,13 @@ export default function LoginClientePage() {
               nombre: userData.nombre,
               correo: userData.correo,
               numeroCliente: userData.numeroCliente,
-              telefono: userData.telefono,
-              direccion: userData.direccion,
               role: userData.role,
               tipoUsuario: userData.tipoUsuario,
               activo: userData.activo,
-              empresaId: userData.empresaId
             }))}`,
             'path=/',
             `max-age=${24 * 60 * 60}`,
-            'samesite=lax',
+            'samesite=strict',
           ];
           if (isProduction) {
             userOptions.push('secure');
@@ -72,7 +69,7 @@ export default function LoginClientePage() {
               `requiereCambioPassword=true`,
               'path=/',
               `max-age=${24 * 60 * 60}`,
-              'samesite=lax',
+              'samesite=strict',
             ];
             if (isProduction) {
               cambioOptions.push('secure');
