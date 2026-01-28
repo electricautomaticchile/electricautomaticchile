@@ -1,4 +1,3 @@
-// Componentes del Dashboard Cliente
 export { ConsumoElectrico } from './consumo-electrico';
 export { ControlServicio } from './control-servicio';
 export { EstadoServicio } from './estado-servicio';
@@ -9,3 +8,4 @@ export { PagosFacturas } from './pagos-facturas';
 export { PerfilUsuario } from './perfil-usuario';
 export { SoporteUsuarioNuevo as SoporteUsuario } from './soporte-usuario';
 export { MapaBasico } from './ubicacion/MapaBasico';
+export { ConsejosAhorroIA } from './consejos-ahorro-ia';

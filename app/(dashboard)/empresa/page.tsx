@@ -24,6 +24,7 @@ import { AlertasSistema } from "./features/alertas";
 import { GestionTarifas } from "./features/tarifas/GestionTarifas";
 import { EstadisticasAvanzadas } from "./features/estadisticas/EstadisticasAvanzadas";
 import GestionUsuariosPage from "./usuarios/page";
+import { ControlServicioMasivo } from "@/components/features/dashboard-empresa/control-servicio-masivo";
 
 import { ConfiguracionEmpresa } from "./features/configuracion";
 import { MapaInteractivo } from "./features/gestion-geografica/MapaInteractivo";
@@ -197,6 +198,7 @@ const MobileNavigation = ({
       icon: Headphones,
       badge: ticketsAbiertos > 0 ? ticketsAbiertos.toString() : undefined,
     },
+    { id: "control-masivo", label: "Control Masivo", icon: Cpu },
     { id: "configuracion", label: "Configuración", icon: Settings },
   ];
 
@@ -321,6 +323,8 @@ function DashboardContent() {
         return <GestionUsuariosPage />;
       case "configuracion":
         return <ConfiguracionEmpresa />;
+      case "control-masivo":
+        return <ControlServicioMasivo />;
       default:
         return null;
     }
@@ -366,6 +370,11 @@ function DashboardContent() {
                     id: "usuarios",
                     label: "Usuarios",
                     icon: Users,
+                  },
+                  {
+                    id: "control-masivo",
+                    label: "Control Masivo",
+                    icon: Cpu,
                   },
                   {
                     id: "configuracion",

@@ -9,6 +9,7 @@ import { PerfilUsuario } from "@/components/features/dashboard-cliente/perfil-us
 import { MapaBasico } from "@/components/features/dashboard-cliente/ubicacion/MapaBasico";
 import { ControlServicio } from "@/components/features/dashboard-cliente/control-servicio";
 import { NotificacionesCliente } from "@/components/features/dashboard-cliente/notificaciones-cliente";
+import { ConsejosAhorroIA } from "@/components/features/dashboard-cliente/consejos-ahorro-ia";
 import NavigationCliente from "@/components/features/dashboard-cliente/layout/navigation";
 import { useApi } from "@/hooks/useApi";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -275,6 +276,10 @@ export default function DashboardCliente() {
               >
                 <NotificacionesCliente />
               </div>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-1 mb-6">
+              <ConsejosAhorroIA />
             </div>
 
             <div className="grid gap-6 md:grid-cols-1 mb-6">
