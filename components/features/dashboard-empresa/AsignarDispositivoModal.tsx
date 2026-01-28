@@ -18,6 +18,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
+import { useClientesQuery, useAsignarDispositivo, useDesasignarDispositivo } from "@/hooks/queries";
+import { InlineLoadingState } from "@/components/shared";
 
 interface AsignarDispositivoModalProps {
   open: boolean;
@@ -32,94 +34,43 @@ export function AsignarDispositivoModal({
   dispositivo,
   onSuccess,
 }: AsignarDispositivoModalProps) {
-  const [clientes, setClientes] = useState<any[]>([]);
   const [clienteSeleccionado, setClienteSeleccionado] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadingClientes, setLoadingClientes] = useState(false);
+
+  const { data: clientesData, isLoading: loadingClientes } = useClientesQuery();
+  const asignarMutation = useAsignarDispositivo();
+  const desasignarMutation = useDesasignarDispositivo();
+  const clientes = clientesData?.data || [];
 
   useEffect(() => {
-    if (open) {
-      cargarClientes();
-      if (dispositivo?.clienteId) {
-        setClienteSeleccionado(dispositivo.clienteId);
-      }
+    if (open && dispositivo?.clienteId) {
+      setClienteSeleccionado(dispositivo.clienteId);
     }
   }, [open, dispositivo]);
-
-  const cargarClientes = async () => {
-    setLoadingClientes(true);
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/clientes`,
-        {
-          credentials: "include",
-        }
-      );
-      const data = await response.json();
-      if (data.success) {
-        setClientes(data.data || []);
-      }
-    } catch (error) {
-      console.error("Error cargando clientes:", error);
-    } finally {
-      setLoadingClientes(false);
-    }
-  };
 
   const handleAsignar = async () => {
     if (!clienteSeleccionado) return;
 
-    setIsLoading(true);
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/dispositivos/${dispositivo?.id || dispositivo?._id}/asignar`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            clienteId: clienteSeleccionado,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (data.success) {
-        onSuccess();
-        onOpenChange(false);
+    asignarMutation.mutate(
+      {
+        dispositivoId: dispositivo?.id || dispositivo?._id,
+        clienteId: clienteSeleccionado,
+      },
+      {
+        onSuccess: () => {
+          onSuccess();
+          onOpenChange(false);
+        },
       }
-    } catch (error) {
-      console.error("Error asignando dispositivo:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    );
   };
 
   const handleDesasignar = async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/dispositivos/${dispositivo?.id || dispositivo?._id}/desasignar`,
-        {
-          method: "PUT",
-          credentials: "include",
-        }
-      );
-
-      const data = await response.json();
-
-      if (data.success) {
+    desasignarMutation.mutate(dispositivo?.id || dispositivo?._id, {
+      onSuccess: () => {
         onSuccess();
         onOpenChange(false);
-      }
-    } catch (error) {
-      console.error("Error desasignando dispositivo:", error);
-    } finally {
-      setIsLoading(false);
-    }
+      },
+    });
   };
 
   return (
@@ -136,9 +87,7 @@ export function AsignarDispositivoModal({
           <div>
             <Label htmlFor="cliente">Cliente</Label>
             {loadingClientes ? (
-              <div className="flex items-center justify-center p-4">
-                <Loader2 className="h-6 w-6 animate-spin" />
-              </div>
+              <InlineLoadingState message="Cargando clientes..." />
             ) : (
               <Select
                 value={clienteSeleccionado}
@@ -148,7 +97,7 @@ export function AsignarDispositivoModal({
                   <SelectValue placeholder="Selecciona un cliente" />
                 </SelectTrigger>
                 <SelectContent>
-                  {clientes.map((cliente) => (
+                  {clientes.map((cliente: any) => (
                     <SelectItem key={cliente._id} value={cliente._id}>
                       {cliente.nombre} - {cliente.numeroCliente}
                     </SelectItem>
@@ -164,7 +113,7 @@ export function AsignarDispositivoModal({
             <Button
               variant="outline"
               onClick={handleDesasignar}
-              disabled={isLoading}
+              disabled={desasignarMutation.isPending}
             >
               Desasignar
             </Button>
@@ -172,12 +121,12 @@ export function AsignarDispositivoModal({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={isLoading}
+            disabled={asignarMutation.isPending || desasignarMutation.isPending}
           >
             Cancelar
           </Button>
-          <Button onClick={handleAsignar} disabled={isLoading || !clienteSeleccionado}>
-            {isLoading ? (
+          <Button onClick={handleAsignar} disabled={asignarMutation.isPending || !clienteSeleccionado}>
+            {asignarMutation.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 Asignando...

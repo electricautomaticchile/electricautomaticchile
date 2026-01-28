@@ -1,11 +1,13 @@
-// Exportar hooks de clientes
 export * from "./useClientesQuery";
-
-// Exportar hooks de cotizaciones (cuando estén listos)
-// export * from "./useCotizacionesQuery";
-
-// Aquí se pueden agregar más hooks cuando se refactoricen otros componentes
-// Por ejemplo:
-// export * from "./useUsuariosQuery";
-// export * from "./useEmpresasQuery";
-// export * from "./useDispositivosQuery";
+export * from './useClientesMutations';
+export * from './useDispositivosQuery';
+export * from './useDispositivosMutations';
+export * from './useDispositivoDetalle';
+export * from './useTicketsQuery';
+export * from './useTicketsMutations';
+export * from './useDashboardQuery';
+export * from './useAuthMutations';
+export * from './useBoletasQuery';
+export * from './useBoletasMutations';
+export * from './useArduinoMutations';
+export * from './useDashboardClienteQuery';

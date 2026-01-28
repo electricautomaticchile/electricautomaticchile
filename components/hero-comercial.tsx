@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Zap, Clock, BarChart3, Shield, ArrowRight, CheckCircle2, MapPin, Smartphone, Users, Building2, TrendingDown, Wifi } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 
 export function HeroComercial() {
@@ -110,6 +111,16 @@ export function HeroComercial() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="space-y-4"
           >
+            <div className="relative bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 mb-4 aspect-video overflow-hidden group">
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-orange-500/20 to-orange-600/20">
+                <div className="text-center text-white">
+                  <Zap className="h-16 w-16 mx-auto mb-3 opacity-50" />
+                  <p className="text-sm font-medium">Video: Reconexión Automática en Tiempo Real</p>
+                  <p className="text-xs opacity-75 mt-1">15-30 segundos</p>
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <motion.div
                 whileHover={{ scale: 1.05 }}
@@ -187,13 +198,15 @@ export function HeroComercial() {
           <div className="flex flex-wrap items-center justify-center gap-6 md:gap-12 mb-12">
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="flex items-center gap-3 px-8 py-4 bg-white dark:bg-black rounded-xl shadow-lg border dark:border-white/10"
+              className="flex items-center gap-3 px-8 py-4 bg-white rounded-xl shadow-lg border"
             >
-              <Zap className="h-10 w-10 text-orange-500" />
-              <div className="text-left">
-                <div className="font-bold text-lg text-gray-900 dark:text-white">Chilquinta Energía</div>
-                <div className="text-xs text-gray-500">Socio Estratégico</div>
-              </div>
+              <Image 
+                src="/Chilquinta_Logotipo.svg" 
+                alt="Chilquinta Energía" 
+                width={180}
+                height={48}
+                className="h-12 w-auto"
+              />
             </motion.div>
           </div>
 

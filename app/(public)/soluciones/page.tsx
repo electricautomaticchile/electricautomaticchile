@@ -136,6 +136,38 @@ export default function SolucionesPage() {
             </p>
           </div>
 
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-orange-500/10 to-orange-600/10 border border-orange-500/20"
+            >
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center">
+                  <Building2 className="h-20 w-20 mx-auto mb-4 text-orange-500 opacity-50" />
+                  <p className="text-sm font-medium">Imagen: Dispositivo IoT Instalado</p>
+                  <p className="text-xs opacity-75 mt-1">Medidor con tecnología integrada</p>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-orange-500/10 to-orange-600/10 border border-orange-500/20"
+            >
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center">
+                  <Smartphone className="h-20 w-20 mx-auto mb-4 text-orange-500 opacity-50" />
+                  <p className="text-sm font-medium">Imagen: Dashboard en Uso</p>
+                  <p className="text-xs opacity-75 mt-1">Plataforma web de monitoreo</p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
           <div className="space-y-12">
             {solutions.map((solution, index) => (
               <motion.div
@@ -189,6 +221,16 @@ export default function SolucionesPage() {
             <p className="text-lg text-gray-600 dark:text-white/70 max-w-2xl mx-auto">
               Solución integral que automatiza procesos, reduce costos operativos y mejora la experiencia del cliente
             </p>
+          </div>
+
+          <div className="mb-12 relative aspect-[21/9] rounded-2xl overflow-hidden bg-gradient-to-br from-orange-500/10 to-orange-600/10 border border-orange-500/20">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center">
+                <Zap className="h-24 w-24 mx-auto mb-4 text-orange-500 opacity-50" />
+                <p className="text-lg font-medium">Video: Proceso Completo de Reconexión</p>
+                <p className="text-sm opacity-75 mt-2">Desde el pago hasta la reposición automática en minutos</p>
+              </div>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">

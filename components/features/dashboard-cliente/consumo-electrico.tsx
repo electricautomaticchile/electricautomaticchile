@@ -23,6 +23,7 @@ import { baseService } from "@/lib/api/utils/baseService";
 import { Badge } from "@/components/ui/badge";
 import { useApi } from '@/hooks/useApi';
 import { HistorialConsumoReal } from "./historial-consumo-real";
+import { useDashboardClienteResumen } from '@/hooks/queries';
 
 interface ConsumoElectricoProps {
   reducida?: boolean;
@@ -73,41 +74,15 @@ export function ConsumoElectrico({
   const [dispositivoAsignado, setDispositivoAsignado] =
     useState<string>("arduino_uno");
 
-  const [consumoTiempoReal, setConsumoTiempoReal] = useState<number | null>(
-    null
-  );
-  const [costoTiempoReal, setCostoTiempoReal] = useState<number | null>(null);
-  const [ultimaActualizacionTiempoReal, setUltimaActualizacionTiempoReal] =
-    useState<Date | null>(null);
-  const [estaConectado, setEstaConectado] = useState(false);
+  const { 
+    data: resumenData, 
+    isLoading: cargandoResumen,
+    error: errorResumen 
+  } = useDashboardClienteResumen(!!idCliente && isRealAuthenticated);
 
-  useEffect(() => {
-    if (!idCliente || !isRealAuthenticated) return;
-
-    const cargarDatosTiempoReal = async () => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/cliente/resumen`, {
-          credentials: 'include',
-        });
-        const data = await response.json();
-        
-        if (data.success && data.data?.estadisticas) {
-          const stats = data.data.estadisticas;
-          setConsumoTiempoReal(stats.consumoMensual || 0);
-          setCostoTiempoReal(stats.costoMensual || 0);
-          setUltimaActualizacionTiempoReal(new Date());
-          setEstaConectado(true);
-        }
-      } catch (err) {
-        setEstaConectado(false);
-      }
-    };
-
-    cargarDatosTiempoReal();
-    const interval = setInterval(cargarDatosTiempoReal, 5000);
-
-    return () => clearInterval(interval);
-  }, [idCliente, isRealAuthenticated]);
+  const consumoTiempoReal = resumenData?.estadisticas?.consumoMensual || null;
+  const costoTiempoReal = resumenData?.estadisticas?.costoMensual || null;
+  const estaConectado = !!resumenData && !errorResumen;
 
   useEffect(() => {
     const obtenerDispositivoAsignado = async () => {
@@ -141,24 +116,19 @@ export function ConsumoElectrico({
         setCargando(true);
         setError(null);
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/cliente/resumen`, {
-          credentials: 'include',
-        });
-        const data = await response.json();
-
-        if (data.success && data.data) {
+        if (resumenData) {
           setDatosConsumo({
             periodo: "mensual",
             fechaInicio: new Date().toISOString(),
             fechaFin: new Date().toISOString(),
-            consumoActual: data.data.estadisticas?.consumoMensual || 0,
-            costoEstimado: data.data.estadisticas?.costoMensual || 0,
-            consumoPromedio: data.data.estadisticas?.consumoMensual || 0,
+            consumoActual: resumenData.estadisticas?.consumoMensual || 0,
+            costoEstimado: resumenData.estadisticas?.costoMensual || 0,
+            consumoPromedio: resumenData.estadisticas?.consumoMensual || 0,
             consumoMaximo: 0,
             consumoMinimo: 0,
             tarifaKwh: 185,
             resumen: {
-              dispositivosActivos: data.data.estadisticas?.dispositivosActivos || 0,
+              dispositivosActivos: resumenData.estadisticas?.dispositivosActivos || 0,
               ultimaActualizacion: new Date().toISOString(),
               tendencia: "Estable",
             },
@@ -174,7 +144,7 @@ export function ConsumoElectrico({
     };
 
     cargarDatosConsumo();
-  }, [idCliente, isRealAuthenticated]);
+  }, [idCliente, isRealAuthenticated, resumenData]);
 
 
 
@@ -230,7 +200,7 @@ export function ConsumoElectrico({
     tarifaKwh: 185,
     resumen: {
       dispositivosActivos: 0,
-      ultimaActualizacion: ultimaActualizacionTiempoReal?.toISOString() || new Date().toISOString(),
+      ultimaActualizacion: new Date().toISOString(),
       tendencia: consumoTiempoReal !== null ? "Datos en tiempo real" : "Sin datos",
     },
   };
@@ -311,11 +281,11 @@ export function ConsumoElectrico({
             </div>
           </div>
 
-          {estaConectado && ultimaActualizacionTiempoReal && (
+          {estaConectado && (
             <div className="mt-3 text-xs text-green-600 flex items-center gap-1">
               <Wifi className="h-3 w-3" />
               Última actualización:{" "}
-              {ultimaActualizacionTiempoReal.toLocaleTimeString("es-CL")}
+              {new Date().toLocaleTimeString("es-CL")}
             </div>
           )}
         </CardContent>
@@ -354,8 +324,8 @@ export function ConsumoElectrico({
 
           <div className="text-sm text-gray-500 dark:text-gray-400">
             Última actualización:{" "}
-            {ultimaActualizacionTiempoReal
-              ? ultimaActualizacionTiempoReal.toLocaleTimeString("es-CL")
+            {estaConectado
+              ? new Date().toLocaleTimeString("es-CL")
               : datosConsumo?.resumen?.ultimaActualizacion
                 ? new Date(
                     datosConsumo.resumen.ultimaActualizacion

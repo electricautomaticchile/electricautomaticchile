@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { apiService } from "@/lib/api/apiService";
+import { useCambiarPassword } from "@/hooks/queries/useAuthMutations";
 
 interface DatosUsuario {
   _id?: string;
@@ -48,6 +49,7 @@ interface PerfilUsuarioProps {
 
 export function PerfilUsuario({ datos }: PerfilUsuarioProps) {
   const [imagenPerfil, setImagenPerfil] = useState((datos as any).imagenPerfil || "");
+  const cambiarPasswordMutation = useCambiarPassword();
   const [formData, setFormData] = useState({
     nombre: datos.nombre || "",
     email: datos.email || "usuario@ejemplo.com",
@@ -365,49 +367,26 @@ export function PerfilUsuario({ datos }: PerfilUsuarioProps) {
                       return;
                     }
 
-                    setCargando(true);
-                    try {
-                      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/cambiar-password`, {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
+                    cambiarPasswordMutation.mutate(
+                      {
+                        currentPassword: formData.passwordActual || "",
+                        newPassword: formData.passwordNueva,
+                      },
+                      {
+                        onSuccess: () => {
+                          setFormData(prev => ({
+                            ...prev,
+                            passwordActual: "",
+                            passwordNueva: "",
+                            passwordConfirmar: "",
+                          }));
                         },
-                        credentials: 'include',
-                        body: JSON.stringify({
-                          passwordActual: formData.passwordActual || "",
-                          passwordNuevo: formData.passwordNueva,
-                        }),
-                      });
-
-                      const data = await response.json();
-                      
-                      if (data.success) {
-                        toast({
-                          title: "Éxito",
-                          description: "Contraseña actualizada correctamente",
-                        });
-                        setFormData(prev => ({
-                          ...prev,
-                          passwordActual: "",
-                          passwordNueva: "",
-                          passwordConfirmar: "",
-                        }));
-                      } else {
-                        throw new Error(data.error || 'Error al cambiar contraseña');
                       }
-                    } catch (error: any) {
-                      toast({
-                        title: "Error",
-                        description: error.message || "Error al cambiar contraseña",
-                        variant: "destructive",
-                      });
-                    } finally {
-                      setCargando(false);
-                    }
+                    );
                   }}
-                  disabled={cargando}
+                  disabled={cambiarPasswordMutation.isPending}
                 >
-                  {cargando ? "Cambiando..." : "Cambiar Contraseña"}
+                  {cambiarPasswordMutation.isPending ? "Cambiando..." : "Cambiar Contraseña"}
                 </Button>
               </div>
             </CardContent>

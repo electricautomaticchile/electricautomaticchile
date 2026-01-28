@@ -1,11 +1,12 @@
-// Hooks globales compartidos
+export * from './queries';
+export { useApi } from './useApi';
+export { useDashboardStats } from './useDashboardStats';
 export { useDeviceData } from './useDeviceData';
 export { useDocumentos } from './useDocumentos';
 export { useLeadMagnet } from './useLeadMagnet';
-export { useNotifications } from './useNotifications';
 export { useNotificacionesCliente } from './useNotificacionesCliente';
+export { useNotifications } from './useNotifications';
+export { usePagination } from './usePagination';
 export { useWebSocket } from './useWebSocket';
-export { useApi } from './useApi';
-
-// Query hooks
-export * from './queries';
+export { useWebSocketEvents } from './useWebSocketEvents';
+export { useQueryState, useMutationState } from './useQueryState';

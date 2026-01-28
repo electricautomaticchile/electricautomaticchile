@@ -38,6 +38,8 @@ import {
 } from "@/lib/api/servicioElectricoService";
 import { useToast } from "@/components/ui/use-toast";
 import { AsignarDispositivoModal } from "@/components/features/dashboard-empresa/AsignarDispositivoModal";
+import { useDispositivoDetalle, useDispositivosDetalles } from "@/hooks/queries/useDispositivoDetalle";
+import { useArduinoCommand } from "@/hooks/queries";
 
 export function DispositivosActivosTabla({
   dispositivos,
@@ -54,17 +56,15 @@ export function DispositivosActivosTabla({
   const [modalAsignarOpen, setModalAsignarOpen] = useState(false);
   const [dispositivoAsignar, setDispositivoAsignar] = useState<any>(null);
   const [servicioActivo, setServicioActivo] = useState<boolean>(true);
-  const [controlandoServicio, setControlandoServicio] = useState(false);
 
-  // Estado para consumo y costo en tiempo real (del modal)
-  const [consumoTiempoReal, setConsumoTiempoReal] = useState<number | null>(null);
-  const [costoTiempoReal, setCostoTiempoReal] = useState<number | null>(null);
-  const [ultimaActualizacion, setUltimaActualizacion] = useState<Date | null>(null);
+  const dispositivoIds = dispositivos.map(d => d.id);
+  const { data: datosDispositivos } = useDispositivosDetalles(dispositivoIds);
+  const { data: dispositivoDetalle, refetch: refetchDetalle } = useDispositivoDetalle(dispositivoSeleccionado);
+  const arduinoCommandMutation = useArduinoCommand();
 
-  // Estado para consumo y costo de todos los dispositivos (para las cards)
-  const [datosDispositivos, setDatosDispositivos] = useState<Map<string, { consumo: number; costo: number }>>(new Map());
+  const consumoTiempoReal = dispositivoDetalle?.ultimaLectura?.energy || 0;
+  const costoTiempoReal = dispositivoDetalle?.ultimaLectura?.cost || 0;
 
-  // Cargar estado del servicio
   const cargarEstadoServicio = useCallback(async (clienteId: string) => {
     setCargandoEstado(true);
     try {
@@ -83,140 +83,40 @@ export function DispositivosActivosTabla({
     }
   }, [toast]);
 
-  // Cargar consumo y costo
-  const cargarConsumoYCosto = useCallback(async (dispositivoId: string) => {
-    try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const url = `${apiUrl}/api/dispositivos/${dispositivoId}`;
-
-      const response = await fetch(url, {
-        credentials: 'include',
-      });
-      const data = await response.json();
-
-      if (data.success && data.data?.ultimaLectura) {
-        const { energy, cost } = data.data.ultimaLectura;
-        setConsumoTiempoReal(energy || 0);
-        setCostoTiempoReal(cost || 0);
-        setUltimaActualizacion(new Date());
-      }
-    } catch (error) {
-    }
-  }, []);
-
   const controlarServicio = useCallback(async (comando: string) => {
-    setControlandoServicio(true);
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const response = await fetch(`${apiUrl}/api/arduino/command`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ command: comando }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setServicioActivo(comando === 'ACTIVAR_SERVICIO');
-        toast({
-          title: "Éxito",
-          description: comando === 'ACTIVAR_SERVICIO' 
-            ? "Servicio eléctrico restablecido" 
-            : "Suministro eléctrico cortado",
-        });
-        
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        if (dispositivoSeleccionado) {
-          cargarConsumoYCosto(dispositivoSeleccionado);
-        }
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo controlar el servicio",
-        variant: "destructive",
-      });
-    } finally {
-      setControlandoServicio(false);
-    }
-  }, [dispositivoSeleccionado, cargarConsumoYCosto, toast]);
-
-  // Cargar datos de todos los dispositivos
-  const cargarDatosTodosDispositivos = useCallback(async () => {
-    try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const nuevosDatos = new Map<string, { consumo: number; costo: number }>();
-
-      const promesas = dispositivos.map(async (dispositivo) => {
-        try {
-          const response = await fetch(`${apiUrl}/api/dispositivos/${dispositivo.id}`, {
-            credentials: 'include',
+    arduinoCommandMutation.mutate(comando, {
+      onSuccess: (data) => {
+        if (data.success) {
+          setServicioActivo(comando === 'ACTIVAR_SERVICIO');
+          toast({
+            title: "Éxito",
+            description: comando === 'ACTIVAR_SERVICIO' 
+              ? "Servicio eléctrico restablecido" 
+              : "Suministro eléctrico cortado",
           });
-          const data = await response.json();
-
-          if (data.success && data.data?.ultimaLectura) {
-            const { energy, cost } = data.data.ultimaLectura;
-            nuevosDatos.set(dispositivo.id, {
-              consumo: energy || 0,
-              costo: cost || 0
-            });
-          }
-        } catch (error) {
+          
+          setTimeout(() => {
+            if (dispositivoSeleccionado) {
+              refetchDetalle();
+            }
+          }, 2000);
         }
-      });
+      },
+      onError: () => {
+        toast({
+          title: "Error",
+          description: "No se pudo controlar el servicio",
+          variant: "destructive",
+        });
+      },
+    });
+  }, [dispositivoSeleccionado, refetchDetalle, toast, arduinoCommandMutation]);
 
-      await Promise.all(promesas);
-      setDatosDispositivos(nuevosDatos);
-    } catch (error) {
-    }
-  }, [dispositivos]);
-
-  // Cargar estado del servicio cuando se selecciona un dispositivo
   useEffect(() => {
     if (dispositivoSeleccionado) {
       cargarEstadoServicio(dispositivoSeleccionado);
-      cargarConsumoYCosto(dispositivoSeleccionado);
     }
-  }, [dispositivoSeleccionado, cargarEstadoServicio, cargarConsumoYCosto]);
-
-  // Actualizar consumo y costo del modal cada 1 minuto
-  useEffect(() => {
-    if (!dispositivoSeleccionado) return;
-
-
-    const interval = setInterval(() => {
-      cargarConsumoYCosto(dispositivoSeleccionado);
-    }, 60000); // 60 segundos = 1 minuto
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [dispositivoSeleccionado, cargarConsumoYCosto]);
-
-  // Cargar datos de todos los dispositivos al inicio y cada 1 minuto
-  useEffect(() => {
-    if (dispositivos.length === 0) return;
-
-
-    // Cargar inmediatamente
-    cargarDatosTodosDispositivos();
-
-    // Actualizar cada 1 minuto
-    const interval = setInterval(() => {
-      cargarDatosTodosDispositivos();
-    }, 60000); // 60 segundos = 1 minuto
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [dispositivos, cargarDatosTodosDispositivos]);
+  }, [dispositivoSeleccionado, cargarEstadoServicio]);
 
   const abrirDetalles = (dispositivoId: string) => {
     setDispositivoSeleccionado(dispositivoId);
@@ -286,7 +186,7 @@ export function DispositivosActivosTabla({
                 <div>
                   <div className="text-xs text-gray-500 mb-1">Consumo</div>
                   <div className="font-medium text-blue-600">
-                    {datosDispositivos.get(dispositivo.id)?.consumo?.toFixed(6) || '0.000000'} kWh
+                    {datosDispositivos?.get(dispositivo.id)?.consumo?.toFixed(6) || '0.000000'} kWh
                   </div>
                 </div>
                 <div>
@@ -297,7 +197,7 @@ export function DispositivosActivosTabla({
                       currency: 'CLP',
                       minimumFractionDigits: 0,
                       maximumFractionDigits: 0
-                    }).format(datosDispositivos.get(dispositivo.id)?.costo || 0)}
+                    }).format(datosDispositivos?.get(dispositivo.id)?.costo || 0)}
                   </div>
                 </div>
               </div>
@@ -375,7 +275,6 @@ export function DispositivosActivosTabla({
           if (onRefresh) {
             onRefresh();
           }
-          cargarDatosTodosDispositivos();
         }}
       />
 
@@ -421,11 +320,6 @@ export function DispositivosActivosTabla({
                       <CardTitle className="text-lg flex items-center gap-2">
                         <Zap className="h-5 w-5 text-orange-600" />
                         Información del Dispositivo
-                        {ultimaActualizacion && (
-                          <span className="text-xs text-muted-foreground font-normal ml-auto">
-                            Actualizado: {ultimaActualizacion.toLocaleTimeString()}
-                          </span>
-                        )}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -460,11 +354,6 @@ export function DispositivosActivosTabla({
                       <CardTitle className="text-lg flex items-center gap-2">
                         <Zap className="h-5 w-5 text-orange-600" />
                         Consumo en Tiempo Real
-                        {ultimaActualizacion && (
-                          <span className="text-xs text-muted-foreground font-normal ml-auto">
-                            Actualizado: {ultimaActualizacion.toLocaleTimeString()}
-                          </span>
-                        )}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -527,10 +416,10 @@ export function DispositivosActivosTabla({
                         <Button
                           variant={servicioActivo ? "destructive" : "default"}
                           onClick={() => controlarServicio(servicioActivo ? 'DESACTIVAR_SERVICIO' : 'ACTIVAR_SERVICIO')}
-                          disabled={controlandoServicio}
+                          disabled={arduinoCommandMutation.isPending}
                           className="gap-2"
                         >
-                          {controlandoServicio ? (
+                          {arduinoCommandMutation.isPending ? (
                             <>
                               <RefreshCw className="h-4 w-4 animate-spin" />
                               Procesando...

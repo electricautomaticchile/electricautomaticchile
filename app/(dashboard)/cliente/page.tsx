@@ -12,16 +12,20 @@ import { NotificacionesCliente } from "@/components/features/dashboard-cliente/n
 import NavigationCliente from "@/components/features/dashboard-cliente/layout/navigation";
 import { useApi } from "@/hooks/useApi";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useDashboardCliente } from "@/hooks/queries/useDashboardQuery";
+import { GlobalLoadingState } from "@/components/shared";
+import { useCambiarPassword } from "@/hooks/queries/useAuthMutations";
 
 export default function DashboardCliente() {
   const { user, isLoading: loadingCliente, isRealAuthenticated } = useApi();
+  const { data: resumenData, isLoading: loadingResumen } = useDashboardCliente();
+  const cambiarPasswordMutation = useCambiarPassword();
   const [componenteActivo, setComponenteActivo] = useState<string | null>(null);
   const [estadoServicio, setEstadoServicio] = useState<
     "activo" | "desactivado" | "suspendido"
   >("activo");
   const [mostrarModalPassword, setMostrarModalPassword] = useState(false);
   const [requiereCambioPassword, setRequiereCambioPassword] = useState(false);
-  const [resumenData, setResumenData] = useState<any>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -37,45 +41,26 @@ export default function DashboardCliente() {
   }, []);
 
   useEffect(() => {
-    if (!isRealAuthenticated) {
-      return;
+    if (resumenData?.data?.cliente?.passwordTemporal) {
+      setRequiereCambioPassword(true);
+      setMostrarModalPassword(true);
     }
-    
-    const cargarResumen = async () => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/cliente/resumen`, {
-          credentials: 'include',
-        });
-        const data = await response.json();
-        if (data.success) {
-          setResumenData(data.data);
-          if (data.data.cliente.passwordTemporal) {
-            setRequiereCambioPassword(true);
-            setMostrarModalPassword(true);
-          }
-        }
-      } catch (error) {
-        console.error('Error cargando resumen:', error);
-      }
-    };
-
-    cargarResumen();
-  }, [isRealAuthenticated]);
+  }, [resumenData]);
 
   const datosCliente = {
     _id: (user as any)?._id?.toString() || user?.id?.toString(),
     id: user?.id?.toString() || (user as any)?._id?.toString(),
-    nombre: resumenData?.cliente?.nombre || (user as any)?.nombre || user?.name || "Cliente",
-    numeroCliente: resumenData?.cliente?.numeroCliente || (user as any)?.numeroCliente || "---",
-    direccion: resumenData?.cliente?.direccion || (user as any)?.direccion || "No especificada",
-    correo: resumenData?.cliente?.correo || (user as any)?.correo || user?.email || "",
+    nombre: resumenData?.data?.cliente?.nombre || (user as any)?.nombre || user?.name || "Cliente",
+    numeroCliente: resumenData?.data?.cliente?.numeroCliente || (user as any)?.numeroCliente || "---",
+    direccion: (resumenData?.data?.cliente as any)?.direccion || (user as any)?.direccion || "No especificada",
+    correo: resumenData?.data?.cliente?.correo || (user as any)?.correo || user?.email || "",
     email: user?.email || (user as any)?.correo || "",
-    telefono: resumenData?.cliente?.telefono || (user as any)?.telefono || "",
-    imagenPerfil: resumenData?.cliente?.imagenPerfil || (user as any)?.imagenPerfil || "",
+    telefono: (resumenData?.data?.cliente as any)?.telefono || (user as any)?.telefono || "",
+    imagenPerfil: (resumenData?.data?.cliente as any)?.imagenPerfil || (user as any)?.imagenPerfil || "",
     ultimoPago: (user as any)?.ultimoPago || "---",
-    consumoActual: resumenData?.estadisticas?.consumoMensual || (user as any)?.consumoActual || 0,
+    consumoActual: resumenData?.data?.estadisticas?.consumoMensual || (user as any)?.consumoActual || 0,
     ubicacion: (user as any)?.ubicacion || { lat: -33.4489, lng: -70.6693 },
-    estadisticas: resumenData?.estadisticas || {
+    estadisticas: resumenData?.data?.estadisticas || {
       dispositivosActivos: 0,
       dispositivosTotal: 0,
       consumoMensual: 0,
@@ -313,19 +298,8 @@ export default function DashboardCliente() {
     }
   };
 
-  if (loadingCliente) {
-    return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <div className="flex flex-1 items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-            <p className="text-muted-foreground">
-              Cargando datos del cliente...
-            </p>
-          </div>
-        </div>
-      </div>
-    );
+  if (loadingCliente || loadingResumen) {
+    return <GlobalLoadingState message="Cargando dashboard..." fullScreen />;
   }
 
   return (
@@ -362,31 +336,18 @@ export default function DashboardCliente() {
             }
           }}
           onConfirm={async (currentPassword, newPassword) => {
-            try {
-              const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/cambiar-password`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
+            cambiarPasswordMutation.mutate(
+              { currentPassword, newPassword },
+              {
+                onSuccess: () => {
+                  handlePasswordChangeSuccess();
+                  setMostrarModalPassword(false);
                 },
-                credentials: 'include',
-                body: JSON.stringify({
-                  passwordActual: currentPassword,
-                  passwordNuevo: newPassword,
-                }),
-              });
-
-              const data = await response.json();
-              
-              if (data.success) {
-                handlePasswordChangeSuccess();
-                setMostrarModalPassword(false);
-              } else {
-                throw new Error(data.error || 'Error al cambiar contraseña');
+                onError: (error) => {
+                  throw error;
+                },
               }
-            } catch (error) {
-              console.error('Error:', error);
-              throw error;
-            }
+            );
           }}
           requiereActual={!requiereCambioPassword}
           esForzado={requiereCambioPassword}

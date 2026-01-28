@@ -1,6 +1,8 @@
 import { ApiResponse } from "../types";
 import { API_URL } from "./config";
 import { TokenManager } from "./tokenManager";
+import { getCSRFToken } from "@/lib/utils/csrf";
+import { sanitizeInput } from "@/lib/utils/sanitize";
 
 // Clase base para servicios API
 export class BaseApiService {
@@ -10,18 +12,22 @@ export class BaseApiService {
   ): Promise<ApiResponse<T>> {
     const url = `${API_URL}${endpoint}`;
     const token = TokenManager.getToken();
+    const csrfToken = getCSRFToken();
 
     const defaultHeaders: HeadersInit = {
       "Content-Type": "application/json",
     };
 
-    // Si vamos a enviar FormData, no debemos establecer Content-Type (deja que el browser añada boundary)
     if (options.body instanceof FormData) {
       delete defaultHeaders["Content-Type"];
     }
 
     if (token) {
       defaultHeaders.Authorization = `Bearer ${token}`;
+    }
+
+    if (csrfToken && options.method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method)) {
+      defaultHeaders['X-CSRF-Token'] = csrfToken;
     }
 
     const config: RequestInit = {

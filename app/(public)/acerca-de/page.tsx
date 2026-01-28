@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Target,
   Lightbulb,
@@ -6,8 +8,11 @@ import {
   BarChart,
   Telescope,
   Zap,
+  Clock,
+  MapPin,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { motion } from "framer-motion";
 
 export default function AcercaDePage() {
   return (
@@ -49,6 +54,39 @@ export default function AcercaDePage() {
             </p>
           </div>
 
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-red-500/10 to-red-600/10 border border-red-500/20"
+            >
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center p-6">
+                  <Clock className="h-16 w-16 mx-auto mb-3 text-red-500 opacity-50" />
+                  <p className="text-sm font-medium">Imagen: Antes</p>
+                  <p className="text-xs opacity-75 mt-1">Espera de 24-48 horas para reconexión</p>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-green-500/10 to-green-600/10 border border-green-500/20"
+            >
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center p-6">
+                  <Zap className="h-16 w-16 mx-auto mb-3 text-green-500 opacity-50" />
+                  <p className="text-sm font-medium">Imagen: Después</p>
+                  <p className="text-xs opacity-75 mt-1">Reconexión automática en minutos</p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
           <div className="max-w-4xl mx-auto space-y-6">
             <Card className="border-orange-500/20 dark:bg-black dark:border-orange-500/30">
               <CardContent className="p-8">
@@ -56,19 +94,15 @@ export default function AcercaDePage() {
                   Situación Actual
                 </h3>
                 <p className="text-muted-foreground leading-relaxed mb-4">
-                  Según datos del Ministerio de Energía de Chile, el{" "}
-                  <span className="font-bold text-foreground">99.8%</span> de
-                  los hogares del país cuentan con suministro eléctrico. Sin
-                  embargo, la calidad del servicio presenta desafíos
-                  significativos:
+                  El <span className="font-bold text-foreground">99.8%</span> de
+                  los hogares en Chile cuentan con suministro eléctrico, pero la gestión presenta desafíos:
                 </p>
                 <ul className="space-y-3">
                   {[
-                    "Demoras excesivas en la reposición del servicio tras regularizar pagos",
-                    "Gestión logística ineficiente que genera tiempos de espera prolongados",
-                    "Falta de automatización en procesos críticos de reconexión",
-                    "Ausencia de monitoreo en tiempo real del consumo energético",
-                    "Procesos de facturación con tiempos de gestión innecesarios",
+                    "Demoras de 24-48 horas en reposición tras regularizar pagos",
+                    "Gestión logística ineficiente con tiempos de espera prolongados",
+                    "Falta de automatización en procesos de reconexión",
+                    "Sin monitoreo en tiempo real del consumo",
                   ].map((item, index) => (
                     <li key={index} className="flex items-start gap-3">
                       <div className="h-2 w-2 rounded-full bg-orange-500 mt-2 flex-shrink-0" />
@@ -119,16 +153,7 @@ export default function AcercaDePage() {
                   Grupo Objetivo
                 </h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  Nuestra solución está dirigida a{" "}
-                  <span className="font-bold text-foreground">
-                    hogares y empresas en Chile
-                  </span>{" "}
-                  que experimentan demoras en la reposición del servicio
-                  eléctrico y buscan una gestión más eficiente y automatizada.
-                  Con el 99.8% de los hogares chilenos con acceso a
-                  electricidad, el alcance potencial de nuestra tecnología es
-                  significativo, especialmente en zonas donde la calidad del
-                  servicio presenta mayores desafíos.
+                  Dirigido a <span className="font-bold text-foreground">hogares y empresas en Chile</span> que buscan gestión eficiente y automatizada del suministro eléctrico. Con 99.8% de cobertura nacional, el alcance es significativo en todo el territorio.
                 </p>
               </CardContent>
             </Card>
@@ -248,18 +273,19 @@ export default function AcercaDePage() {
                 Implementación Innovadora
               </span>
             </h3>
+
+            <div className="relative aspect-video rounded-xl overflow-hidden bg-gradient-to-br from-orange-500/10 to-orange-600/10 border border-orange-500/20 mb-4">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center p-6">
+                  <Zap className="h-16 w-16 mx-auto mb-3 text-orange-500 opacity-50" />
+                  <p className="text-sm font-medium">Imagen: Dispositivo IoT Instalado</p>
+                  <p className="text-xs opacity-75 mt-1">Tecnología integrada en medidor</p>
+                </div>
+              </div>
+            </div>
+
             <p className="text-muted-foreground leading-relaxed mb-4">
-              Nuestro sistema se basa en la instalación de un dispositivo
-              inteligente dentro del medidor de luz, conectado a una plataforma
-              web avanzada. Utilizamos metodologías ágiles como{" "}
-              <span className="font-semibold text-foreground">
-                Lean Startup
-              </span>{" "}
-              para iteración continua y{" "}
-              <span className="font-semibold text-foreground">
-                Diseño Centrado en el Usuario (UCD)
-              </span>{" "}
-              para garantizar que la solución responda a necesidades reales.
+              Sistema basado en dispositivo inteligente dentro del medidor, conectado a plataforma web avanzada. Metodologías <span className="font-semibold text-foreground">Lean Startup</span> y <span className="font-semibold text-foreground">Diseño Centrado en el Usuario</span>.
             </p>
             <p className="text-sm font-semibold text-orange-500 mb-3">
               Funcionalidades principales:
@@ -290,25 +316,36 @@ export default function AcercaDePage() {
                 Validación y Mejora Continua
               </span>
             </h3>
+
+            <div className="relative aspect-video rounded-xl overflow-hidden bg-gradient-to-br from-orange-500/10 to-orange-600/10 border border-orange-500/20 mb-4">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center p-6">
+                  <BarChart className="h-16 w-16 mx-auto mb-3 text-orange-500 opacity-50" />
+                  <p className="text-sm font-medium">Imagen: Dashboard de Monitoreo</p>
+                  <p className="text-xs opacity-75 mt-1">Plataforma web en tiempo real</p>
+                </div>
+              </div>
+            </div>
+
             <p className="text-muted-foreground leading-relaxed">
-              Nuestro proceso de implementación incluye:
+              Proceso de implementación:
             </p>
             <div className="space-y-4">
               {[
                 {
                   title: "Pruebas Piloto",
                   description:
-                    "Realizamos pruebas exhaustivas en diferentes zonas para garantizar la eficacia del sistema.",
+                    "Validación exhaustiva en diferentes zonas para garantizar eficacia.",
                 },
                 {
                   title: "Capacitación Integral",
                   description:
-                    "Proporcionamos formación completa para el personal técnico y usuarios finales.",
+                    "Formación completa para personal técnico y usuarios finales.",
                 },
                 {
                   title: "Soporte Continuo",
                   description:
-                    "Ofrecemos asistencia técnica permanente y actualizaciones del sistema.",
+                    "Asistencia técnica permanente y actualizaciones del sistema.",
                 },
               ].map((item, index) => (
                 <div
@@ -350,15 +387,14 @@ export default function AcercaDePage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Formación especializada de 1-2 semanas que incluye:
+                Formación especializada de 1-2 semanas:
               </p>
               <ul className="space-y-3">
                 {[
                   "Funcionamiento técnico del dispositivo IoT",
-                  "Uso de la plataforma web de administración",
+                  "Uso de plataforma web de administración",
                   "Programación de cortes y reconexiones",
                   "Protocolos de seguridad y GPS",
-                  "Resolución de problemas y mantenimiento",
                 ].map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
                     <CheckCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
@@ -382,15 +418,14 @@ export default function AcercaDePage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Capacitación práctica y accesible que cubre:
+                Capacitación práctica y accesible:
               </p>
               <ul className="space-y-3">
                 {[
-                  "Acceso a la plataforma web de consulta",
+                  "Acceso a plataforma web de consulta",
                   "Interpretación de datos de consumo",
                   "Gestión de notificaciones y alertas",
                   "Proceso de pago y reconexión",
-                  "Soporte técnico 24/7",
                 ].map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
                     <CheckCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
@@ -427,13 +462,19 @@ export default function AcercaDePage() {
           </div>
 
           <div className="max-w-4xl mx-auto">
+            <div className="relative aspect-[21/9] rounded-2xl overflow-hidden bg-gradient-to-br from-orange-500/10 to-orange-600/10 border border-orange-500/20 mb-8">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center p-6">
+                  <MapPin className="h-20 w-20 mx-auto mb-4 text-orange-500 opacity-50" />
+                  <p className="text-lg font-medium">Mapa: Cobertura Nacional</p>
+                  <p className="text-sm opacity-75 mt-2">Presencia en las 16 regiones de Chile</p>
+                </div>
+              </div>
+            </div>
+
             <div className="space-y-6">
               <p className="text-center text-muted-foreground leading-relaxed">
-                Nuestra solución está diseñada para adaptarse a diferentes zonas
-                y necesidades específicas en todo el territorio nacional. Con
-                una cobertura del 99.8% de los hogares con suministro eléctrico,
-                estamos preparados para implementar nuestra tecnología donde sea
-                necesario.
+                Solución adaptable a diferentes zonas y necesidades en todo el territorio nacional con cobertura del 99.8%.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8">
@@ -463,17 +504,15 @@ export default function AcercaDePage() {
 
               <div className="pt-8 text-center">
                 <p className="text-sm font-semibold text-orange-500 mb-4">
-                  Principales ciudades con cobertura:
+                  Principales ciudades:
                 </p>
                 <div className="flex flex-wrap gap-3 justify-center">
                   {[
                     "Santiago",
-                    "Antofagasta",
-                    "Concepción",
-                    "Puerto Montt",
-                    "La Serena",
-                    "Valdivia",
                     "Valparaíso",
+                    "Concepción",
+                    "La Serena",
+                    "Antofagasta",
                     "Temuco",
                   ].map((ciudad) => (
                     <span

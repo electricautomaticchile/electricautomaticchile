@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
@@ -7,8 +7,8 @@ import { CreditCard, Download, FileText, CircleDollarSign, AlertCircle, Loader2 
 import { format } from 'date-fns';
 import { useApi } from '@/hooks/useApi';
 import { useToast } from "@/components/ui/use-toast";
-import { baseService } from "@/lib/api/utils/baseService";
-import { LoadingState, EmptyState, ConfirmDialog } from "@/components/shared";
+import { LoadingState, EmptyState } from "@/components/shared";
+import { useBoletasCliente, usePagarBoleta, useDescargarBoletaPDF } from '@/hooks/queries';
 
 interface Boleta {
   _id: string;
@@ -31,115 +31,69 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
   const { user, isRealAuthenticated } = useApi();
   const { toast } = useToast();
   const [tabActiva, setTabActiva] = useState('facturas');
-  const [boletas, setBoletas] = useState<Boleta[]>([]);
-  const [cargando, setCargando] = useState(true);
-  const [pagando, setPagando] = useState(false);
 
   const clienteId = (user as any)?._id?.toString() || user?.id?.toString();
 
-  const cargarBoletas = useCallback(async () => {
-    if (!clienteId || !isRealAuthenticated) {
-      setCargando(false);
-      return;
-    }
-    
-    try {
-      setCargando(true);
-      const response = await baseService.get(`/boletas/cliente/${clienteId}`);
-
-      if (response.success) {
-        setBoletas(response.data as Boleta[]);
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar las boletas",
-        variant: "destructive",
-      });
-    } finally {
-      setCargando(false);
-    }
-  }, [clienteId, isRealAuthenticated, toast]);
-
-  useEffect(() => {
-    if (clienteId && isRealAuthenticated) {
-      cargarBoletas();
-    }
-  }, [clienteId, isRealAuthenticated, cargarBoletas]);
+  const { data: boletas = [], isLoading: cargando, error } = useBoletasCliente(
+    isRealAuthenticated ? clienteId : null
+  );
+  const pagarBoletaMutation = usePagarBoleta();
+  const descargarPDFMutation = useDescargarBoletaPDF();
 
   const pagarBoleta = async (boletaId: string) => {
-    try {
-      setPagando(true);
-
-      // Marcar boleta como pagada
-      const data = await baseService.put(`/boletas/${boletaId}/pagar`, {}) as any;
-
-      if (data.success) {
-        // Mostrar notificación de pago exitoso
-        toast({
-          title: "✅ Pago exitoso",
-          description: "La boleta ha sido pagada correctamente",
-        });
-
-        // Recargar boletas para actualizar la vista
-        await cargarBoletas();
-
-        // Verificar si el servicio fue restablecido automáticamente
-        if (data.servicioRestablecido) {
+    pagarBoletaMutation.mutate(boletaId, {
+      onSuccess: (data) => {
+        if (data.success) {
           toast({
-            title: "🟢 Servicio restablecido",
-            description: `Su servicio eléctrico ha sido restablecido automáticamente. Boletas vencidas restantes: ${data.boletasVencidasRestantes}`,
-            duration: 5000,
+            title: "✅ Pago exitoso",
+            description: "La boleta ha sido pagada correctamente",
           });
-        } else if (data.boletasVencidasRestantes > 2) {
+
+          if (data.servicioRestablecido) {
+            toast({
+              title: "🟢 Servicio restablecido",
+              description: `Su servicio eléctrico ha sido restablecido automáticamente. Boletas vencidas restantes: ${data.boletasVencidasRestantes}`,
+              duration: 5000,
+            });
+          } else if (data.boletasVencidasRestantes && data.boletasVencidasRestantes > 2) {
+            toast({
+              title: "⚠️ Servicio cortado",
+              description: `Aún tienes ${data.boletasVencidasRestantes} boletas vencidas. Paga al menos ${data.boletasVencidasRestantes - 2} más para restablecer el servicio.`,
+              variant: "destructive",
+              duration: 5000,
+            });
+          }
+        } else {
           toast({
-            title: "⚠️ Servicio cortado",
-            description: `Aún tienes ${data.boletasVencidasRestantes} boletas vencidas. Paga al menos ${data.boletasVencidasRestantes - 2} más para restablecer el servicio.`,
+            title: "Error",
+            description: data.message || "No se pudo procesar el pago",
             variant: "destructive",
-            duration: 5000,
           });
         }
-      } else {
+      },
+      onError: () => {
         toast({
           title: "Error",
-          description: data.message || "No se pudo procesar el pago",
+          description: "No se pudo procesar el pago",
           variant: "destructive",
         });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo procesar el pago",
-        variant: "destructive",
-      });
-    } finally {
-      setPagando(false);
-    }
+      },
+    });
   };
 
   const descargarPDF = async (boleta: Boleta) => {
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const response = await fetch(`${apiUrl}/api/boletas/${boleta._id}/pdf`);
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${boleta.numeroBoleta}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+    descargarPDFMutation.mutate(
+      { boletaId: boleta._id, numeroBoleta: boleta.numeroBoleta },
+      {
+        onError: () => {
+          toast({
+            title: "Error",
+            description: "No se pudo descargar el PDF",
+            variant: "destructive",
+          });
+        },
       }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo descargar el PDF",
-        variant: "destructive",
-      });
-    }
+    );
   };
 
   const formatoMoneda = (monto: number) => {
@@ -324,10 +278,10 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
                           <div className="flex flex-col gap-2">
                             <Button
                               onClick={() => pagarBoleta(boleta._id)}
-                              disabled={pagando}
+                              disabled={pagarBoletaMutation.isPending}
                               className="bg-red-600 hover:bg-red-700"
                             >
-                              {pagando ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Pagar ahora'}
+                              {pagarBoletaMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Pagar ahora'}
                             </Button>
                             <Button variant="outline" onClick={() => descargarPDF(boleta)}>
                               <Download className="mr-2 h-4 w-4" />
@@ -444,10 +398,10 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
                             <Button
                               size="sm"
                               onClick={() => pagarBoleta(boleta._id)}
-                              disabled={pagando}
+                              disabled={pagarBoletaMutation.isPending}
                               className="mt-2"
                             >
-                              {pagando ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Pagar'}
+                              {pagarBoletaMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Pagar'}
                             </Button>
                           </div>
                         </div>
@@ -458,14 +412,13 @@ export function PagosFacturas({ reducida = false }: PagosFacturasProps) {
                       <Button
                         className="w-full bg-orange-600 hover:bg-orange-700 text-lg py-6"
                         onClick={async () => {
-                          // Pagar todas las boletas
                           for (const boleta of boletasVencidas) {
                             await pagarBoleta(boleta._id);
                           }
                         }}
-                        disabled={pagando}
+                        disabled={pagarBoletaMutation.isPending}
                       >
-                        {pagando ? (
+                        {pagarBoletaMutation.isPending ? (
                           <Loader2 className="h-5 w-5 animate-spin mr-2" />
                         ) : null}
                         Pagar todas las boletas - {formatoMoneda(totalDeuda)}

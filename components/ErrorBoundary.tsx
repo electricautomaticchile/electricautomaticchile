@@ -16,22 +16,6 @@ interface State {
     errorInfo: ErrorInfo | null;
 }
 
-/**
- * Error Boundary Component
- * 
- * Previene que errores de React causen "white screen of death"
- * Logs automáticos de errores y UI de fallback amigable
- * 
- * @example
- * <ErrorBoundary>
- *   <MiComponente />
- * </ErrorBoundary>
- * 
- * @example Con fallback custom
- * <ErrorBoundary fallback={<MiErrorPersonalizado />}>
- *   <MiComponente />
- * </ErrorBoundary>
- */
 export class ErrorBoundary extends Component<Props, State> {
     constructor(props: Props) {
         super(props);
@@ -51,39 +35,25 @@ export class ErrorBoundary extends Component<Props, State> {
     }
 
     componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-        // Logging del error
-
-        // Guardar errorInfo en el estado
         this.setState({
             errorInfo,
         });
 
-        // Callback personalizado si se proporcionó
         if (this.props.onError) {
             this.props.onError(error, errorInfo);
         }
 
-        // TODO: Enviar a servicio de logging/monitoring (ej: Sentry)
         this.logErrorToService(error, errorInfo);
     }
 
-    /**
-     * Enviar error a servicio de monitoring
-     * En producción, integrar con Sentry, LogRocket, etc.
-     */
     private logErrorToService(error: Error, errorInfo: ErrorInfo) {
-        // En desarrollo, solo log a consola
         if (process.env.NODE_ENV === 'development') {
             console.group('🐛 Error Boundary - Detalles');
             console.groupEnd();
             return;
         }
 
-        // En producción, enviar a servicio de monitoring
         try {
-            // Ejemplo: Sentry.captureException(error, { contexts: { react: errorInfo } });
-
-            // O enviar a API propia
             fetch('/api/logs/error', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -106,9 +76,6 @@ export class ErrorBoundary extends Component<Props, State> {
         }
     }
 
-    /**
-     * Resetear el error boundary
-     */
     private handleReset = () => {
         this.setState({
             hasError: false,
@@ -117,16 +84,10 @@ export class ErrorBoundary extends Component<Props, State> {
         });
     };
 
-    /**
-     * Recargar la página
-     */
     private handleReload = () => {
         window.location.reload();
     };
 
-    /**
-     * Ir al inicio
-     */
     private handleGoHome = () => {
         window.location.href = '/';
     };
