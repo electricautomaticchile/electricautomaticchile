@@ -16,6 +16,8 @@ export interface ICliente {
   fechaRegistro?: string;
   fechaActivacion?: string;
   ultimoAcceso?: string;
+  notificacionesSms?: boolean;
+  esTerceraEdad?: boolean;
 }
 
 export interface ICrearCliente {
@@ -39,4 +41,6 @@ export interface IActualizarCliente {
   tipoCliente?: "particular" | "empresa";
   empresa?: string;
   esActivo?: boolean;
+  notificacionesSms?: boolean;
+  esTerceraEdad?: boolean;
 }

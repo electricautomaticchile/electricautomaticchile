@@ -9,3 +9,4 @@ export { PerfilUsuario } from './perfil-usuario';
 export { SoporteUsuarioNuevo as SoporteUsuario } from './soporte-usuario';
 export { MapaBasico } from './ubicacion/MapaBasico';
 export { ConsejosAhorroIA } from './consejos-ahorro-ia';
+export { ConfiguracionSMS } from './configuracion-sms';
