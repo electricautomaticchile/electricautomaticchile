@@ -561,15 +561,15 @@ function DashboardContent() {
                         <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
                           Dashboard Empresa
                         </h1>
-                        <p className="text-sm text-muted-foreground flex items-center gap-2 mt-2">
+                        <div className="text-sm text-muted-foreground flex items-center gap-2 mt-2">
                           <motion.div
                             animate={{ rotate: 360 }}
                             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                           >
                             <RefreshCw className="h-3 w-3" />
                           </motion.div>
-                          Actualizado en tiempo real
-                        </p>
+                          <span>Actualizado en tiempo real</span>
+                        </div>
                       </div>
                       <div className="flex gap-2">
                         <Button
