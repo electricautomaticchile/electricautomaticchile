@@ -110,7 +110,6 @@ function hasAccess(
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Solo procesar rutas protegidas
   if (!isProtectedRoute(pathname)) {
     return NextResponse.next();
   }

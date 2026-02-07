@@ -26,56 +26,30 @@ export default function LoginEmpresaPage() {
       const response = await apiClient.post('/api/auth/login/empresa', { email, password });
       
       if (response.data) {
-        const userData = response.data.user;
-        const permisos = response.data.permisos;
-        const token = response.data.token;
+        const { user, token, permisos } = response.data;
         
         if (typeof window !== 'undefined') {
           const isProduction = window.location.protocol === 'https:';
+          const cookieOptions = `path=/; max-age=${24 * 60 * 60}; samesite=strict${isProduction ? '; secure' : ''}`;
           
-          const tokenOptions = [
-            `auth_token=${token}`,
-            'path=/',
-            `max-age=${24 * 60 * 60}`,
-            'samesite=strict',
-          ];
-          if (isProduction) {
-            tokenOptions.push('secure');
+          document.cookie = `auth_token=${token}; ${cookieOptions}`;
+          document.cookie = `user_data=${encodeURIComponent(JSON.stringify({
+            id: user._id,
+            _id: user._id,
+            nombre: user.nombre,
+            correo: user.correo,
+            role: user.role,
+            empresaId: user.empresaId,
+            activo: user.activo,
+          }))}; ${cookieOptions}`;
+          document.cookie = `permisos=${encodeURIComponent(JSON.stringify(permisos))}; ${cookieOptions}`;
+
+          if (user.passwordTemporal) {
+            document.cookie = `requiereCambioPassword=true; ${cookieOptions}`;
           }
-          document.cookie = tokenOptions.join('; ');
-          
-          const userOptions = [
-            `user_data=${encodeURIComponent(JSON.stringify({
-              id: userData._id,
-              _id: userData._id,
-              nombre: userData.nombre,
-              correo: userData.correo,
-              role: userData.role,
-              empresaId: userData.empresaId,
-              activo: userData.activo,
-            }))}`,
-            'path=/',
-            `max-age=${24 * 60 * 60}`,
-            'samesite=strict',
-          ];
-          if (isProduction) {
-            userOptions.push('secure');
-          }
-          document.cookie = userOptions.join('; ');
-          
-          const permisosOptions = [
-            `permisos=${encodeURIComponent(JSON.stringify(permisos))}`,
-            'path=/',
-            `max-age=${24 * 60 * 60}`,
-            'samesite=strict',
-          ];
-          if (isProduction) {
-            permisosOptions.push('secure');
-          }
-          document.cookie = permisosOptions.join('; ');
+
+          window.location.href = "/empresa";
         }
-        
-        window.location.href = "/empresa";
       }
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || err.response?.data?.message || err.message || "Error al iniciar sesión";
@@ -158,3 +132,4 @@ export default function LoginEmpresaPage() {
     </div>
   );
 }
+

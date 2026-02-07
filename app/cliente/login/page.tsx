@@ -26,59 +26,30 @@ export default function LoginClientePage() {
       const response = await apiClient.post('/api/auth/login', { numeroCliente, password });
       
       if (response.data) {
-        const userData = response.data.user;
-        const token = response.data.token;
-        const requiereCambioPassword = response.data.requiereCambioPassword;
+        const { user, token, requiereCambioPassword } = response.data;
         
         if (typeof window !== 'undefined') {
           const isProduction = window.location.protocol === 'https:';
+          const cookieOptions = `path=/; max-age=${24 * 60 * 60}; samesite=strict${isProduction ? '; secure' : ''}`;
           
-          const tokenOptions = [
-            `auth_token=${token}`,
-            'path=/',
-            `max-age=${24 * 60 * 60}`,
-            'samesite=strict',
-          ];
-          if (isProduction) {
-            tokenOptions.push('secure');
-          }
-          document.cookie = tokenOptions.join('; ');
-          
-          const userOptions = [
-            `user_data=${encodeURIComponent(JSON.stringify({
-              id: userData._id,
-              _id: userData._id,
-              nombre: userData.nombre,
-              correo: userData.correo,
-              numeroCliente: userData.numeroCliente,
-              role: userData.role,
-              tipoUsuario: userData.tipoUsuario,
-              activo: userData.activo,
-            }))}`,
-            'path=/',
-            `max-age=${24 * 60 * 60}`,
-            'samesite=strict',
-          ];
-          if (isProduction) {
-            userOptions.push('secure');
-          }
-          document.cookie = userOptions.join('; ');
+          document.cookie = `auth_token=${token}; ${cookieOptions}`;
+          document.cookie = `user_data=${encodeURIComponent(JSON.stringify({
+            id: user._id,
+            _id: user._id,
+            nombre: user.nombre,
+            correo: user.correo,
+            numeroCliente: user.numeroCliente,
+            role: user.role,
+            tipoUsuario: user.tipoUsuario,
+            activo: user.activo,
+          }))}; ${cookieOptions}`;
           
           if (requiereCambioPassword) {
-            const cambioOptions = [
-              `requiereCambioPassword=true`,
-              'path=/',
-              `max-age=${24 * 60 * 60}`,
-              'samesite=strict',
-            ];
-            if (isProduction) {
-              cambioOptions.push('secure');
-            }
-            document.cookie = cambioOptions.join('; ');
+            document.cookie = `requiereCambioPassword=true; ${cookieOptions}`;
           }
+
+          window.location.href = "/cliente";
         }
-        
-        window.location.href = "/cliente";
       }
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || err.response?.data?.message || err.message || "Error al iniciar sesión";
@@ -161,3 +132,4 @@ export default function LoginClientePage() {
     </div>
   );
 }
+
