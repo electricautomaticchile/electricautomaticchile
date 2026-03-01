@@ -93,9 +93,9 @@ export function HistorialConsumoReal({ reducida = false, clienteId }: HistorialC
           limite: 100,
         });
 
-        // Obtener último valor registrado (sin agregación)
+        // Obtener último valor registrado (sin agregación, últimas 24h)
         const ultimoResponse = await historialConsumoService.obtenerHistorial(idCliente, {
-          desde: new Date(Date.now() - 60000), // Último minuto
+          desde: new Date(Date.now() - 24 * 60 * 60 * 1000),
           hasta: new Date(),
           limite: 1,
         });

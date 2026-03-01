@@ -55,6 +55,9 @@ import {
   AlertTriangle,
   ChevronRight,
 } from "lucide-react";
+import { AnimatedCounter } from "@/components/ui/animated-counter";
+import { LiveBadge } from "@/components/ui/live-badge";
+import { SkeletonKPICard, SkeletonChart } from "@/components/ui/skeleton-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 
@@ -173,7 +176,11 @@ const KPICard = ({
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", stiffness: 200, delay: delay + 0.2 }}
               >
-                {value}
+                {typeof value === "number" ? (
+                  <AnimatedCounter value={value} duration={1200} />
+                ) : (
+                  value
+                )}
               </motion.p>
               {subtitle && (
                 <span className="text-sm text-muted-foreground">{subtitle}</span>
@@ -569,6 +576,7 @@ function DashboardContent() {
                             <RefreshCw className="h-3 w-3" />
                           </motion.div>
                           <span>Actualizado en tiempo real</span>
+                          <LiveBadge connected={true} />
                         </div>
                       </div>
                       <div className="flex gap-2">
@@ -604,35 +612,45 @@ function DashboardContent() {
                       initial="hidden"
                       animate="visible"
                     >
-                      <KPICard
-                        title="Ingresos Mensuales"
-                        value={`$${(ingresosActuales / 1000).toFixed(1)}M`}
-                        subtitle={`/ $${(ingresosProyectados / 1000).toFixed(1)}M`}
-                        icon={DollarSign}
-                        trendValue={`${Math.round((ingresosActuales / ingresosProyectados) * 100)}% del objetivo`}
-                        trend="neutral"
-                        colorScheme="emerald"
-                        delay={0}
-                      />
-                      <KPICard
-                        title="Consumo Total"
-                        value={`${(consumoTotalMes / 1000).toFixed(1)}k`}
-                        subtitle="kWh este mes"
-                        icon={Flame}
-                        trendValue="+12% vs mes anterior"
-                        trend="up"
-                        colorScheme="orange"
-                        delay={0.1}
-                      />
-                      <KPICard
-                        title="Alertas Críticas"
-                        value={stats.alertasActivas}
-                        icon={AlertTriangle}
-                        trendValue="Requieren atención"
-                        trend="neutral"
-                        colorScheme="red"
-                        delay={0.2}
-                      />
+                      {loadingStats ? (
+                        <>
+                          <SkeletonKPICard />
+                          <SkeletonKPICard />
+                          <SkeletonKPICard />
+                        </>
+                      ) : (
+                        <>
+                          <KPICard
+                            title="Ingresos Mensuales"
+                            value={`${(ingresosActuales / 1000).toFixed(1)}M`}
+                            subtitle={`/ ${(ingresosProyectados / 1000).toFixed(1)}M`}
+                            icon={DollarSign}
+                            trendValue={`${Math.round((ingresosActuales / ingresosProyectados) * 100)}% del objetivo`}
+                            trend="neutral"
+                            colorScheme="emerald"
+                            delay={0}
+                          />
+                          <KPICard
+                            title="Consumo Total"
+                            value={`${(consumoTotalMes / 1000).toFixed(1)}k`}
+                            subtitle="kWh este mes"
+                            icon={Flame}
+                            trendValue="+12% vs mes anterior"
+                            trend="up"
+                            colorScheme="orange"
+                            delay={0.1}
+                          />
+                          <KPICard
+                            title="Alertas Críticas"
+                            value={stats.alertasActivas}
+                            icon={AlertTriangle}
+                            trendValue="Requieren atención"
+                            trend="neutral"
+                            colorScheme="red"
+                            delay={0.2}
+                          />
+                        </>
+                      )}
                     </motion.div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -693,44 +711,55 @@ function DashboardContent() {
                       initial="hidden"
                       animate="visible"
                     >
-                      <KPICard
-                        title="Clientes Activos"
-                        value={stats.clientesActivos}
-                        subtitle={`/ ${stats.clientesTotales}`}
-                        icon={Users}
-                        trendValue="92% activos"
-                        trend="neutral"
-                        colorScheme="blue"
-                        delay={0.5}
-                      />
-                      <KPICard
-                        title="Dispositivos"
-                        value={stats.dispositivosActivos}
-                        subtitle={`/ ${stats.dispositivosTotales}`}
-                        icon={Battery}
-                        trendValue={`${stats.dispositivosTotales > 0 ? Math.round((stats.dispositivosActivos / stats.dispositivosTotales) * 100) : 0}% operativos`}
-                        trend="neutral"
-                        colorScheme="green"
-                        delay={0.6}
-                      />
-                      <KPICard
-                        title="Tickets Pendientes"
-                        value={ticketsAbiertos}
-                        icon={Headphones}
-                        trendValue="Requieren atención"
-                        trend="neutral"
-                        colorScheme="purple"
-                        delay={0.7}
-                      />
-                      <KPICard
-                        title="Alertas Activas"
-                        value={stats.alertasActivas}
-                        icon={BellRing}
-                        trendValue="Ver detalles"
-                        trend="neutral"
-                        colorScheme="orange"
-                        delay={0.8}
-                      />
+                      {loadingStats ? (
+                        <>
+                          <SkeletonKPICard />
+                          <SkeletonKPICard />
+                          <SkeletonKPICard />
+                          <SkeletonKPICard />
+                        </>
+                      ) : (
+                        <>
+                          <KPICard
+                            title="Clientes Activos"
+                            value={stats.clientesActivos}
+                            subtitle={`/ ${stats.clientesTotales}`}
+                            icon={Users}
+                            trendValue="92% activos"
+                            trend="neutral"
+                            colorScheme="blue"
+                            delay={0.5}
+                          />
+                          <KPICard
+                            title="Dispositivos"
+                            value={stats.dispositivosActivos}
+                            subtitle={`/ ${stats.dispositivosTotales}`}
+                            icon={Battery}
+                            trendValue={`${stats.dispositivosTotales > 0 ? Math.round((stats.dispositivosActivos / stats.dispositivosTotales) * 100) : 0}% operativos`}
+                            trend="neutral"
+                            colorScheme="green"
+                            delay={0.6}
+                          />
+                          <KPICard
+                            title="Tickets Pendientes"
+                            value={ticketsAbiertos}
+                            icon={Headphones}
+                            trendValue="Requieren atención"
+                            trend="neutral"
+                            colorScheme="purple"
+                            delay={0.7}
+                          />
+                          <KPICard
+                            title="Alertas Activas"
+                            value={stats.alertasActivas}
+                            icon={BellRing}
+                            trendValue="Ver detalles"
+                            trend="neutral"
+                            colorScheme="orange"
+                            delay={0.8}
+                          />
+                        </>
+                      )}
                     </motion.div>
                   </motion.div>
                 ) : (

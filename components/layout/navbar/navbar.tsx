@@ -109,14 +109,14 @@ export default function Component() {
               {!isAuthenticated ? (
                 <>
                   <Link
-                    href="/cliente/login"
+                    href="/cliente-login"
                     className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-blue-500"
                     prefetch={false}
                   >
                     Portal Clientes
                   </Link>
                   <Link
-                    href="/empresa/login"
+                    href="/empresa-login"
                     className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-orange-500"
                     prefetch={false}
                   >
@@ -193,7 +193,7 @@ export default function Component() {
         <div className="ml-auto flex gap-2">
           {!isAuthenticated ? (
             <>
-              <Link href="/cliente/login">
+              <Link href="/cliente-login">
                 <Button
                   variant="outline"
                   className="transition-all duration-200 hover:bg-blue-500/10 hover:text-blue-500 hover:border-blue-500"
@@ -201,7 +201,7 @@ export default function Component() {
                   Portal Clientes
                 </Button>
               </Link>
-              <Link href="/empresa/login">
+              <Link href="/empresa-login">
                 <Button
                   variant="outline"
                   className="transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 hover:border-orange-500"

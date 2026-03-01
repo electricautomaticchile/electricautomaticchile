@@ -1,9 +1,22 @@
 "use client";
 
-import { Building2, Home, Factory, Store, Zap, Clock, Shield, BarChart3, Smartphone, MapPin, CheckCircle2 } from "lucide-react";
+import {
+  Building2,
+  Home,
+  Factory,
+  Store,
+  Zap,
+  Clock,
+  Shield,
+  BarChart3,
+  Smartphone,
+  MapPin,
+  CheckCircle2,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 
 export default function SolucionesPage() {
@@ -11,88 +24,98 @@ export default function SolucionesPage() {
     {
       icon: Building2,
       title: "Compañías Eléctricas",
-      description: "Optimiza la gestión de miles de clientes con nuestra plataforma integral. Reduce costos operativos hasta en un 70% y mejora la recuperación de cartera morosa.",
+      description:
+        "Optimiza la gestión de miles de clientes con nuestra plataforma integral. Reduce costos operativos hasta en un 70% y mejora la recuperación de cartera morosa.",
       benefits: [
         "Gestión masiva de cortes y reposiciones automáticas",
         "Reducción drástica de costos de personal en terreno",
         "Reportes automáticos de consumo y facturación",
         "Dashboard centralizado para monitoreo en tiempo real",
-        "Integración con sistemas de facturación existentes"
+        "Integración con sistemas de facturación existentes",
       ],
-      stats: { value: "70%", label: "Reducción de costos operativos" }
+      stats: { value: "70%", label: "Reducción de costos operativos" },
     },
     {
       icon: Home,
       title: "Condominios y Edificios",
-      description: "Control centralizado del suministro eléctrico de múltiples unidades con facturación individual automatizada y transparente.",
+      description:
+        "Control centralizado del suministro eléctrico de múltiples unidades con facturación individual automatizada y transparente.",
       benefits: [
         "Facturación automática por unidad habitacional",
         "Control independiente de áreas comunes",
         "Transparencia total en consumos individuales",
         "Gestión de morosos sin afectar a otros residentes",
-        "Reportes mensuales automáticos para administración"
+        "Reportes mensuales automáticos para administración",
       ],
-      stats: { value: "100%", label: "Transparencia en consumos" }
+      stats: { value: "100%", label: "Transparencia en consumos" },
     },
     {
       icon: Factory,
       title: "Industrias",
-      description: "Monitoreo detallado de consumo energético para optimizar procesos productivos y reducir costos operacionales significativamente.",
+      description:
+        "Monitoreo detallado de consumo energético para optimizar procesos productivos y reducir costos operacionales significativamente.",
       benefits: [
         "Análisis de consumo por área o línea de producción",
         "Detección automática de anomalías y fugas energéticas",
         "Optimización de horarios de producción según tarifas",
         "Reportes de eficiencia energética en tiempo real",
-        "Alertas de consumo fuera de parámetros normales"
+        "Alertas de consumo fuera de parámetros normales",
       ],
-      stats: { value: "30%", label: "Ahorro energético promedio" }
+      stats: { value: "30%", label: "Ahorro energético promedio" },
     },
     {
       icon: Store,
       title: "Comercios y Retail",
-      description: "Gestión eficiente del suministro en locales comerciales con control remoto centralizado y alertas inteligentes de consumo.",
+      description:
+        "Gestión eficiente del suministro en locales comerciales con control remoto centralizado y alertas inteligentes de consumo.",
       benefits: [
         "Control remoto de múltiples sucursales desde un solo lugar",
         "Alertas de consumo anormal o fuera de horario",
         "Reportes mensuales automáticos por local",
         "Programación de horarios de operación",
-        "Comparativas de consumo entre sucursales"
+        "Comparativas de consumo entre sucursales",
       ],
-      stats: { value: "24/7", label: "Control remoto" }
-    }
+      stats: { value: "24/7", label: "Control remoto" },
+    },
   ];
 
   const features = [
     {
       icon: Clock,
       title: "Reposición Automática",
-      description: "Elimina tiempos de espera. El servicio se restablece automáticamente al regularizar el pago, sin necesidad de personal en terreno. Según datos del Ministerio de Energía, reducimos los tiempos de reposición de 24-48 horas a minutos."
+      description:
+        "Elimina tiempos de espera. El servicio se restablece automáticamente al regularizar el pago, sin necesidad de personal en terreno. Según datos del Ministerio de Energía, reducimos los tiempos de reposición de 24-48 horas a minutos.",
     },
     {
       icon: BarChart3,
       title: "Lectura Inteligente",
-      description: "Toma automática de consumo mensual con reportes instantáneos vía web, SMS y correo electrónico. Elimina errores de lectura manual y reduce costos de facturación en un 60%."
+      description:
+        "Toma automática de consumo mensual con reportes instantáneos vía web, SMS y correo electrónico. Elimina errores de lectura manual y reduce costos de facturación en un 60%.",
     },
     {
       icon: Shield,
       title: "Gestión Remota",
-      description: "Administra cortes y reposiciones desde la plataforma web. Control total sin desplazamientos. Gestión masiva o individual con comandos remotos seguros y encriptados."
+      description:
+        "Administra cortes y reposiciones desde la plataforma web. Control total sin desplazamientos. Gestión masiva o individual con comandos remotos seguros y encriptados.",
     },
     {
       icon: MapPin,
       title: "Protección GPS",
-      description: "Localización en tiempo real del dispositivo. Protección contra extravío o manipulación indebida. Sistema de alertas ante intentos de remoción no autorizada."
+      description:
+        "Localización en tiempo real del dispositivo. Protección contra extravío o manipulación indebida. Sistema de alertas ante intentos de remoción no autorizada.",
     },
     {
       icon: Smartphone,
       title: "Notificaciones Instantáneas",
-      description: "Alertas automáticas de consumo, pagos pendientes y estado del servicio en tiempo real. Integración con WhatsApp, SMS y email para máxima cobertura."
+      description:
+        "Alertas automáticas de consumo, pagos pendientes y estado del servicio en tiempo real. Integración con WhatsApp, SMS y email para máxima cobertura.",
     },
     {
       icon: Zap,
       title: "Comandos Remotos",
-      description: "Reconfiguración masiva o individual de dispositivos sin necesidad de visitas técnicas. Actualizaciones de firmware remotas y diagnóstico en línea."
-    }
+      description:
+        "Reconfiguración masiva o individual de dispositivos sin necesidad de visitas técnicas. Actualizaciones de firmware remotas y diagnóstico en línea.",
+    },
   ];
 
   return (
@@ -112,14 +135,17 @@ export default function SolucionesPage() {
             className="max-w-4xl mx-auto text-center"
           >
             <div className="inline-block mb-4 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full">
-              <span className="text-white font-medium text-sm">Nuestras Soluciones</span>
+              <span className="text-white font-medium text-sm">
+                Nuestras Soluciones
+              </span>
             </div>
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
               Tecnología que Transforma la Gestión Eléctrica
             </h1>
             <p className="text-xl text-white/90 max-w-3xl mx-auto">
-              Soluciones integrales adaptadas a cada sector, desde compañías eléctricas 
-              hasta hogares, con tecnología IoT de vanguardia y soporte 24/7
+              Soluciones integrales adaptadas a cada sector, desde compañías
+              eléctricas hasta hogares, con tecnología IoT de vanguardia y
+              soporte 24/7
             </p>
           </motion.div>
         </div>
@@ -132,39 +158,38 @@ export default function SolucionesPage() {
               Soluciones para Cada Necesidad
             </h2>
             <p className="text-lg text-gray-600 dark:text-white/70 max-w-2xl mx-auto">
-              Adaptable a diferentes sectores y escalas de operación, con resultados medibles
+              Adaptable a diferentes sectores y escalas de operación, con
+              resultados medibles
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 mb-12">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
+           <motion.div
+              initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-orange-500/10 to-orange-600/10 border border-orange-500/20"
+              className="relative aspect-video rounded-2xl overflow-hidden border border-orange-500/20"
             >
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <Building2 className="h-20 w-20 mx-auto mb-4 text-orange-500 opacity-50" />
-                  <p className="text-sm font-medium">Imagen: Dispositivo IoT Instalado</p>
-                  <p className="text-xs opacity-75 mt-1">Medidor con tecnología integrada</p>
-                </div>
-              </div>
+              <Image
+                src="/Instalación-arduino-medidor.png"
+                alt="Medidor con tecnología integrada"
+                fill
+                className="object-contain"
+              />
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-orange-500/10 to-orange-600/10 border border-orange-500/20"
+              className="relative aspect-video rounded-2xl overflow-hidden border border-orange-500/20"
             >
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <Smartphone className="h-20 w-20 mx-auto mb-4 text-orange-500 opacity-50" />
-                  <p className="text-sm font-medium">Imagen: Dashboard en Uso</p>
-                  <p className="text-xs opacity-75 mt-1">Plataforma web de monitoreo</p>
-                </div>
-              </div>
+              <Image
+                src="/Dashboard cliente.webp"
+                alt="Dashboard plataforma web de monitoreo"
+                fill
+                className="object-contain"
+              />
             </motion.div>
           </div>
 
@@ -185,22 +210,32 @@ export default function SolucionesPage() {
                       </div>
 
                       <div>
-                        <h3 className="text-2xl md:text-3xl font-bold mb-3">{solution.title}</h3>
-                        <p className="text-gray-600 dark:text-white/80 mb-6 text-lg">{solution.description}</p>
-                        
+                        <h3 className="text-2xl md:text-3xl font-bold mb-3">
+                          {solution.title}
+                        </h3>
+                        <p className="text-gray-600 dark:text-white/80 mb-6 text-lg">
+                          {solution.description}
+                        </p>
+
                         <div className="space-y-3">
                           {solution.benefits.map((benefit, idx) => (
                             <div key={idx} className="flex items-start gap-3">
                               <CheckCircle2 className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
-                              <span className="text-gray-700 dark:text-white/90">{benefit}</span>
+                              <span className="text-gray-700 dark:text-white/90">
+                                {benefit}
+                              </span>
                             </div>
                           ))}
                         </div>
                       </div>
 
                       <div className="text-center bg-orange-50 dark:bg-orange-900/10 rounded-xl p-6 min-w-[180px]">
-                        <div className="text-4xl font-bold text-orange-500 mb-2">{solution.stats.value}</div>
-                        <div className="text-sm text-gray-600 dark:text-white/70">{solution.stats.label}</div>
+                        <div className="text-4xl font-bold text-orange-500 mb-2">
+                          {solution.stats.value}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-white/70">
+                          {solution.stats.label}
+                        </div>
                       </div>
                     </div>
                   </CardContent>
@@ -211,7 +246,6 @@ export default function SolucionesPage() {
         </div>
       </section>
 
-  
       <section className="py-20 px-4 bg-gray-50 dark:bg-black">
         <div className="container mx-auto">
           <div className="text-center mb-16">
@@ -219,7 +253,8 @@ export default function SolucionesPage() {
               Características de Nuestra Tecnología
             </h2>
             <p className="text-lg text-gray-600 dark:text-white/70 max-w-2xl mx-auto">
-              Solución integral que automatiza procesos, reduce costos operativos y mejora la experiencia del cliente
+              Solución integral que automatiza procesos, reduce costos
+              operativos y mejora la experiencia del cliente
             </p>
           </div>
 
@@ -227,8 +262,12 @@ export default function SolucionesPage() {
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
                 <Zap className="h-24 w-24 mx-auto mb-4 text-orange-500 opacity-50" />
-                <p className="text-lg font-medium">Video: Proceso Completo de Reconexión</p>
-                <p className="text-sm opacity-75 mt-2">Desde el pago hasta la reposición automática en minutos</p>
+                <p className="text-lg font-medium">
+                  Video: Proceso Completo de Reconexión
+                </p>
+                <p className="text-sm opacity-75 mt-2">
+                  Desde el pago hasta la reposición automática en minutos
+                </p>
               </div>
             </div>
           </div>
@@ -247,8 +286,12 @@ export default function SolucionesPage() {
                     <div className="w-12 h-12 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center mb-4">
                       <feature.icon className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                     </div>
-                    <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-                    <p className="text-gray-600 dark:text-white/80 leading-relaxed">{feature.description}</p>
+                    <h3 className="text-xl font-semibold mb-3">
+                      {feature.title}
+                    </h3>
+                    <p className="text-gray-600 dark:text-white/80 leading-relaxed">
+                      {feature.description}
+                    </p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -271,7 +314,8 @@ export default function SolucionesPage() {
               ¿Listo para Transformar tu Gestión Eléctrica?
             </h2>
             <p className="text-xl mb-8 text-white/90">
-              Agenda una demo gratuita y descubre cómo podemos optimizar tus operaciones
+              Agenda una demo gratuita y descubre cómo podemos optimizar tus
+              operaciones
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/formulario">
@@ -280,7 +324,11 @@ export default function SolucionesPage() {
                 </Button>
               </Link>
               <Link href="/auth/login">
-                <Button size="lg" variant="outline" className="bg-white/10 text-white border-white hover:bg-white/20">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="bg-white/10 text-white border-white hover:bg-white/20"
+                >
                   Acceder a la Plataforma
                 </Button>
               </Link>

@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
+import { ElectricBolt } from "@/components/ui/electric-bolt";
 
 export interface LoadingStateProps {
   message?: string;
@@ -16,16 +16,14 @@ export function LoadingState({
   size = "md",
   className,
 }: LoadingStateProps) {
-  const sizeClasses = {
-    sm: "h-4 w-4",
-    md: "h-8 w-8",
-    lg: "h-12 w-12",
-  };
+  const sizeMap = { sm: 24, md: 40, lg: 56 };
 
   const content = (
     <div className={cn("flex flex-col items-center justify-center gap-4", className)}>
-      <Loader2 className={cn("animate-spin text-primary", sizeClasses[size])} />
-      {message && <p className="text-sm text-muted-foreground">{message}</p>}
+      <ElectricBolt size={sizeMap[size]} animated />
+      {message && (
+        <p className="text-sm text-muted-foreground animate-pulse">{message}</p>
+      )}
     </div>
   );
 

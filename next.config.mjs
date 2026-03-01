@@ -1,4 +1,3 @@
-import withPWA from 'next-pwa';
 import crypto from 'crypto';
 
 /** @type {import('next').NextConfig} */
@@ -29,6 +28,12 @@ const nextConfig = {
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "electricautomaticchile-images.s3.us-east-1.amazonaws.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 60,
@@ -55,7 +60,7 @@ const nextConfig = {
     if (isServer) {
       config.externals.push("serialport", "@serialport/bindings-cpp");
     }
-    
+
     config.optimization = {
       ...config.optimization,
       splitChunks: {
@@ -106,7 +111,7 @@ const nextConfig = {
         minSize: 20000,
       },
     };
-    
+
     return config;
   },
   generateBuildId: async () => {
@@ -115,11 +120,9 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
+  watchOptions: {
+    ignored: ['**/.git/**', '**/node_modules/**', 'C:\\*.sys', 'C:\\*.tmp'],
+  },
 };
 
-export default withPWA({
-  dest: 'public',
-  register: true,
-  skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
-})(nextConfig);
+export default nextConfig;

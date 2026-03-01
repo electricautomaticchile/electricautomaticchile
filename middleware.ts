@@ -34,28 +34,21 @@ const logger = new MiddlewareLogger();
 // Función para verificar JWT
 async function verifyJWT(token: string): Promise<JWTPayload | null> {
   try {
+    // Decodificar si viene URL-encoded
+    const decoded = token.includes('%') ? decodeURIComponent(token) : token;
 
-
-    // Validar que JWT_SECRET esté configurado
     if (!process.env.JWT_SECRET) {
-      logger.error(
-        "JWT_SECRET no está configurado en las variables de entorno"
-      );
+      logger.error("JWT_SECRET no está configurado en las variables de entorno");
       throw new Error("Configuración de seguridad faltante");
     }
 
-    // Validar que el secreto tenga longitud mínima segura
     if (process.env.JWT_SECRET.length < 32) {
       logger.error("JWT_SECRET debe tener al menos 32 caracteres");
       throw new Error("Configuración de seguridad insuficiente");
     }
 
-    logger.info(
-      `Verificando JWT con secret de ${process.env.JWT_SECRET.length} caracteres`
-    );
-
     const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-    const { payload } = await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(decoded, secret);
 
     logger.info("JWT verificado exitosamente");
     return payload as unknown as JWTPayload;
@@ -76,8 +69,8 @@ const protectedRoutes = [
 
 // Rutas públicas que no requieren autenticación
 const publicRoutes = [
-  "/cliente/login",
-  "/empresa/login",
+  "/cliente-login",
+  "/empresa-login",
 ];
 
 // Función para verificar si una ruta está protegida
@@ -148,9 +141,9 @@ export async function middleware(request: NextRequest) {
   if (!tokenPayload) {
     logger.warn(`Acceso denegado - Sin token válido para: ${pathname}`);
 
-    let loginUrl = "/cliente/login";
+    let loginUrl = "/cliente-login";
     if (pathname.startsWith("/empresa")) {
-      loginUrl = "/empresa/login";
+      loginUrl = "/empresa-login";
     }
 
     const url = new URL(loginUrl, request.url);
@@ -174,9 +167,9 @@ export async function middleware(request: NextRequest) {
       tipoUsuario,
     });
 
-    let loginUrl = "/cliente/login";
+    let loginUrl = "/cliente-login";
     if (pathname.startsWith("/empresa")) {
-      loginUrl = "/empresa/login";
+      loginUrl = "/empresa-login";
     }
 
     const url = new URL(loginUrl, request.url);
@@ -191,7 +184,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/cliente",
     "/cliente/:path*",
+    "/empresa",
     "/empresa/:path*",
   ],
 };
