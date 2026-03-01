@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useWebSocket } from '@/lib/websocket/useWebSocket';
+import { useWebSocket } from '@/hooks/useWebSocket';
 
 type WebSocketEventHandler = (data: any) => void;
 
@@ -8,7 +8,7 @@ export function useWebSocketEvents(
   handler: WebSocketEventHandler,
   dependencies: any[] = []
 ) {
-  const { socket } = useWebSocket();
+  const { socket } = useWebSocket({ url: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000' });
 
   useEffect(() => {
     if (!socket) return;

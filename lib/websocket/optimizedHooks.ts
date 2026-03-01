@@ -1,125 +1,49 @@
-/**
- * Optimized WebSocket Hooks
- * 
- * Performance-optimized hooks for WebSocket event handling
- * - Prevents unnecessary re-renders
- * - Throttles UI updates to 60fps
- * - Uses memoization for expensive computations
- */
-
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useWebSocket } from './useWebSocket';
 import { throttleRAF, createEventBuffer } from './performanceUtils';
 import type { EventEntry } from './performanceUtils';
+import type { WSMessage } from './useWebSocket';
 
-/**
- * Optimized hook for listening to WebSocket events with throttling
- * Automatically throttles updates to 60fps using requestAnimationFrame
- * 
- * @param evento - Event name to listen to
- * @param onData - Callback when data is received (throttled)
- * @param deps - Dependencies for the callback
- */
 export function useWebSocketThrottled<T = any>(
   evento: string,
   onData: (data: T) => void,
   deps: React.DependencyList = []
 ) {
-  // Memoize the throttled handler
-  const throttledHandler = useMemo(
-    () => throttleRAF(onData),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    deps
-  );
+  const throttledHandler = useMemo(() => throttleRAF(onData), deps);
 
-  useWebSocket(evento, throttledHandler);
+  useWebSocket({
+    onMessage: (msg: WSMessage) => {
+      if (msg.type === evento) throttledHandler(msg.data as T);
+    },
+  });
 }
 
-/**
- * Hook for managing event history with automatic memory management
- * Keeps only the most recent N events in memory
- * 
- * @param evento - Event name to listen to
- * @param maxEvents - Maximum number of events to keep (default: 100)
- * @param autoCleanup - Enable automatic cleanup of old events
- * @returns Event history and management functions
- */
 export function useWebSocketHistory<T = any>(
   evento: string,
   maxEvents: number = 100,
   autoCleanup: boolean = true
 ) {
   const [events, setEvents] = useState<EventEntry<T>[]>([]);
-  const bufferRef = useRef(
-    createEventBuffer<T>({
-      maxSize: maxEvents,
-      cleanupInterval: 60000, // Cleanup every minute
-    })
-  );
+  const bufferRef = useRef(createEventBuffer<T>({ maxSize: maxEvents, cleanupInterval: 60000 }));
 
   useEffect(() => {
     const buffer = bufferRef.current;
-
-    if (autoCleanup) {
-      // Clean up events older than 5 minutes
-      buffer.startAutoCleanup(5 * 60 * 1000);
-    }
-
-    return () => {
-      buffer.stopAutoCleanup();
-      buffer.clear();
-    };
+    if (autoCleanup) buffer.startAutoCleanup(5 * 60 * 1000);
+    return () => { buffer.stopAutoCleanup(); buffer.clear(); };
   }, [autoCleanup]);
 
-  // Throttled state update to prevent excessive re-renders
-  const updateState = useMemo(
-    () =>
-      throttleRAF(() => {
-        setEvents(bufferRef.current.getAll());
-      }),
-    []
-  );
+  const updateState = useMemo(() => throttleRAF(() => setEvents(bufferRef.current.getAll())), []);
 
-  const handleEvent = useCallback(
-    (data: T) => {
-      bufferRef.current.add(data);
-      updateState();
-    },
-    [updateState]
-  );
+  const handleEvent = useCallback((data: T) => { bufferRef.current.add(data); updateState(); }, [updateState]);
 
-  useWebSocket(evento, handleEvent);
+  useWebSocket({ onMessage: (msg: WSMessage) => { if (msg.type === evento) handleEvent(msg.data as T); } });
 
-  // Memoized helper functions
-  const getRecent = useCallback(
-    (timeWindowMs: number) => {
-      return bufferRef.current.getRecent(timeWindowMs);
-    },
-    []
-  );
+  const getRecent = useCallback((timeWindowMs: number) => bufferRef.current.getRecent(timeWindowMs), []);
+  const clear = useCallback(() => { bufferRef.current.clear(); setEvents([]); }, []);
 
-  const clear = useCallback(() => {
-    bufferRef.current.clear();
-    setEvents([]);
-  }, []);
-
-  return {
-    events,
-    getRecent,
-    clear,
-    size: events.length,
-  };
+  return { events, getRecent, clear, size: events.length };
 }
 
-/**
- * Hook for aggregating rapid events into a single state update
- * Useful for sensor data that arrives very frequently
- * 
- * @param evento - Event name to listen to
- * @param aggregator - Function to aggregate multiple events
- * @param windowMs - Time window for aggregation (default: 100ms)
- * @returns Aggregated data
- */
 export function useWebSocketAggregated<T = any, R = T>(
   evento: string,
   aggregator: (events: T[]) => R,
@@ -131,98 +55,44 @@ export function useWebSocketAggregated<T = any, R = T>(
 
   const processBuffer = useCallback(() => {
     if (eventsBuffer.current.length > 0) {
-      const result = aggregator(eventsBuffer.current);
-      setAggregatedData(result);
+      setAggregatedData(aggregator(eventsBuffer.current));
       eventsBuffer.current = [];
     }
     timerRef.current = null;
   }, [aggregator]);
 
-  const handleEvent = useCallback(
-    (data: T) => {
-      eventsBuffer.current.push(data);
+  const handleEvent = useCallback((data: T) => {
+    eventsBuffer.current.push(data);
+    if (!timerRef.current) timerRef.current = setTimeout(processBuffer, windowMs);
+  }, [processBuffer, windowMs]);
 
-      if (!timerRef.current) {
-        timerRef.current = setTimeout(processBuffer, windowMs);
-      }
-    },
-    [processBuffer, windowMs]
-  );
+  useWebSocket({ onMessage: (msg: WSMessage) => { if (msg.type === evento) handleEvent(msg.data as T); } });
 
-  useWebSocket(evento, handleEvent);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, []);
+  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
 
   return aggregatedData;
 }
 
-/**
- * Hook for latest event data with automatic stale data detection
- * Only triggers re-render when data actually changes
- * 
- * @param evento - Event name to listen to
- * @param staleTimeMs - Time after which data is considered stale (default: 30s)
- * @returns Latest data and metadata
- */
-export function useWebSocketLatest<T = any>(
-  evento: string,
-  staleTimeMs: number = 30000
-) {
+export function useWebSocketLatest<T = any>(evento: string, staleTimeMs: number = 30000) {
   const [data, setData] = useState<T | null>(null);
   const [lastUpdate, setLastUpdate] = useState<number>(0);
   const [isStale, setIsStale] = useState(false);
 
-  // Throttled update to prevent excessive re-renders
-  const handleEvent = useMemo(
-    () =>
-      throttleRAF((newData: T) => {
-        setData(newData);
-        setLastUpdate(Date.now());
-        setIsStale(false);
-      }),
-    []
-  );
+  const handleEvent = useMemo(() => throttleRAF((newData: T) => {
+    setData(newData); setLastUpdate(Date.now()); setIsStale(false);
+  }), []);
 
-  useWebSocket(evento, handleEvent);
+  useWebSocket({ onMessage: (msg: WSMessage) => { if (msg.type === evento) handleEvent(msg.data as T); } });
 
-  // Check for stale data
   useEffect(() => {
     if (lastUpdate === 0) return;
-
-    const checkStale = () => {
-      const now = Date.now();
-      const timeSinceUpdate = now - lastUpdate;
-      setIsStale(timeSinceUpdate > staleTimeMs);
-    };
-
-    const interval = setInterval(checkStale, 5000); // Check every 5 seconds
-
+    const interval = setInterval(() => setIsStale(Date.now() - lastUpdate > staleTimeMs), 5000);
     return () => clearInterval(interval);
   }, [lastUpdate, staleTimeMs]);
 
-  return {
-    data,
-    lastUpdate,
-    isStale,
-    timeSinceUpdate: lastUpdate ? Date.now() - lastUpdate : null,
-  };
+  return { data, lastUpdate, isStale, timeSinceUpdate: lastUpdate ? Date.now() - lastUpdate : null };
 }
 
-/**
- * Hook for batched WebSocket events
- * Collects multiple events and processes them in batches
- * 
- * @param evento - Event name to listen to
- * @param onBatch - Callback for processing batches
- * @param batchSize - Maximum batch size (default: 10)
- * @param maxWaitMs - Maximum wait time before processing (default: 100ms)
- */
 export function useWebSocketBatched<T = any>(
   evento: string,
   onBatch: (batch: T[]) => void,
@@ -233,66 +103,28 @@ export function useWebSocketBatched<T = any>(
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const flush = useCallback(() => {
-    if (batchRef.current.length > 0) {
-      onBatch([...batchRef.current]);
-      batchRef.current = [];
-    }
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
+    if (batchRef.current.length > 0) { onBatch([...batchRef.current]); batchRef.current = []; }
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
   }, [onBatch]);
 
-  const handleEvent = useCallback(
-    (data: T) => {
-      batchRef.current.push(data);
+  const handleEvent = useCallback((data: T) => {
+    batchRef.current.push(data);
+    if (batchRef.current.length >= batchSize) { flush(); return; }
+    if (!timerRef.current) timerRef.current = setTimeout(flush, maxWaitMs);
+  }, [batchSize, maxWaitMs, flush]);
 
-      // Flush if batch is full
-      if (batchRef.current.length >= batchSize) {
-        flush();
-        return;
-      }
+  useWebSocket({ onMessage: (msg: WSMessage) => { if (msg.type === evento) handleEvent(msg.data as T); } });
 
-      // Set timer to flush after max wait time
-      if (!timerRef.current) {
-        timerRef.current = setTimeout(flush, maxWaitMs);
-      }
-    },
-    [batchSize, maxWaitMs, flush]
-  );
-
-  useWebSocket(evento, handleEvent);
-
-  useEffect(() => {
-    return () => {
-      flush();
-    };
-  }, [flush]);
+  useEffect(() => () => { flush(); }, [flush]);
 }
 
-/**
- * Hook for conditional WebSocket listening
- * Only subscribes to events when condition is met
- * Prevents unnecessary event processing
- * 
- * @param evento - Event name to listen to
- * @param onData - Callback when data is received
- * @param condition - Whether to listen to events
- */
 export function useWebSocketConditional<T = any>(
   evento: string,
   onData: (data: T) => void,
   condition: boolean
 ) {
-  const { escuchar, dejarDeEscuchar } = useWebSocket();
-
-  useEffect(() => {
-    if (!condition) return;
-
-    escuchar(evento, onData);
-
-    return () => {
-      dejarDeEscuchar(evento);
-    };
-  }, [evento, onData, condition, escuchar, dejarDeEscuchar]);
+  useWebSocket({
+    enabled: condition,
+    onMessage: (msg: WSMessage) => { if (msg.type === evento) onData(msg.data as T); },
+  });
 }
