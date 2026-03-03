@@ -7,13 +7,26 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { apiClient } from "@/lib/api/client";
-import { User, Hash, Lock, AlertCircle } from "lucide-react";
+import { User, CreditCard, Lock, AlertCircle } from "lucide-react";
+
+function formatRut(value: string): string {
+  const clean = value.replace(/[^0-9kK]/g, "").toUpperCase();
+  if (clean.length <= 1) return clean;
+  const dv = clean.slice(-1);
+  const body = clean.slice(0, -1);
+  const formatted = body.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return `${formatted}-${dv}`;
+}
 
 export default function LoginClientePage() {
-  const [numeroCliente, setNumeroCliente] = useState("");
+  const [rut, setRut] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRut(formatRut(e.target.value));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +34,7 @@ export default function LoginClientePage() {
     setLoading(true);
 
     try {
-      const { data } = await apiClient.post('/api/auth/login', { numeroCliente, password });
+      const { data } = await apiClient.post('/api/auth/login', { rut, password });
 
       const isProduction = window.location.protocol === 'https:';
       const cookieOptions = `path=/; max-age=${24 * 60 * 60}; samesite=lax${isProduction ? '; secure' : ''}`;
@@ -60,7 +73,7 @@ export default function LoginClientePage() {
             </div>
           </div>
           <CardTitle className="text-2xl font-bold">Portal Clientes</CardTitle>
-          <CardDescription>Ingresa con tu número de cliente</CardDescription>
+          <CardDescription>Ingresa con tu RUT</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -71,15 +84,15 @@ export default function LoginClientePage() {
               </Alert>
             )}
             <div className="space-y-2">
-              <Label htmlFor="numeroCliente">Número de Cliente</Label>
+              <Label htmlFor="rut">RUT</Label>
               <div className="relative">
-                <Hash className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <CreditCard className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
-                  id="numeroCliente"
+                  id="rut"
                   type="text"
-                  placeholder="1234567-8"
-                  value={numeroCliente}
-                  onChange={(e) => setNumeroCliente(e.target.value)}
+                  placeholder="12.345.678-9"
+                  value={rut}
+                  onChange={handleRutChange}
                   className="pl-10"
                   required
                 />
