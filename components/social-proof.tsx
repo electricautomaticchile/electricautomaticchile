@@ -74,7 +74,7 @@ export function SocialProof() {
                 ))}
               </div>
               <p className="text-sm text-white/60 mb-4 leading-relaxed">
-                "{t.texto}"
+                &ldquo;{t.texto}&rdquo;
               </p>
               <div>
                 <div className="font-semibold text-white text-sm">{t.nombre}</div>

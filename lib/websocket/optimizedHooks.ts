@@ -9,6 +9,7 @@ export function useWebSocketThrottled<T = any>(
   onData: (data: T) => void,
   deps: React.DependencyList = []
 ) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const throttledHandler = useMemo(() => throttleRAF(onData), deps);
 
   useWebSocket({
