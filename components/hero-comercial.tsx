@@ -309,10 +309,10 @@ export function HeroComercial() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 pb-20">
           {[
-            { icon: Building2, title: "Compañías Eléctricas", desc: "Gestión masiva con reducción de costos del 70%", gradient: "from-blue-500 to-blue-600" },
-            { icon: Users, title: "Condominios", desc: "Control centralizado con facturación individual", gradient: "from-green-500 to-green-600" },
-            { icon: Building2, title: "Industrias", desc: "Optimización energética con análisis por área", gradient: "from-purple-500 to-purple-600" },
-            { icon: Building2, title: "Comercios", desc: "Control remoto de múltiples sucursales", gradient: "from-orange-400 to-orange-500" },
+            { icon: Building2, title: "Compañías Eléctricas", desc: "Gestión masiva con reducción de costos del 70%", gradient: "from-blue-500 to-blue-600", href: "/empresas-electricidad" },
+            { icon: Users, title: "Condominios", desc: "Control centralizado con facturación individual", gradient: "from-green-500 to-green-600", href: "/condominios" },
+            { icon: Building2, title: "Industrias", desc: "Optimización energética con análisis por área", gradient: "from-purple-500 to-purple-600", href: "/industrias" },
+            { icon: Building2, title: "Comercios", desc: "Control remoto de múltiples sucursales", gradient: "from-orange-400 to-orange-500", href: "/comercios" },
           ].map((item, i) => (
             <motion.div
               key={item.title}
@@ -329,7 +329,7 @@ export function HeroComercial() {
                 </div>
                 <h3 className="text-base font-bold text-white mb-2">{item.title}</h3>
                 <p className="text-sm text-white/50 mb-4">{item.desc}</p>
-                <Link href="/soluciones" className="inline-flex items-center gap-1 text-orange-400 text-sm font-medium group-hover:gap-2 transition-all">
+                <Link href={item.href} className="inline-flex items-center gap-1 text-orange-400 text-sm font-medium group-hover:gap-2 transition-all">
                   Ver más <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>

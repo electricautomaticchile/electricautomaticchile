@@ -1,7 +1,47 @@
 import crypto from 'crypto';
 
+const isDev = process.env.NODE_ENV === 'development';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async headers() {
+    const connectSrc = [
+      "'self'",
+      "https://api-electricautomaticchile.com",
+      "https://api.notion.com",
+      "https://www.google-analytics.com",
+      ...(isDev ? ["http://localhost:4000", "ws://localhost:3000"] : []),
+    ].join(' ');
+
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-DNS-Prefetch-Control', value: 'on' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()' },
+          ...(!isDev ? [{
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          }] : []),
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob: https:",
+              "font-src 'self'",
+              `connect-src ${connectSrc}`,
+              "frame-ancestors 'none'",
+            ].join('; '),
+          },
+        ],
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
@@ -31,6 +71,20 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "electricautomaticchile-images.s3.us-east-1.amazonaws.com",
+        port: "",
+        pathname: "/**",
+      },
+      // Notion hosted images (uploaded files)
+      {
+        protocol: "https",
+        hostname: "prod-files-secure.s3.us-west-2.amazonaws.com",
+        port: "",
+        pathname: "/**",
+      },
+      // Notion external images
+      {
+        protocol: "https",
+        hostname: "*.notion.so",
         port: "",
         pathname: "/**",
       },
@@ -120,9 +174,6 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
-  watchOptions: {
-    ignored: ['**/.git/**', '**/node_modules/**', 'C:\\*.sys', 'C:\\*.tmp'],
-  },
 };
 
 export default nextConfig;

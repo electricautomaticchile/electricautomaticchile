@@ -106,6 +106,13 @@ export default function Component() {
               >
                 Contacto
               </Link>
+              <Link
+                href="/blog"
+                className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-orange-500"
+                prefetch={false}
+              >
+                Blog
+              </Link>
               {!isAuthenticated ? (
                 <>
                   <Link
@@ -185,6 +192,15 @@ export default function Component() {
                 prefetch={false}
               >
                 Contacto
+              </Link>
+            </NavigationMenuLink>
+            <NavigationMenuLink asChild>
+              <Link
+                href="/blog"
+                className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+                prefetch={false}
+              >
+                Blog
               </Link>
             </NavigationMenuLink>
           </NavigationMenuList>

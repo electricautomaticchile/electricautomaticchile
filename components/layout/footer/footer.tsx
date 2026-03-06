@@ -30,6 +30,15 @@ export default function Component() {
                 Términos y condiciones
               </span>
             </Link>
+            <Link
+              href="/privacidad"
+              className="flex hover:text-orange-500 transition-colors"
+              prefetch={false}
+            >
+              <span className="text-base font-medium">
+                Política de privacidad
+              </span>
+            </Link>
           </div>
 
           {/* Páginas */}
