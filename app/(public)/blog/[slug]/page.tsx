@@ -6,6 +6,7 @@ import { getPostBySlug, getPostBlocks, getPublishedPosts } from "@/lib/notion";
 import { notFound } from "next/navigation";
 import type { BlockObjectResponse } from "@notionhq/client/build/src/api-endpoints";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function generateStaticParams() {

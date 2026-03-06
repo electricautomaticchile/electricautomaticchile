@@ -66,7 +66,7 @@ export async function getPublishedPosts(): Promise<BlogPost[]> {
       filter: { property: "Estado", select: { equals: "Publicado" } },
       sorts: [{ property: "Fecha", direction: "descending" }],
     }),
-    next: { revalidate: 60 },
+    cache: "no-store",
   });
   const data = await res.json();
   const posts: BlogPost[] = await Promise.all(
@@ -88,7 +88,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
     body: JSON.stringify({
       filter: { property: "Slug", rich_text: { equals: slug } },
     }),
-    next: { revalidate: 60 },
+    cache: "no-store",
   });
   const data = await res.json();
   if (!data.results?.length) return null;
