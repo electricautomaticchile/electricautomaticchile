@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { useUserId, useIsAuthenticated } from "@/store/useAppStore";
 import { estadisticasService } from "@/lib/api/services/estadisticasService";
-import { reportesService } from "@/lib/api/services/reportesService";
+import { ReportesService } from "@/lib/api/services/reportesService";
 import {
   DatoConsumo,
   EstadisticasResumen,
@@ -112,52 +112,11 @@ export function useEstadisticasConsumo() {
           mostrarModal: true,
         });
 
-        const config = {
-          formato,
-          filtros: {
-            periodo: periodoSeleccionado,
-            subtipo: tipo,
-            incluirCostos: true,
-            incluirEficiencia: true,
-          },
-          titulo: `Estadísticas de Consumo ${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`,
-          incluirGraficos: true,
-          incluirResumen: true,
-        };
-
         // Usar el método específico para PDF si corresponde
         if (formato === "pdf") {
-          await reportesService.descargarReporteEstadisticasPDF(
-            tipo,
-            config,
-            (progreso: {
-              step: string;
-              percentage: number;
-              message: string;
-            }) => {
-              setEstadoExportacion((prev) => ({
-                ...prev,
-                estado: "descargando",
-                progreso,
-              }));
-            }
-          );
+          await ReportesService.consumoPDF();
         } else {
-          await reportesService.descargarReporteEstadisticas(
-            tipo,
-            config,
-            (progreso: {
-              step: string;
-              percentage: number;
-              message: string;
-            }) => {
-              setEstadoExportacion((prev) => ({
-                ...prev,
-                estado: "descargando",
-                progreso,
-              }));
-            }
-          );
+          await ReportesService.consumoExcel();
         }
 
         setEstadoExportacion((prev) => ({
@@ -198,7 +157,7 @@ export function useEstadisticasConsumo() {
         });
       }
     },
-    [periodoSeleccionado]
+    []
   );
 
   // Cerrar modal de exportación

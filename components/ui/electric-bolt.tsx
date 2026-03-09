@@ -17,7 +17,8 @@ export function ElectricBolt({ className, size = 40, animated = true }: Electric
       viewBox="0 0 40 40"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={cn(className)}
+      className={cn("overflow-visible", className)}
+      style={{ overflow: "visible" }}
     >
       <style>{`
         @keyframes bolt-glow {
@@ -25,8 +26,8 @@ export function ElectricBolt({ className, size = 40, animated = true }: Electric
           50% { filter: drop-shadow(0 0 8px #f97316) drop-shadow(0 0 16px #fb923c); opacity: 0.85; }
         }
         @keyframes bolt-spark {
-          0%, 100% { opacity: 0; transform: scale(0.5); }
-          50% { opacity: 1; transform: scale(1); }
+          0%, 100% { opacity: 0; }
+          50% { opacity: 1; }
         }
         .bolt-main { ${animated ? "animation: bolt-glow 2s ease-in-out infinite;" : ""} }
         .bolt-spark { ${animated ? "animation: bolt-spark 1.5s ease-in-out infinite;" : ""} }
@@ -44,15 +45,15 @@ export function ElectricBolt({ className, size = 40, animated = true }: Electric
         strokeLinejoin="round"
       />
 
-      {/* Chispas */}
-      <circle className="bolt-spark" cx="8" cy="14" r="1.5" fill="#fb923c" />
+      {/* Chispas — dentro del viewBox */}
+      <circle className="bolt-spark"   cx="8"  cy="14" r="1.5" fill="#fb923c" />
       <circle className="bolt-spark-2" cx="32" cy="26" r="1.5" fill="#fb923c" />
-      <circle className="bolt-spark-3" cx="6" cy="28" r="1" fill="#fdba74" />
-      <circle className="bolt-spark" cx="34" cy="12" r="1" fill="#fdba74" />
+      <circle className="bolt-spark-3" cx="7"  cy="28" r="1"   fill="#fdba74" />
+      <circle className="bolt-spark"   cx="33" cy="12" r="1"   fill="#fdba74" />
 
       {/* Líneas de energía */}
-      <line className="bolt-spark-2" x1="4" y1="20" x2="8" y2="20" stroke="#fb923c" strokeWidth="1.5" strokeLinecap="round" />
-      <line className="bolt-spark-3" x1="32" y1="20" x2="36" y2="20" stroke="#fb923c" strokeWidth="1.5" strokeLinecap="round" />
+      <line className="bolt-spark-2" x1="5"  y1="20" x2="9"  y2="20" stroke="#fb923c" strokeWidth="1.5" strokeLinecap="round" />
+      <line className="bolt-spark-3" x1="31" y1="20" x2="35" y2="20" stroke="#fb923c" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }

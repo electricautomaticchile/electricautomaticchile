@@ -2,48 +2,53 @@
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Menu, LogOut } from "lucide-react";
-import {
-  NavigationMenu,
-  NavigationMenuList,
-  NavigationMenuLink,
-} from "@/components/ui/navigation-menu";
+import { Menu, LogOut, Zap, ChevronRight } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
-export default function Component() {
-  const router = useRouter();
+const navLinks = [
+  { href: "/", label: "Inicio" },
+  { href: "/soluciones", label: "Soluciones" },
+  { href: "/acerca-de", label: "Nosotros" },
+  { href: "/formulario", label: "Contacto" },
+  { href: "/blog", label: "Blog" },
+];
+
+export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [portalHref, setPortalHref] = useState("/cliente");
+  const pathname = usePathname();
 
-  // Efecto para detectar scroll
-  useEffect(() => {
-    const handleScroll = () => {
-      const offset = window.scrollY;
-      if (offset > 50) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
+  const checkAuth = useCallback(() => {
+    const cookies = document.cookie.split(";");
+    const tokenCookie = cookies.find((c) => c.trim().startsWith("auth_token="));
+    const hasToken = !!tokenCookie && tokenCookie.split("=").slice(1).join("=").trim().length > 10;
+    setIsAuthenticated(hasToken);
+    if (hasToken) {
+      const userCookie = cookies.find((c) => c.trim().startsWith("user_data="));
+      if (userCookie) {
+        try {
+          const userData = JSON.parse(decodeURIComponent(userCookie.split("=").slice(1).join("=")));
+          setPortalHref(userData.tipoUsuario === "empresa" ? "/empresa" : "/cliente");
+        } catch {}
       }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    }
   }, []);
 
   useEffect(() => {
-    const checkAuth = () => {
-      const cookies = document.cookie.split(';');
-      const authCookie = cookies.find(c => c.trim().startsWith('auth_token='));
-      setIsAuthenticated(!!authCookie);
-    };
-    
-    checkAuth();
+    const handleScroll = () => setScrolled(window.scrollY > 40);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Re-verificar auth en cada cambio de ruta
+  useEffect(() => {
+    checkAuth();
+  }, [pathname, checkAuth]);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -54,191 +59,151 @@ export default function Component() {
   };
 
   return (
-    //Diseño dispositos moviles//
     <header
-      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+      className={cn(
+        "sticky top-0 z-50 w-full transition-all duration-500",
         scrolled
-          ? "bg-background/90 dark:bg-black/90 backdrop-blur-md shadow-md"
-          : "bg-background dark:bg-black"
-      }`}
+          ? "glass border-b border-white/10 shadow-lg shadow-black/10"
+          : "bg-transparent"
+      )}
     >
-      <div className="flex h-20 w-full shrink-0 items-center px-4 md:px-20">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="lg:hidden">
-              <Menu color="#e66100" />
-              <span className="sr-only">Toggle navigation menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left">
-            <Link href="/" className="flex flex-col items-center gap-2">
-              <Logo
-                showText={true}
-                className="transition-transform duration-300 group-hover:scale-125"
-              />
+      <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2 shrink-0 group">
+          <div className="relative">
+            <div className="absolute inset-0 bg-orange-500/20 rounded-lg blur-md group-hover:bg-orange-500/30 transition-all duration-300" />
+            <Logo showText={true} className="relative" />
+          </div>
+        </Link>
+
+        {/* Desktop nav */}
+        <nav className="hidden lg:flex items-center gap-1">
+          {navLinks.map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              className="relative px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 rounded-lg hover:bg-orange-500/8 group"
+            >
+              {label}
+              <span className="absolute bottom-1 left-4 right-4 h-px bg-orange-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
             </Link>
-            <div className="grid gap-4 py-6">
-              <Link
-                href="/"
-                className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-orange-500"
-                prefetch={false}
-              >
-                Inicio
-              </Link>
-              <Link
-                href="/acerca-de"
-                className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-orange-500"
-                prefetch={false}
-              >
-                Nosotros
-              </Link>
-              <Link
-                href="/soluciones"
-                className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-orange-500"
-                prefetch={false}
-              >
-                Soluciones
-              </Link>
-              <Link
-                href="/formulario"
-                className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-orange-500"
-                prefetch={false}
-              >
-                Contacto
-              </Link>
-              <Link
-                href="/blog"
-                className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-orange-500"
-                prefetch={false}
-              >
-                Blog
-              </Link>
-              {!isAuthenticated ? (
-                <>
-                  <Link
-                    href="/cliente-login"
-                    className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-blue-500"
-                    prefetch={false}
-                  >
-                    Portal Clientes
-                  </Link>
-                  <Link
-                    href="/empresa-login"
-                    className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-orange-500"
-                    prefetch={false}
-                  >
-                    Portal Empresas
-                  </Link>
-                </>
-              ) : (
-                <button
-                  onClick={handleLogout}
-                  className="flex w-full items-center py-2 text-lg font-semibold transition-colors hover:text-red-500"
-                >
-                  <LogOut className="mr-2 h-5 w-5" />
-                  Cerrar Sesión
-                </button>
-              )}
-            </div>
-          </SheetContent>
-        </Sheet>
+          ))}
+        </nav>
 
-        <div className="w-[400px]">
-          <Link
-            href="/"
-            className="items-center gap-2 mr-6 hidden lg:flex transition-transform duration-300 hover:scale-105"
-            prefetch={false}
-          >
-            <Logo
-              showText={true}
-              className="transition-transform duration-300 group-hover:scale-125"
-            />
-          </Link>
-        </div>
-        <NavigationMenu className="hidden lg:flex">
-          <NavigationMenuList>
-            <NavigationMenuLink asChild>
-              <Link
-                href="/"
-                className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
-                prefetch={false}
-              >
-                Inicio
-              </Link>
-            </NavigationMenuLink>
-
-            <NavigationMenuLink asChild>
-              <Link
-                href="/soluciones"
-                className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
-                prefetch={false}
-              >
-                Soluciones
-              </Link>
-            </NavigationMenuLink>
-            <NavigationMenuLink asChild>
-              <Link
-                href="/acerca-de"
-                className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
-                prefetch={false}
-              >
-                ¿Por qué nosotros?
-              </Link>
-            </NavigationMenuLink>
-            <NavigationMenuLink asChild>
-              <Link
-                href="/formulario"
-                className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
-                prefetch={false}
-              >
-                Contacto
-              </Link>
-            </NavigationMenuLink>
-            <NavigationMenuLink asChild>
-              <Link
-                href="/blog"
-                className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 focus:bg-orange-600 focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
-                prefetch={false}
-              >
-                Blog
-              </Link>
-            </NavigationMenuLink>
-          </NavigationMenuList>
-        </NavigationMenu>
-
-        <div className="ml-auto flex gap-2">
+        {/* Actions */}
+        <div className="hidden lg:flex items-center gap-2">
           {!isAuthenticated ? (
             <>
               <Link href="/cliente-login">
                 <Button
-                  variant="outline"
-                  className="transition-all duration-200 hover:bg-blue-500/10 hover:text-blue-500 hover:border-blue-500"
+                  variant="ghost"
+                  size="sm"
+                  className="text-sm font-medium hover:bg-orange-500/10 hover:text-orange-400 transition-all duration-200"
                 >
                   Portal Clientes
                 </Button>
               </Link>
               <Link href="/empresa-login">
                 <Button
-                  variant="outline"
-                  className="transition-all duration-200 hover:bg-orange-500/10 hover:text-orange-500 hover:border-orange-500"
+                  size="sm"
+                  className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-200 gap-1.5"
                 >
+                  <Zap className="h-3.5 w-3.5" />
                   Portal Empresas
                 </Button>
               </Link>
             </>
           ) : (
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              className="transition-all duration-200 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Cerrar Sesión
-            </Button>
+            <>
+              <Link href={portalHref}>
+                <Button
+                  size="sm"
+                  className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/25 transition-all duration-200 gap-1.5"
+                >
+                  <Zap className="h-3.5 w-3.5" />
+                  Mi Portal
+                </Button>
+              </Link>
+              <Button
+                onClick={handleLogout}
+                variant="ghost"
+                size="sm"
+                className="hover:bg-red-500/10 hover:text-red-400 transition-all duration-200"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Cerrar Sesión
+              </Button>
+            </>
           )}
           <ThemeToggle />
+        </div>
+
+        {/* Mobile menu */}
+        <div className="flex lg:hidden items-center gap-2">
+          <ThemeToggle />
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="hover:bg-orange-500/10">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-72 glass border-l border-white/10">
+              <div className="flex flex-col h-full pt-6">
+                <Link href="/" className="mb-8">
+                  <Logo showText={true} />
+                </Link>
+                <nav className="flex flex-col gap-1 flex-1">
+                  {navLinks.map(({ href, label }) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      className="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-orange-500/8 transition-all duration-200 group"
+                    >
+                      {label}
+                      <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </Link>
+                  ))}
+                </nav>
+                <div className="flex flex-col gap-2 pt-4 border-t border-border">
+                  {!isAuthenticated ? (
+                    <>
+                      <Link href="/cliente-login">
+                        <Button variant="outline" className="w-full justify-start">
+                          Portal Clientes
+                        </Button>
+                      </Link>
+                      <Link href="/empresa-login">
+                        <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white gap-2">
+                          <Zap className="h-4 w-4" />
+                          Portal Empresas
+                        </Button>
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link href={portalHref}>
+                        <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white gap-2">
+                          <Zap className="h-4 w-4" />
+                          Mi Portal
+                        </Button>
+                      </Link>
+                      <Button
+                        onClick={handleLogout}
+                        variant="ghost"
+                        className="w-full justify-start hover:bg-red-500/10 hover:text-red-400"
+                      >
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Cerrar Sesión
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>
   );
 }
+

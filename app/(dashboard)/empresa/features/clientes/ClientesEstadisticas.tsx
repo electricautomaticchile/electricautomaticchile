@@ -1,16 +1,5 @@
 "use client";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Users,
-  UserCheck,
-  UserX,
-  Building2,
-  TrendingUp,
-  TrendingDown,
-  DollarSign,
-  Calendar,
-} from "lucide-react";
+import { Users, UserCheck, UserX, Building2, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
 
 export interface EstadisticasData {
   totalClientes: number;
@@ -28,162 +17,91 @@ interface ClientesEstadisticasProps {
   loading?: boolean;
 }
 
-export function ClientesEstadisticas({
-  data,
-  loading = false,
-}: ClientesEstadisticasProps) {
+export function ClientesEstadisticas({ data, loading = false }: ClientesEstadisticasProps) {
   if (loading) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardContent className="p-4">
-              <div className="space-y-2">
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-              </div>
-            </CardContent>
-          </Card>
+          <div key={i} className="animate-pulse bg-white/5 border border-white/10 rounded-xl p-4 h-24" />
         ))}
       </div>
     );
   }
 
-  const porcentajeActivos =
-    data.totalClientes > 0
-      ? Math.round((data.clientesActivos / data.totalClientes) * 100)
-      : 0;
-
-  const porcentajeEmpresas =
-    data.totalClientes > 0
-      ? Math.round((data.clientesEmpresas / data.totalClientes) * 100)
-      : 0;
+  const porcentajeActivos = data.totalClientes > 0
+    ? Math.round((data.clientesActivos / data.totalClientes) * 100) : 0;
 
   const estadisticas = [
     {
       titulo: "Total Clientes",
       valor: data.totalClientes.toLocaleString(),
-      detalle: `${data.clientesActivos} activos`,
+      detalle: `${data.nuevosEsteMes} nuevos este mes`,
       icono: Users,
-      color: "blue",
-      trend:
-        data.crecimientoMensual > 0
-          ? "up"
-          : data.crecimientoMensual < 0
-            ? "down"
-            : "neutral",
+      trend: data.crecimientoMensual > 0 ? "up" : data.crecimientoMensual < 0 ? "down" : null,
       trendValue: Math.abs(data.crecimientoMensual),
+      accent: "orange",
     },
     {
-      titulo: "Clientes Activos",
+      titulo: "Activos",
       valor: data.clientesActivos.toLocaleString(),
       detalle: `${porcentajeActivos}% del total`,
       icono: UserCheck,
-      color: "green",
-      badge:
-        porcentajeActivos >= 80
-          ? "Excelente"
-          : porcentajeActivos >= 60
-            ? "Bueno"
-            : "Mejorar",
+      accent: "orange",
     },
     {
-      titulo: "Tipo Empresa",
+      titulo: "Inactivos",
+      valor: data.clientesInactivos.toLocaleString(),
+      detalle: `${100 - porcentajeActivos}% del total`,
+      icono: UserX,
+      accent: "red",
+    },
+    {
+      titulo: "Empresas",
       valor: data.clientesEmpresas.toLocaleString(),
-      detalle: `${porcentajeEmpresas}% empresas`,
+      detalle: `${data.clientesParticulares} particulares`,
       icono: Building2,
-      color: "purple",
-    },
-    {
-      titulo: "Ingresos Mensuales",
-      valor: `$${data.ingresosMensuales.toLocaleString()}`,
-      detalle: `${data.nuevosEsteMes} nuevos este mes`,
-      icono: DollarSign,
-      color: "orange",
+      accent: "white",
     },
   ];
 
-  const getColorClasses = (color: string) => {
-    const colorMap = {
-      blue: "bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400",
-      green:
-        "bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400",
-      purple:
-        "bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400",
-      orange:
-        "bg-orange-100 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400",
-    };
-    return colorMap[color as keyof typeof colorMap] || colorMap.blue;
-  };
-
-  const getBadgeVariant = (badge: string) => {
-    if (badge === "Excelente") return "default";
-    if (badge === "Bueno") return "secondary";
-    return "destructive";
-  };
-
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      {estadisticas.map((stat, index) => {
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {estadisticas.map((stat, i) => {
         const Icon = stat.icono;
+        const isRed = stat.accent === "red";
+        const isOrange = stat.accent === "orange";
 
         return (
-          <Card key={index} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <p className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                    {stat.titulo}
-                  </p>
-                  <p className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-1">
-                    {stat.valor}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {stat.detalle}
-                  </p>
-
-                  {/* Indicadores adicionales */}
-                  <div className="flex items-center gap-2 mt-2">
-                    {stat.trend && (
-                      <div
-                        className={`flex items-center gap-1 text-xs ${
-                          stat.trend === "up"
-                            ? "text-green-600 dark:text-green-400"
-                            : stat.trend === "down"
-                              ? "text-red-600 dark:text-red-400"
-                              : "text-gray-500 dark:text-gray-400"
-                        }`}
-                      >
-                        {stat.trend === "up" && (
-                          <TrendingUp className="h-3 w-3" />
-                        )}
-                        {stat.trend === "down" && (
-                          <TrendingDown className="h-3 w-3" />
-                        )}
-                        {stat.trendValue}%
-                      </div>
-                    )}
-
-                    {stat.badge && (
-                      <Badge
-                        variant={getBadgeVariant(stat.badge)}
-                        className="text-xs"
-                      >
-                        {stat.badge}
-                      </Badge>
-                    )}
+          <div
+            key={i}
+            className={`relative rounded-xl border bg-[#0a0a0a] p-4 overflow-hidden
+              ${isRed ? "border-red-500/20" : isOrange ? "border-orange-500/30" : "border-white/10"}
+            `}
+          >
+            <div className={`absolute top-0 left-0 right-0 h-0.5
+              ${isRed ? "bg-red-500" : isOrange ? "bg-orange-500" : "bg-white/20"}
+            `} />
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-[10px] text-white/40 uppercase tracking-wide">{stat.titulo}</p>
+                <p className={`text-2xl font-black mt-1
+                  ${isRed ? "text-red-400" : isOrange ? "text-orange-400" : "text-white"}
+                `}>{stat.valor}</p>
+                <p className="text-xs text-white/40 mt-0.5">{stat.detalle}</p>
+                {stat.trend && (
+                  <div className={`flex items-center gap-1 text-xs mt-1 ${stat.trend === "up" ? "text-orange-400" : "text-red-400"}`}>
+                    {stat.trend === "up" ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                    {stat.trendValue}%
                   </div>
-                </div>
-
-                <div
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center ${getColorClasses(stat.color)}`}
-                >
-                  <Icon className="h-4 w-4" />
-                </div>
+                )}
               </div>
-            </CardContent>
-          </Card>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center
+                ${isRed ? "bg-red-500/10 text-red-400" : isOrange ? "bg-orange-500/10 text-orange-500" : "bg-white/5 text-white/40"}
+              `}>
+                <Icon className="h-4 w-4" />
+              </div>
+            </div>
+          </div>
         );
       })}
     </div>

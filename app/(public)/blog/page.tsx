@@ -13,12 +13,12 @@ export const dynamic = "force-dynamic";
 
 const coloresCat: Record<string, string> = {
   IoT: "bg-orange-500/20 text-orange-300 border-orange-500/30",
-  "Eficiencia energética": "bg-green-500/20 text-green-300 border-green-500/30",
+  "Eficiencia energética": "bg-orange-500/20 text-orange-300 border-orange-500/30",
   Condominios: "bg-orange-500/20 text-orange-300 border-orange-500/30",
-  Tecnología: "bg-purple-500/20 text-purple-300 border-purple-500/30",
+  Tecnología: "bg-white/10 text-white/60 border-white/20",
   Seguridad: "bg-red-500/20 text-red-300 border-red-500/30",
   Automatización: "bg-orange-500/20 text-orange-300 border-orange-500/30",
-  Energía: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
+  Energía: "bg-orange-600/20 text-orange-400 border-orange-600/30",
 };
 
 export default async function BlogPage() {

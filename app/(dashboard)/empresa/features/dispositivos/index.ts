@@ -5,7 +5,6 @@ export { DispositivosActivos } from "./DispositivosActivos";
 export { DispositivosActivosStats } from "./DispositivosActivosStats";
 export { DispositivosActivosAcciones } from "./DispositivosActivosAcciones";
 export { DispositivosActivosTabla } from "./DispositivosActivosTabla";
-export { DispositivosActivosReducido } from "./DispositivosActivosReducido";
 
 // Componentes de iconos y utilidades
 export {

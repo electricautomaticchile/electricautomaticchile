@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { LoadingState, EmptyState } from "@/components/shared";
-import { Headphones, MessageSquare } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 import { useApi } from '@/hooks/useApi';
 import { ticketsService, Ticket, EstadisticasTickets } from "@/lib/api/ticketsService";
 import { useToast } from "@/components/ui/use-toast";
@@ -210,21 +210,26 @@ export function GestionTickets() {
 
 
   return (
-    <div className="space-y-6">
+    <div className="bg-background p-6 rounded-lg border border-orange-500/20 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold flex items-center gap-3 text-foreground">
-            <Headphones className="h-8 w-8 text-orange-600" />
-            Gestión de Tickets
-          </h2>
-          <p className="text-muted-foreground mt-1">
-            Administra y responde tickets de soporte
-          </p>
-        </div>
+      <div className="flex items-center gap-3">
+        <h2 className="text-2xl font-extrabold tracking-tight text-foreground">
+          Gestión de <span className="text-gradient-orange">Tickets</span>
+        </h2>
+        {estadisticas && (
+          <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/40">
+            {estadisticas.total} tickets
+          </span>
+        )}
       </div>
 
-      {estadisticas && <TicketEstadisticas estadisticas={estadisticas} />}
+      {estadisticas && (
+        <TicketEstadisticas
+          estadisticas={estadisticas}
+          filtroEstado={filtros.estado}
+          onFiltroEstadoChange={(estado) => setFiltros({ ...filtros, estado })}
+        />
+      )}
 
       {ticketSeleccionado ? (
         <TicketDetalle

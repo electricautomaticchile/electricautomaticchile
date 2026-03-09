@@ -6,6 +6,9 @@ export interface ResumenCliente {
     nombre: string;
     numeroCliente: string;
     correo: string;
+    telefono?: string;
+    direccion?: string;
+    imagenPerfil?: string;
     passwordTemporal: boolean;
   };
   estadisticas: {
@@ -14,6 +17,7 @@ export interface ResumenCliente {
     consumoMensual: number;
     costoMensual: number;
     boletasPendientes: number;
+    ultimaLectura?: any;
   };
 }
 
@@ -41,16 +45,29 @@ export interface ConsumoCliente {
 
 export interface BoletaCliente {
   _id: string;
+  id?: string;
   numeroFactura: string;
   periodo: string;
   fechaEmision: string;
   fechaVencimiento: string;
+  fechaPago?: string;
   monto: number;
   estado: string;
   consumo: number;
 }
 
+export interface DashboardClienteTodo {
+  resumen: ResumenCliente;
+  dispositivos: DispositivoCliente[];
+  consumo: ConsumoCliente;
+  boletas: BoletaCliente[];
+}
+
 export class DashboardClienteService extends BaseApiService {
+  async obtenerTodo(): Promise<ApiResponse<DashboardClienteTodo>> {
+    return this.makeRequest<DashboardClienteTodo>("/dashboard/cliente");
+  }
+
   async obtenerResumen(): Promise<ApiResponse<ResumenCliente>> {
     return this.makeRequest<ResumenCliente>("/dashboard/cliente/resumen");
   }

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -43,7 +43,7 @@ interface ControlServicioEmpresaProps {
 
 export function ControlServicioEmpresa({
   clienteId,
-  estadoServicio,
+  estadoServicio: estadoInicial,
   onActualizar,
 }: ControlServicioEmpresaProps) {
   const { toast } = useToast();
@@ -53,8 +53,18 @@ export function ControlServicioEmpresa({
   const [accion, setAccion] = useState<"cortar" | "restablecer" | null>(null);
   const [historial, setHistorial] = useState<HistorialCambio[]>([]);
   const [cargandoHistorial, setCargandoHistorial] = useState(false);
+  const [estadoLocal, setEstadoLocal] = useState(estadoInicial);
 
-  const esActivo = estadoServicio.estadoServicio === "activo";
+  // Sincronizar cuando cambia la prop externa (nuevo modal, nuevo cliente)
+  useEffect(() => {
+    setEstadoLocal(estadoInicial);
+    setProcesando(false);
+    setDialogAbierto(false);
+    setAccion(null);
+    setMotivo("");
+  }, [estadoInicial]);
+
+  const esActivo = estadoLocal.estadoServicio === "activo";
 
   const ejecutarAccion = async () => {
     if (!accion) return;
@@ -75,6 +85,13 @@ export function ControlServicioEmpresa({
       }
 
       if (response.success) {
+        // Actualizar estado local inmediatamente
+        setEstadoLocal(prev => ({
+          ...prev,
+          estadoServicio: accion === "cortar" ? "cortado" : "activo",
+          motivoCorte: accion === "cortar" ? (motivo || "Corte manual por empresa") : "",
+          puedeRestablecer: accion === "cortar",
+        }));
         toast({
           title: `✅ Servicio ${accion === "cortar" ? "cortado" : "restablecido"}`,
           description: `El servicio ha sido ${accion === "cortar" ? "cortado" : "restablecido"} exitosamente`,
@@ -83,13 +100,17 @@ export function ControlServicioEmpresa({
         setMotivo("");
         setAccion(null);
         onActualizar();
+      } else {
+        toast({
+          title: "Error",
+          description: response.error || `No se pudo ${accion} el servicio`,
+          variant: "destructive",
+        });
       }
-    } catch (error: any) {
+    } catch {
       toast({
         title: "Error",
-        description:
-          error.response?.data?.message ||
-          `No se pudo ${accion} el servicio`,
+        description: `No se pudo ${accion} el servicio`,
         variant: "destructive",
       });
     } finally {
@@ -156,7 +177,7 @@ export function ControlServicioEmpresa({
               </span>
             </div>
             <p className="text-3xl font-bold text-green-600">
-              {estadoServicio.boletasPagadas}
+              {estadoLocal.boletasPagadas}
             </p>
           </div>
 
@@ -168,7 +189,7 @@ export function ControlServicioEmpresa({
               </span>
             </div>
             <p className="text-3xl font-bold text-orange-600">
-              {estadoServicio.boletasPendientes}
+              {estadoLocal.boletasPendientes}
             </p>
           </div>
 
@@ -180,7 +201,7 @@ export function ControlServicioEmpresa({
               </span>
             </div>
             <p className="text-2xl font-bold text-blue-600">
-              ${estadoServicio.montoDeuda.toLocaleString("es-CL")}
+              ${estadoLocal.montoDeuda.toLocaleString("es-CL")}
             </p>
           </div>
         </div>
@@ -333,14 +354,10 @@ export function ControlServicioEmpresa({
         </div>
 
         {/* Información adicional */}
-        {estadoServicio.motivoCorte && (
+        {estadoLocal.motivoCorte && (
           <div className="bg-red-50 dark:bg-red-950/20 p-3 rounded-lg border border-red-200 dark:border-red-800">
-            <p className="text-sm font-medium text-red-900 dark:text-red-400">
-              Motivo del corte:
-            </p>
-            <p className="text-sm text-red-800 dark:text-red-300 mt-1">
-              {estadoServicio.motivoCorte}
-            </p>
+            <p className="text-sm font-medium text-red-900 dark:text-red-400">Motivo del corte:</p>
+            <p className="text-sm text-red-800 dark:text-red-300 mt-1">{estadoLocal.motivoCorte}</p>
           </div>
         )}
       </CardContent>

@@ -1,13 +1,5 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -19,151 +11,119 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import {
   Headphones,
   MessageSquare,
-  FileText,
-  Clock,
-  AlertCircle,
-  Check,
   Loader2,
   Send,
   ArrowLeft,
+  Plus,
+  Trash2,
+  ChevronDown,
+  Calendar,
+  Tag,
+  Hash,
+  User,
 } from "lucide-react";
 import { useApi } from '@/hooks/useApi';
 import { ticketsService, Ticket, Respuesta } from "@/lib/api/ticketsService";
 import { useToast } from "@/components/ui/use-toast";
 
+// Helpers de color por estado/prioridad
+function getEstadoStyle(estado: string) {
+  const map: Record<string, { label: string; color: string; top: string }> = {
+    abierto:      { label: "Abierto",     color: "text-orange-400 bg-orange-500/10 border-orange-500/30", top: "bg-orange-500" },
+    "en-proceso": { label: "En Proceso",  color: "text-amber-400 bg-amber-500/10 border-amber-500/30",   top: "bg-amber-500" },
+    resuelto:     { label: "Resuelto",    color: "text-white/60 bg-white/5 border-white/10",              top: "bg-white/20" },
+    cerrado:      { label: "Cerrado",     color: "text-white/40 bg-white/5 border-white/10",              top: "bg-white/10" },
+  };
+  return map[estado] || { label: estado, color: "text-white/40 bg-white/5 border-white/10", top: "bg-white/10" };
+}
+
+function getPrioridadStyle(prioridad: string) {
+  const map: Record<string, { label: string; color: string }> = {
+    baja:    { label: "Baja",    color: "text-white/40 bg-white/5 border-white/10" },
+    media:   { label: "Media",   color: "text-orange-400 bg-orange-500/10 border-orange-500/30" },
+    alta:    { label: "Alta",    color: "text-amber-400 bg-amber-500/10 border-amber-500/30" },
+    urgente: { label: "Urgente", color: "text-red-400 bg-red-500/10 border-red-500/30" },
+  };
+  return map[prioridad] || { label: prioridad, color: "text-white/40 bg-white/5 border-white/10" };
+}
+
+function formatoCategoria(categoria: string) {
+  const map: Record<string, string> = {
+    tecnico:     "🔧 Técnico",
+    facturacion: "💰 Facturación",
+    consulta:    "❓ Consulta",
+    reclamo:     "⚠️ Reclamo",
+  };
+  return map[categoria] || categoria;
+}
+
 export function SoporteUsuarioNuevo() {
   const { user } = useApi();
   const { toast } = useToast();
 
-  const [tabActiva, setTabActiva] = useState("tickets");
+  const [vista, setVista] = useState<"lista" | "detalle" | "nuevo">("lista");
   const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [ticketSeleccionado, setTicketSeleccionado] = useState<Ticket | null>(
-    null
-  );
+  const [ticketSeleccionado, setTicketSeleccionado] = useState<Ticket | null>(null);
   const [cargando, setCargando] = useState(false);
   const [enviando, setEnviando] = useState(false);
 
-  // Estado para nuevo ticket
   const [nuevoTicket, setNuevoTicket] = useState({
-    asunto: "",
-    categoria: "",
-    prioridad: "media" as "baja" | "media" | "alta" | "urgente",
-    descripcion: "",
-    dispositivoId: "",
+    asunto: "", categoria: "", prioridad: "media" as "baja" | "media" | "alta" | "urgente", descripcion: "", dispositivoId: "",
   });
-
-  // Estado para nueva respuesta
   const [mensajeRespuesta, setMensajeRespuesta] = useState("");
 
-  // Obtener ID del cliente
   const clienteId = (user as any)?._id?.toString() || user?.id?.toString();
   const numeroCliente = (user as any)?.numeroCliente || "---";
   const nombreCliente = (user as any)?.nombre || user?.name || "Cliente";
 
-  // Debug
-  useEffect(() => {
-  }, [clienteId, user, tabActiva]);
-
   const cargarTickets = useCallback(async () => {
     if (!clienteId) return;
-
     setCargando(true);
     try {
-      const response = await ticketsService.obtenerTickets({
-        clienteId,
-        limit: 50,
-      });
-
-
+      const response = await ticketsService.obtenerTickets({ clienteId, limit: 50 });
       if (response.success && response.data) {
-        // Los tickets están en response.data directamente (es un array)
-        const ticketsArray = Array.isArray(response.data) ? response.data : [];
-        setTickets(ticketsArray);
+        setTickets(Array.isArray(response.data) ? response.data : []);
       } else {
         setTickets([]);
       }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar los tickets",
-        variant: "destructive",
-      });
+    } catch {
+      toast({ title: "Error", description: "No se pudieron cargar los tickets", variant: "destructive" });
     } finally {
       setCargando(false);
     }
   }, [clienteId, toast]);
 
-  // Cargar tickets del cliente
   useEffect(() => {
-    if (clienteId && tabActiva === "tickets") {
-      cargarTickets();
-    }
-  }, [clienteId, tabActiva, cargarTickets]);
+    if (clienteId && vista === "lista") cargarTickets();
+  }, [clienteId, vista, cargarTickets]);
 
   const crearNuevoTicket = async () => {
-    if (
-      !nuevoTicket.asunto ||
-      !nuevoTicket.categoria ||
-      !nuevoTicket.descripcion
-    ) {
-      toast({
-        title: "Campos incompletos",
-        description: "Por favor completa todos los campos requeridos",
-        variant: "destructive",
-      });
+    if (!nuevoTicket.asunto || !nuevoTicket.categoria || !nuevoTicket.descripcion) {
+      toast({ title: "Campos incompletos", description: "Por favor completa todos los campos requeridos", variant: "destructive" });
       return;
     }
-
     if (!clienteId) {
-      toast({
-        title: "Error",
-        description: "No se pudo identificar al cliente",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "No se pudo identificar al cliente", variant: "destructive" });
       return;
     }
-
     setEnviando(true);
     try {
       const response = await ticketsService.crearTicket({
-        clienteId,
-        asunto: nuevoTicket.asunto,
-        descripcion: nuevoTicket.descripcion,
-        categoria: nuevoTicket.categoria as any,
-        prioridad: nuevoTicket.prioridad,
+        clienteId, asunto: nuevoTicket.asunto, descripcion: nuevoTicket.descripcion,
+        categoria: nuevoTicket.categoria as any, prioridad: nuevoTicket.prioridad,
         dispositivoId: nuevoTicket.dispositivoId || undefined,
       });
-
       if (response.success && response.data) {
-        toast({
-          title: "✅ Ticket creado",
-          description: `Tu ticket #${response.data.numeroTicket} ha sido creado exitosamente`,
-        });
-
-        // Limpiar formulario
-        setNuevoTicket({
-          asunto: "",
-          categoria: "",
-          prioridad: "media",
-          descripcion: "",
-          dispositivoId: "",
-        });
-
-        // Volver a la lista de tickets y recargar
+        toast({ title: "✅ Ticket creado", description: `Tu ticket #${response.data.numeroTicket} ha sido creado exitosamente` });
+        setNuevoTicket({ asunto: "", categoria: "", prioridad: "media", descripcion: "", dispositivoId: "" });
         await cargarTickets();
-        setTabActiva("tickets");
+        setVista("lista");
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message || "No se pudo crear el ticket",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.response?.data?.message || "No se pudo crear el ticket", variant: "destructive" });
     } finally {
       setEnviando(false);
     }
@@ -171,39 +131,20 @@ export function SoporteUsuarioNuevo() {
 
   const enviarRespuesta = async () => {
     if (!mensajeRespuesta.trim() || !ticketSeleccionado) return;
-
     setEnviando(true);
     try {
       const response = await ticketsService.agregarRespuesta(
         ticketSeleccionado.id || ticketSeleccionado._id,
-        {
-          autorId: clienteId!,
-          autorNombre: nombreCliente,
-          autorTipo: "cliente",
-          mensaje: mensajeRespuesta,
-        }
+        { autorId: clienteId!, autorNombre: nombreCliente, autorTipo: "cliente", mensaje: mensajeRespuesta }
       );
-
       if (response.success && response.data) {
-        toast({
-          title: "✅ Respuesta enviada",
-          description: "Tu respuesta ha sido enviada exitosamente",
-        });
-
-        // Actualizar ticket seleccionado
+        toast({ title: "✅ Respuesta enviada", description: "Tu respuesta ha sido enviada exitosamente" });
         setTicketSeleccionado(response.data);
         setMensajeRespuesta("");
-
-        // Actualizar lista de tickets
         cargarTickets();
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message || "No se pudo enviar la respuesta",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.response?.data?.message || "No se pudo enviar la respuesta", variant: "destructive" });
     } finally {
       setEnviando(false);
     }
@@ -211,82 +152,21 @@ export function SoporteUsuarioNuevo() {
 
   const eliminarTicket = async () => {
     if (!ticketSeleccionado) return;
-
-    // Confirmar eliminación
-    if (
-      !window.confirm(
-        `¿Estás seguro de que deseas eliminar el ticket #${ticketSeleccionado.numeroTicket}? Esta acción no se puede deshacer.`
-      )
-    ) {
-      return;
-    }
-
+    if (!window.confirm(`¿Estás seguro de que deseas eliminar el ticket #${ticketSeleccionado.numeroTicket}? Esta acción no se puede deshacer.`)) return;
     setEnviando(true);
     try {
-      const response = await ticketsService.eliminarTicket(
-        ticketSeleccionado._id
-      );
-
+      const response = await ticketsService.eliminarTicket(ticketSeleccionado._id);
       if (response.success) {
-        toast({
-          title: "✅ Ticket eliminado",
-          description: "El ticket ha sido eliminado exitosamente",
-        });
-
-        // Volver a la lista y recargar
+        toast({ title: "✅ Ticket eliminado", description: "El ticket ha sido eliminado exitosamente" });
         setTicketSeleccionado(null);
+        setVista("lista");
         cargarTickets();
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message || "No se pudo eliminar el ticket",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.response?.data?.message || "No se pudo eliminar el ticket", variant: "destructive" });
     } finally {
       setEnviando(false);
     }
-  };
-
-  const formatoEstadoTicket = (estado: string) => {
-    const estados: Record<string, { label: string; color: string }> = {
-      abierto: { label: "Abierto", color: "bg-blue-100 text-blue-800" },
-      "en-proceso": {
-        label: "En Proceso",
-        color: "bg-yellow-100 text-yellow-800",
-      },
-      resuelto: { label: "Resuelto", color: "bg-green-100 text-green-800" },
-      cerrado: { label: "Cerrado", color: "bg-gray-100 text-gray-800" },
-    };
-    return (
-      estados[estado] || { label: estado, color: "bg-gray-100 text-gray-800" }
-    );
-  };
-
-  const formatoPrioridadTicket = (prioridad: string) => {
-    const prioridades: Record<string, { label: string; color: string }> = {
-      baja: { label: "Baja", color: "bg-gray-100 text-gray-800" },
-      media: { label: "Media", color: "bg-blue-100 text-blue-800" },
-      alta: { label: "Alta", color: "bg-orange-100 text-orange-800" },
-      urgente: { label: "Urgente", color: "bg-red-100 text-red-800" },
-    };
-    return (
-      prioridades[prioridad] || {
-        label: prioridad,
-        color: "bg-gray-100 text-gray-800",
-      }
-    );
-  };
-
-  const formatoCategoria = (categoria: string) => {
-    const categorias: Record<string, string> = {
-      tecnico: "🔧 Técnico",
-      facturacion: "💰 Facturación",
-      consulta: "❓ Consulta",
-      reclamo: "⚠️ Reclamo",
-    };
-    return categorias[categoria] || categoria;
   };
 
   return (
@@ -294,329 +174,267 @@ export function SoporteUsuarioNuevo() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold flex items-center gap-3 text-foreground">
-            <Headphones className="h-8 w-8 text-orange-600" />
-            Soporte y Ayuda
+          <h2 className="text-4xl font-black text-white flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center">
+              <Headphones className="h-6 w-6 text-orange-500" />
+            </div>
+            Soporte
           </h2>
-          <p className="text-muted-foreground mt-1">
-            Gestiona tus tickets de soporte
-          </p>
+          <p className="text-white/40 mt-1 text-sm">Gestiona tus tickets de soporte</p>
         </div>
-        <Button
-          className="bg-orange-600 hover:bg-orange-700"
-          onClick={() => setTabActiva("nuevo-ticket")}
-        >
-          <MessageSquare className="mr-2 h-4 w-4" />
-          Nuevo Ticket
-        </Button>
+        {vista === "lista" && (
+          <Button
+            onClick={() => setVista("nuevo")}
+            className="bg-orange-500 hover:bg-orange-600 text-white font-semibold gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Nuevo Ticket
+          </Button>
+        )}
       </div>
 
-      <Tabs value={tabActiva} onValueChange={setTabActiva}>
-        <TabsList className="mb-4">
-          <TabsTrigger value="tickets" className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4" />
-            <span>Mis Tickets</span>
-          </TabsTrigger>
-          <TabsTrigger value="nuevo-ticket" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            <span>Nuevo Ticket</span>
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Vista de Tickets */}
-        <TabsContent value="tickets">
-          {ticketSeleccionado ? (
-            // Vista de detalle del ticket
-            <Card>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setTicketSeleccionado(null)}
-                      >
-                        <ArrowLeft className="h-4 w-4 mr-1" />
-                        Volver
-                      </Button>
-                      {(ticketSeleccionado.estado === "abierto" ||
-                        ticketSeleccionado.estado === "cerrado") && (
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={eliminarTicket}
-                            disabled={enviando}
-                          >
-                            {enviando ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              "Eliminar"
-                            )}
-                          </Button>
-                        )}
-                    </div>
-                    <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-orange-600" />
-                      {ticketSeleccionado.asunto}
-                    </CardTitle>
-                    <CardDescription>
-                      Ticket #{ticketSeleccionado.numeroTicket} •{" "}
-                      {new Date(
-                        ticketSeleccionado.fechaCreacion
-                      ).toLocaleString("es-CL")}
-                    </CardDescription>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Badge
-                      className={
-                        formatoEstadoTicket(ticketSeleccionado.estado).color
-                      }
-                    >
-                      {formatoEstadoTicket(ticketSeleccionado.estado).label}
-                    </Badge>
-                    <Badge
-                      className={
-                        formatoPrioridadTicket(ticketSeleccionado.prioridad)
-                          .color
-                      }
-                    >
-                      {
-                        formatoPrioridadTicket(ticketSeleccionado.prioridad)
-                          .label
-                      }
-                    </Badge>
-                  </div>
+      {/* Vista: Lista de tickets */}
+      {vista === "lista" && (
+        <div className="space-y-3">
+          {cargando ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+            </div>
+          ) : !tickets || tickets.length === 0 ? (
+            <div className="relative rounded-xl border border-white/10 bg-[#0a0a0a] overflow-hidden">
+              <div className="h-1 w-full bg-orange-500" />
+              <div className="py-16 text-center">
+                <div className="w-16 h-16 rounded-xl bg-orange-500/10 flex items-center justify-center mx-auto mb-4">
+                  <MessageSquare className="h-8 w-8 text-orange-500" />
                 </div>
-              </CardHeader>
-              <CardContent>
-                {/* Información del ticket */}
-                <div className="bg-muted p-4 rounded-lg mb-6">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Categoría:</span>
-                      <p className="font-medium">
-                        {formatoCategoria(ticketSeleccionado.categoria)}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Cliente:</span>
-                      <p className="font-medium">{numeroCliente}</p>
-                    </div>
-                    {ticketSeleccionado.numeroDispositivo && (
-                      <div className="col-span-2">
-                        <span className="text-muted-foreground">
-                          Dispositivo:
-                        </span>
-                        <p className="font-medium">
-                          {ticketSeleccionado.nombreDispositivo ||
-                            ticketSeleccionado.numeroDispositivo}
-                        </p>
+                <p className="text-white/60 text-lg font-semibold">No tienes tickets de soporte aún</p>
+                <p className="text-white/30 text-sm mt-1">Crea tu primer ticket y te responderemos pronto</p>
+                <Button onClick={() => setVista("nuevo")} className="mt-6 bg-orange-500 hover:bg-orange-600 text-white font-semibold gap-2">
+                  <Plus className="h-4 w-4" />Crear Primer Ticket
+                </Button>
+              </div>
+            </div>
+          ) : (
+            tickets.map((ticket) => {
+              const estado = getEstadoStyle(ticket.estado);
+              const prioridad = getPrioridadStyle(ticket.prioridad);
+              return (
+                <div
+                  key={ticket._id}
+                  onClick={() => { setTicketSeleccionado(ticket); setVista("detalle"); }}
+                  className="relative rounded-xl border border-white/10 bg-[#0a0a0a] overflow-hidden cursor-pointer transition-all duration-200 hover:border-orange-500/40 hover:shadow-[0_0_15px_rgba(249,115,22,0.1)] hover:-translate-y-0.5"
+                >
+                  <div className={`h-1 w-full ${estado.top}`} />
+                  <div className="p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg border ${estado.color}`}>{estado.label}</span>
+                          <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg border ${prioridad.color}`}>{prioridad.label}</span>
+                        </div>
+                        <p className="font-bold text-lg text-white truncate">{ticket.asunto}</p>
+                        <p className="text-sm text-white/40 mt-1 line-clamp-2">{ticket.descripcion}</p>
                       </div>
-                    )}
+                      <ChevronDown className="h-5 w-5 text-white/30 shrink-0 mt-1" />
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-sm text-white/40">
+                      <div className="flex items-center gap-1.5">
+                        <Hash className="h-4 w-4" />
+                        <span>#{ticket.numeroTicket}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Tag className="h-4 w-4" />
+                        <span>{formatoCategoria(ticket.categoria)}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="h-4 w-4" />
+                        <span>{new Date(ticket.fechaCreacion).toLocaleDateString("es-CL")}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <MessageSquare className="h-4 w-4" />
+                        <span>{ticket.respuestas.length} respuestas</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
+              );
+            })
+          )}
+        </div>
+      )}
 
-                {/* Descripción inicial */}
-                <div className="mb-6">
-                  <h4 className="font-semibold mb-2">Descripción:</h4>
-                  <p className="text-muted-foreground">
-                    {ticketSeleccionado.descripcion}
+      {/* Vista: Detalle del ticket */}
+      {vista === "detalle" && ticketSeleccionado && (() => {
+        const estado = getEstadoStyle(ticketSeleccionado.estado);
+        const prioridad = getPrioridadStyle(ticketSeleccionado.prioridad);
+        return (
+          <div className="relative rounded-xl border border-white/10 bg-[#0a0a0a] overflow-hidden">
+            <div className={`h-1 w-full ${estado.top}`} />
+            <div className="p-6 space-y-6">
+              {/* Header detalle */}
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-3">
+                    <button
+                      onClick={() => { setTicketSeleccionado(null); setVista("lista"); }}
+                      className="flex items-center gap-1.5 text-sm text-white/40 hover:text-white transition-colors"
+                    >
+                      <ArrowLeft className="h-4 w-4" />Volver
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg border ${estado.color}`}>{estado.label}</span>
+                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg border ${prioridad.color}`}>{prioridad.label}</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-white">{ticketSeleccionado.asunto}</h3>
+                  <p className="text-sm text-white/40 mt-1">
+                    #{ticketSeleccionado.numeroTicket} · {new Date(ticketSeleccionado.fechaCreacion).toLocaleString("es-CL")}
                   </p>
                 </div>
+                {(ticketSeleccionado.estado === "abierto" || ticketSeleccionado.estado === "cerrado") && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={eliminarTicket}
+                    disabled={enviando}
+                    className="border-red-500/30 text-red-400 hover:bg-red-500/10 gap-1.5"
+                  >
+                    {enviando ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Trash2 className="h-4 w-4" />Eliminar</>}
+                  </Button>
+                )}
+              </div>
 
-                {/* Conversación */}
-                <div className="space-y-4 mb-6">
-                  <h4 className="font-semibold">Conversación:</h4>
+              {/* Info del ticket */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white/5 rounded-xl p-4 border border-white/5">
+                  <p className="text-xs text-white/30 uppercase tracking-wide mb-1">Categoría</p>
+                  <p className="text-sm font-semibold text-white">{formatoCategoria(ticketSeleccionado.categoria)}</p>
+                </div>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/5">
+                  <p className="text-xs text-white/30 uppercase tracking-wide mb-1">Cliente</p>
+                  <p className="text-sm font-semibold text-white">{numeroCliente}</p>
+                </div>
+                {ticketSeleccionado.numeroDispositivo && (
+                  <div className="col-span-2 bg-white/5 rounded-xl p-4 border border-white/5">
+                    <p className="text-xs text-white/30 uppercase tracking-wide mb-1">Dispositivo</p>
+                    <p className="text-sm font-semibold text-white">{ticketSeleccionado.nombreDispositivo || ticketSeleccionado.numeroDispositivo}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Descripción */}
+              <div className="bg-white/5 rounded-xl p-4 border border-white/5">
+                <p className="text-xs text-white/30 uppercase tracking-wide mb-2">Descripción</p>
+                <p className="text-sm text-white/70">{ticketSeleccionado.descripcion}</p>
+              </div>
+
+              {/* Conversación */}
+              {ticketSeleccionado.respuestas.length > 0 && (
+                <div className="space-y-3">
+                  <p className="text-xs text-white/30 uppercase tracking-wide">Conversación</p>
                   {ticketSeleccionado.respuestas.map((respuesta) => (
                     <div
                       key={respuesta._id}
-                      className={`p-4 rounded-lg ${respuesta.autorTipo === "cliente"
-                        ? "bg-blue-50 dark:bg-blue-950/30 ml-8 border border-blue-200 dark:border-blue-800"
-                        : "bg-gray-50 dark:bg-gray-800/50 mr-8 border border-gray-200 dark:border-gray-700"
-                        }`}
+                      className={`rounded-xl p-4 border ${
+                        respuesta.autorTipo === "cliente"
+                          ? "bg-orange-500/5 border-orange-500/20 ml-8"
+                          : "bg-white/5 border-white/10 mr-8"
+                      }`}
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-semibold text-sm text-foreground">
-                          {respuesta.autorNombre}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(respuesta.fecha).toLocaleString("es-CL")}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${respuesta.autorTipo === "cliente" ? "bg-orange-500/20" : "bg-white/10"}`}>
+                            <User className="h-3 w-3 text-white/60" />
+                          </div>
+                          <span className="text-sm font-semibold text-white">{respuesta.autorNombre}</span>
+                          {respuesta.autorTipo === "cliente" && (
+                            <span className="text-xs text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-500/20">Tú</span>
+                          )}
+                        </div>
+                        <span className="text-xs text-white/30">{new Date(respuesta.fecha).toLocaleString("es-CL")}</span>
                       </div>
-                      <p className="text-sm text-foreground">
-                        {respuesta.mensaje}
-                      </p>
+                      <p className="text-sm text-white/70">{respuesta.mensaje}</p>
                     </div>
                   ))}
                 </div>
+              )}
 
-                {/* Formulario de respuesta */}
-                {ticketSeleccionado.estado !== "cerrado" && (
-                  <div className="border-t pt-6">
-                    <Label htmlFor="respuesta">Tu Respuesta</Label>
-                    <Textarea
-                      id="respuesta"
-                      placeholder="Escribe tu respuesta aquí..."
-                      value={mensajeRespuesta}
-                      onChange={(e) => setMensajeRespuesta(e.target.value)}
-                      rows={4}
-                      className="mt-2"
-                    />
-                    <Button
-                      onClick={enviarRespuesta}
-                      disabled={!mensajeRespuesta.trim() || enviando}
-                      className="mt-4 bg-orange-600 hover:bg-orange-700"
-                    >
-                      {enviando ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Enviando...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="mr-2 h-4 w-4" />
-                          Enviar Respuesta
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            // Lista de tickets
-            <div className="space-y-4">
-              {cargando ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
-                </div>
-              ) : !tickets || tickets.length === 0 ? (
-                <Card>
-                  <CardContent className="py-12 text-center">
-                    <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">
-                      No tienes tickets de soporte aún
-                    </p>
-                    <Button
-                      onClick={() => setTabActiva("nuevo-ticket")}
-                      className="mt-4 bg-orange-600 hover:bg-orange-700"
-                    >
-                      Crear Primer Ticket
-                    </Button>
-                  </CardContent>
-                </Card>
-              ) : (
-                tickets.map((ticket) => (
-                  <Card
-                    key={ticket._id}
-                    className="cursor-pointer hover:shadow-lg transition-shadow"
-                    onClick={() => setTicketSeleccionado(ticket)}
+              {/* Responder */}
+              {ticketSeleccionado.estado !== "cerrado" && (
+                <div className="border-t border-white/5 pt-5 space-y-3">
+                  <p className="text-xs text-white/30 uppercase tracking-wide">Tu Respuesta</p>
+                  <Textarea
+                    placeholder="Escribe tu respuesta aquí..."
+                    value={mensajeRespuesta}
+                    onChange={(e) => setMensajeRespuesta(e.target.value)}
+                    rows={4}
+                    className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-orange-500/50 resize-none"
+                  />
+                  <Button
+                    onClick={enviarRespuesta}
+                    disabled={!mensajeRespuesta.trim() || enviando}
+                    className="bg-orange-500 hover:bg-orange-600 text-white font-semibold gap-2"
                   >
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <CardTitle className="text-lg">
-                            {ticket.asunto}
-                          </CardTitle>
-                          <CardDescription>
-                            #{ticket.numeroTicket} •{" "}
-                            {new Date(ticket.fechaCreacion).toLocaleDateString(
-                              "es-CL"
-                            )}
-                          </CardDescription>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          <Badge
-                            className={formatoEstadoTicket(ticket.estado).color}
-                          >
-                            {formatoEstadoTicket(ticket.estado).label}
-                          </Badge>
-                          <Badge
-                            className={
-                              formatoPrioridadTicket(ticket.prioridad).color
-                            }
-                          >
-                            {formatoPrioridadTicket(ticket.prioridad).label}
-                          </Badge>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {ticket.descripcion}
-                      </p>
-                      <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
-                        <span>{formatoCategoria(ticket.categoria)}</span>
-                        <span>•</span>
-                        <span>{ticket.respuestas.length} respuestas</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                    {enviando ? <><Loader2 className="h-4 w-4 animate-spin" />Enviando...</> : <><Send className="h-4 w-4" />Enviar Respuesta</>}
+                  </Button>
+                </div>
               )}
             </div>
-          )}
-        </TabsContent>
+          </div>
+        );
+      })()}
 
-        {/* Formulario de Nuevo Ticket */}
-        <TabsContent value="nuevo-ticket">
-          <Card>
-            <CardHeader>
-              <CardTitle>Crear Nuevo Ticket de Soporte</CardTitle>
-              <CardDescription>
-                Completa el formulario para crear un nuevo ticket. Nuestro
-                equipo te responderá pronto.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+      {/* Vista: Nuevo Ticket */}
+      {vista === "nuevo" && (
+        <div className="relative rounded-xl border border-white/10 bg-[#0a0a0a] overflow-hidden">
+          <div className="h-1 w-full bg-orange-500" />
+          <div className="p-6 space-y-5">
+            <div className="flex items-center gap-2 mb-1">
+              <button
+                onClick={() => setVista("lista")}
+                className="flex items-center gap-1.5 text-sm text-white/40 hover:text-white transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />Volver
+              </button>
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-white">Crear Nuevo Ticket</h3>
+              <p className="text-sm text-white/40 mt-1">Nuestro equipo te responderá pronto</p>
+            </div>
+
+            <div className="space-y-4">
               <div>
-                <Label htmlFor="asunto">Asunto *</Label>
+                <Label className="text-white/60 text-sm mb-1.5 block">Asunto *</Label>
                 <Input
-                  id="asunto"
                   placeholder="Ej: Problema con el medidor"
                   value={nuevoTicket.asunto}
-                  onChange={(e) =>
-                    setNuevoTicket({ ...nuevoTicket, asunto: e.target.value })
-                  }
+                  onChange={(e) => setNuevoTicket({ ...nuevoTicket, asunto: e.target.value })}
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-orange-500/50"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="categoria">Categoría *</Label>
-                  <Select
-                    value={nuevoTicket.categoria}
-                    onValueChange={(value) =>
-                      setNuevoTicket({ ...nuevoTicket, categoria: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona una categoría" />
+                  <Label className="text-white/60 text-sm mb-1.5 block">Categoría *</Label>
+                  <Select value={nuevoTicket.categoria} onValueChange={(v) => setNuevoTicket({ ...nuevoTicket, categoria: v })}>
+                    <SelectTrigger className="bg-white/5 border-white/10 text-white focus:border-orange-500/50">
+                      <SelectValue placeholder="Selecciona" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-[#0a0a0a] border-white/10">
                       <SelectItem value="tecnico">🔧 Técnico</SelectItem>
-                      <SelectItem value="facturacion">
-                        💰 Facturación
-                      </SelectItem>
+                      <SelectItem value="facturacion">💰 Facturación</SelectItem>
                       <SelectItem value="consulta">❓ Consulta</SelectItem>
                       <SelectItem value="reclamo">⚠️ Reclamo</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
-                  <Label htmlFor="prioridad">Prioridad</Label>
-                  <Select
-                    value={nuevoTicket.prioridad}
-                    onValueChange={(value: any) =>
-                      setNuevoTicket({ ...nuevoTicket, prioridad: value })
-                    }
-                  >
-                    <SelectTrigger>
+                  <Label className="text-white/60 text-sm mb-1.5 block">Prioridad</Label>
+                  <Select value={nuevoTicket.prioridad} onValueChange={(v: any) => setNuevoTicket({ ...nuevoTicket, prioridad: v })}>
+                    <SelectTrigger className="bg-white/5 border-white/10 text-white focus:border-orange-500/50">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-[#0a0a0a] border-white/10">
                       <SelectItem value="baja">Baja</SelectItem>
                       <SelectItem value="media">Media</SelectItem>
                       <SelectItem value="alta">Alta</SelectItem>
@@ -627,57 +445,42 @@ export function SoporteUsuarioNuevo() {
               </div>
 
               <div>
-                <Label htmlFor="descripcion">Descripción del Problema *</Label>
+                <Label className="text-white/60 text-sm mb-1.5 block">Descripción del Problema *</Label>
                 <Textarea
-                  id="descripcion"
                   placeholder="Describe detalladamente tu problema o consulta..."
                   value={nuevoTicket.descripcion}
-                  onChange={(e) =>
-                    setNuevoTicket({
-                      ...nuevoTicket,
-                      descripcion: e.target.value,
-                    })
-                  }
+                  onChange={(e) => setNuevoTicket({ ...nuevoTicket, descripcion: e.target.value })}
                   rows={6}
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-orange-500/50 resize-none"
                 />
               </div>
 
-              <div className="bg-muted p-4 rounded-lg">
-                <p className="text-sm text-muted-foreground">
-                  <strong>Número de Cliente:</strong> {numeroCliente}
-                </p>
+              <div className="bg-white/5 rounded-xl p-4 border border-white/5">
+                <p className="text-xs text-white/30 uppercase tracking-wide mb-1">Número de Cliente</p>
+                <p className="text-sm font-semibold text-white">{numeroCliente}</p>
               </div>
 
-              <div className="flex gap-4">
+              <div className="flex gap-3 pt-1">
                 <Button
                   onClick={crearNuevoTicket}
                   disabled={enviando}
-                  className="bg-orange-600 hover:bg-orange-700"
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-semibold gap-2"
                 >
-                  {enviando ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creando...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="mr-2 h-4 w-4" />
-                      Crear Ticket
-                    </>
-                  )}
+                  {enviando ? <><Loader2 className="h-4 w-4 animate-spin" />Creando...</> : <><Send className="h-4 w-4" />Crear Ticket</>}
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => setTabActiva("tickets")}
+                  onClick={() => setVista("lista")}
                   disabled={enviando}
+                  className="border-white/10 text-white/60 hover:bg-white/5"
                 >
                   Cancelar
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

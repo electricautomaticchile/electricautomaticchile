@@ -61,6 +61,8 @@ export interface DispositivoCardProps {
 export interface DispositivosStatsProps {
   resumen: ResumenDispositivos;
   loading?: boolean;
+  tabActiva?: string;
+  onTabChange?: (tab: string) => void;
 }
 
 export interface DispositivosTablaProps {
@@ -81,7 +83,6 @@ export interface DispositivosAccionesProps {
   tabActiva: string;
   onTabChange: (tab: string) => void;
   loading?: boolean;
-  onRefresh: () => void;
   totalDispositivos: number;
   isWebSocketConnected?: boolean;
   onExportarExcel?: () => void;

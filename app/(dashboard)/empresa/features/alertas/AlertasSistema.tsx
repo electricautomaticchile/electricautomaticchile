@@ -4,12 +4,11 @@ import { AlertasSistemaProps } from './types';
 import { useAlertasSistema } from './useAlertasSistema';
 import { AlertasSistemaStats } from './AlertasSistemaStats';
 import { AlertasSistemaAcciones } from './AlertasSistemaAcciones';
-import { AlertasSistemaFiltros } from './AlertasSistemaFiltros';
 import { AlertasSistemaLista } from './AlertasSistemaLista';
 import { AlertasSistemaReducido } from './AlertasSistemaReducido';
 import { Button } from "@/components/ui/button";
-import { Trash2, Settings } from "lucide-react";
-import { ExportService } from "@/lib/api/services/exportService";
+import { Trash2 } from "lucide-react";
+import { ReportesService } from "@/lib/api/services/reportesService";
 import { useToast } from "@/components/ui/use-toast";
 
 export function AlertasSistema({ reducida = false }: AlertasSistemaProps) {
@@ -21,7 +20,6 @@ export function AlertasSistema({ reducida = false }: AlertasSistemaProps) {
     estadosCarga,
     filtros,
     isConnected,
-
     toggleAlerta,
     simularAlerta,
     asignarAlerta,
@@ -29,11 +27,9 @@ export function AlertasSistema({ reducida = false }: AlertasSistemaProps) {
     marcarComoVista,
     eliminarAlerta,
     marcarTodasLeidas,
-
     cambiarFiltroTipo,
     cambiarFiltroEstado,
     cambiarBusqueda,
-
     clearAll,
   } = useAlertasSistema();
 
@@ -42,17 +38,19 @@ export function AlertasSistema({ reducida = false }: AlertasSistemaProps) {
 
   const handleExportarExcel = async () => {
     try {
-      await ExportService.exportarAlertasExcel();
-      toast({
-        title: "Exportación exitosa",
-        description: "El archivo Excel se ha descargado correctamente.",
-      });
+      await ReportesService.alertasExcel();
+      toast({ title: "Exportación exitosa", description: "El archivo Excel se ha descargado correctamente." });
     } catch (error) {
-      toast({
-        title: "Error al exportar",
-        description: error instanceof Error ? error.message : "Error desconocido",
-        variant: "destructive",
-      });
+      toast({ title: "Error al exportar", description: error instanceof Error ? error.message : "Error desconocido", variant: "destructive" });
+    }
+  };
+
+  const handleExportarPDF = async () => {
+    try {
+      await ReportesService.alertasPDF();
+      toast({ title: "Exportación exitosa", description: "El archivo PDF se ha descargado correctamente." });
+    } catch (error) {
+      toast({ title: "Error al exportar", description: error instanceof Error ? error.message : "Error desconocido", variant: "destructive" });
     }
   };
 
@@ -67,7 +65,7 @@ export function AlertasSistema({ reducida = false }: AlertasSistemaProps) {
   }
 
   return (
-    <div className="bg-background p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+    <div className="bg-background p-6 rounded-lg border border-orange-500/20">
       <div className="space-y-6">
         <AlertasSistemaAcciones
           isConnected={isConnected}
@@ -78,19 +76,16 @@ export function AlertasSistema({ reducida = false }: AlertasSistemaProps) {
           resumenAlertas={resumenAlertas}
           loading={loading}
           onExportarExcel={handleExportarExcel}
+          onExportarPDF={handleExportarPDF}
         />
 
         <AlertasSistemaStats
           resumen={resumenAlertas}
           loading={loading}
-        />
-
-        <AlertasSistemaFiltros
           filtroTipo={filtroTipo}
           filtroEstado={filtroEstado}
           onFiltroTipoChange={cambiarFiltroTipo}
           onFiltroEstadoChange={cambiarFiltroEstado}
-          resumenAlertas={resumenAlertas}
         />
 
         <AlertasSistemaLista
@@ -105,33 +100,20 @@ export function AlertasSistema({ reducida = false }: AlertasSistemaProps) {
           busqueda={busqueda}
         />
 
-        <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            Mostrando {alertas.length} de {resumenAlertas.total} alertas •{" "}
-            {resumenAlertas.importantes} importantes sin leer •{" "}
-            {resumenAlertas.resueltas} resueltas este mes
-          </div>
-
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={clearAll}
-              disabled={resumenAlertas.total === 0 || loading}
-              className="flex items-center gap-1"
-            >
-              <Trash2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Limpiar todo</span>
-              <span className="sm:hidden">Limpiar</span>
-            </Button>
-            <Button 
-              variant="outline"
-              className="flex items-center gap-1"
-            >
-              <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Configurar notificaciones</span>
-              <span className="sm:hidden">Config</span>
-            </Button>
-          </div>
+        <div className="flex items-center justify-between pt-2 border-t border-white/5">
+          <p className="text-xs text-white/30">
+            {alertas.length} de {resumenAlertas.total} alertas · {resumenAlertas.importantes} importantes · {resumenAlertas.resueltas} resueltas
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={clearAll}
+            disabled={resumenAlertas.total === 0 || loading}
+            className="gap-2 text-xs text-red-400 border-red-500/20 hover:bg-red-500/10 hover:border-red-500/40"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Limpiar todo
+          </Button>
         </div>
       </div>
     </div>

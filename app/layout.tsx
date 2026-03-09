@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "../styles/globals.css";
 import Navbar from "@/components/layout/navbar/navbar";
-import Footer from "@/components/layout/footer/footer";
 import { Providers } from "./providers";
 import { Toaster } from "@/components/ui/toaster";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -58,10 +57,7 @@ export default function RootLayout({
         <ErrorBoundary showDetails={process.env.NODE_ENV === 'development'}>
           <Providers>
             <Navbar />
-            <main className="flex-grow dark:bg-black">
-              {children}
-            </main>
-            <Footer />
+            {children}
             <Toaster />
           </Providers>
         </ErrorBoundary>

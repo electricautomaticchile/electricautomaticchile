@@ -1,192 +1,167 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import {
-  AlertTriangle,
-  CheckCircle2,
-  BellRing,
-} from "lucide-react";
+import { AlertTriangle, CheckCircle2, BellRing, Info } from "lucide-react";
 import { AlertasSistemaStatsProps } from './types';
-import { COLORES_ALERTA, DESCRIPCIONES_TIPO } from './config';
+import { DESCRIPCIONES_TIPO } from './config';
 
-export function AlertasSistemaStats({ 
-  resumen, 
-  loading 
-}: AlertasSistemaStatsProps) {
+interface AlertasSistemaStatsExtendedProps extends AlertasSistemaStatsProps {
+  filtroTipo?: string;
+  filtroEstado?: string;
+  onFiltroTipoChange?: (tipo: string) => void;
+  onFiltroEstadoChange?: (estado: string) => void;
+}
 
+export function AlertasSistemaStats({
+  resumen,
+  loading,
+  filtroTipo = "todos",
+  filtroEstado = "todos",
+  onFiltroTipoChange,
+  onFiltroEstadoChange,
+}: AlertasSistemaStatsExtendedProps) {
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardHeader className="pb-2">
-              <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-            </CardContent>
-          </Card>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="animate-pulse bg-white/5 border border-white/10 rounded-xl p-4 h-24" />
         ))}
       </div>
     );
   }
 
-  const estadisticas = [
+  const cards = [
     {
-      tipo: "error",
+      key: "error",
       titulo: "Críticas",
       valor: resumen.errorCritico,
-      descripcion: DESCRIPCIONES_TIPO.error,
-      icon: <AlertTriangle className="h-5 w-5" />,
-      colores: COLORES_ALERTA.error
+      detalle: DESCRIPCIONES_TIPO.error,
+      icono: AlertTriangle,
+      accent: "red",
     },
     {
-      tipo: "advertencia", 
+      key: "advertencia",
       titulo: "Advertencias",
       valor: resumen.advertencia,
-      descripcion: DESCRIPCIONES_TIPO.advertencia,
-      icon: <AlertTriangle className="h-5 w-5" />,
-      colores: COLORES_ALERTA.advertencia
+      detalle: DESCRIPCIONES_TIPO.advertencia,
+      icono: AlertTriangle,
+      accent: "amber",
     },
     {
-      tipo: "informacion",
-      titulo: "Información", 
+      key: "informacion",
+      titulo: "Información",
       valor: resumen.informacion,
-      descripcion: DESCRIPCIONES_TIPO.informacion,
-      icon: <BellRing className="h-5 w-5" />,
-      colores: COLORES_ALERTA.informacion
+      detalle: DESCRIPCIONES_TIPO.informacion,
+      icono: Info,
+      accent: "orange",
     },
     {
-      tipo: "exito",
+      key: "exito",
       titulo: "Éxito",
-      valor: resumen.exito, 
-      descripcion: DESCRIPCIONES_TIPO.exito,
-      icon: <CheckCircle2 className="h-5 w-5" />,
-      colores: COLORES_ALERTA.exito
-    }
+      valor: resumen.exito,
+      detalle: DESCRIPCIONES_TIPO.exito,
+      icono: CheckCircle2,
+      accent: "white",
+    },
   ];
 
+  const estadoCards = [
+    {
+      key: "no_leidas",
+      titulo: "Sin leer",
+      valor: resumen.noLeidas,
+      detalle: `${resumen.importantes} importantes`,
+      icono: BellRing,
+      accent: "orange",
+      isEstado: true,
+    },
+    {
+      key: "leidas",
+      titulo: "Leídas",
+      valor: resumen.total - resumen.noLeidas,
+      detalle: `${resumen.resueltas} resueltas`,
+      icono: CheckCircle2,
+      accent: "white",
+      isEstado: true,
+    },
+  ];
+
+  const getAccentClasses = (accent: string, isActive: boolean) => {
+    const base = {
+      red: { border: "border-red-500/40", top: "bg-red-500", icon: "bg-red-500/10 text-red-400", text: "text-red-400", activeBorder: "border-red-500" },
+      amber: { border: "border-amber-500/20", top: "bg-amber-500", icon: "bg-amber-500/10 text-amber-400", text: "text-amber-400", activeBorder: "border-amber-500" },
+      orange: { border: "border-orange-500/30", top: "bg-orange-500", icon: "bg-orange-500/10 text-orange-500", text: "text-orange-400", activeBorder: "border-orange-500" },
+      white: { border: "border-white/10", top: "bg-white/20", icon: "bg-white/5 text-white/40", text: "text-white", activeBorder: "border-white/30" },
+    };
+    const c = base[accent as keyof typeof base] || base.white;
+    return { ...c, border: isActive ? c.activeBorder : c.border };
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Tarjetas principales de estadísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {estadisticas.map((stat) => (
-          <Card 
-            key={stat.tipo}
-            className={`${stat.colores.bg} ${stat.colores.border}`}
-          >
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <div className={stat.colores.icon}>
-                  {stat.icon}
+    <div className="space-y-3">
+      {/* Cards de tipo — clickeables para filtrar */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {cards.map((card) => {
+          const Icon = card.icono;
+          const isActive = filtroTipo === card.key;
+          const c = getAccentClasses(card.accent, isActive);
+
+          return (
+            <div
+              key={card.key}
+              onClick={() => onFiltroTipoChange?.(isActive ? "todos" : card.key)}
+              className={`
+                relative rounded-xl border bg-[#0a0a0a] p-5 overflow-hidden cursor-pointer
+                transition-all duration-200 hover:shadow-[0_0_15px_rgba(249,115,22,0.1)]
+                hover:-translate-y-0.5 ${c.border}
+                ${isActive ? "ring-1 ring-orange-500/40" : ""}
+              `}
+            >
+              <div className={`absolute top-0 left-0 right-0 h-1 ${c.top}`} />
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs text-white/40 uppercase tracking-wide">{card.titulo}</p>
+                  <p className={`text-3xl font-black mt-1.5 ${c.text}`}>{card.valor}</p>
+                  <p className="text-sm text-white/30 mt-1">{card.detalle}</p>
                 </div>
-                <span className={stat.colores.text}>
-                  {stat.titulo}
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className={`text-3xl font-bold ${stat.colores.icon} mb-1`}>
-                {stat.valor}
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${c.icon}`}>
+                  <Icon className="h-5 w-5" />
+                </div>
               </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {stat.descripcion}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+            </div>
+          );
+        })}
       </div>
 
-      {/* Métricas adicionales */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Alertas no leídas */}
-        <Card className="bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <BellRing className="h-5 w-5 text-orange-600" />
-              <span className="text-orange-800 dark:text-orange-300">
-                No Leídas
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-orange-600 mb-1">
-              {resumen.noLeidas}
-            </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Requieren revisión
-            </p>
-            <div className="mt-2 text-xs text-orange-700 dark:text-orange-300">
-              {resumen.importantes} importantes
-            </div>
-          </CardContent>
-        </Card>
+      {/* Cards de estado — clickeables para filtrar */}
+      <div className="grid grid-cols-2 gap-3">
+        {estadoCards.map((card) => {
+          const Icon = card.icono;
+          const isActive = filtroEstado === card.key;
+          const c = getAccentClasses(card.accent, isActive);
 
-        {/* Alertas resueltas */}
-        <Card className="bg-gray-50 dark:bg-gray-900/10 border-gray-100 dark:border-gray-900/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-gray-600" />
-              <span className="text-gray-800 dark:text-gray-300">
-                Resueltas
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-gray-600 mb-1">
-              {resumen.resueltas}
-            </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Este mes
-            </p>
-            <div className="mt-2">
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                <div
-                  className="bg-gray-600 h-2 rounded-full transition-all duration-500"
-                  style={{ 
-                    width: `${resumen.total > 0 ? (resumen.resueltas / resumen.total) * 100 : 0}%` 
-                  }}
-                ></div>
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                {resumen.total > 0 
-                  ? `${Math.round((resumen.resueltas / resumen.total) * 100)}% del total`
-                  : "Sin datos"
-                }
+          return (
+            <div
+              key={card.key}
+              onClick={() => onFiltroEstadoChange?.(isActive ? "todos" : card.key)}
+              className={`
+                relative rounded-xl border bg-[#0a0a0a] p-5 overflow-hidden cursor-pointer
+                transition-all duration-200 hover:shadow-[0_0_15px_rgba(249,115,22,0.1)]
+                hover:-translate-y-0.5 ${c.border}
+                ${isActive ? "ring-1 ring-orange-500/40" : ""}
+              `}
+            >
+              <div className={`absolute top-0 left-0 right-0 h-1 ${c.top}`} />
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs text-white/40 uppercase tracking-wide">{card.titulo}</p>
+                  <p className={`text-3xl font-black mt-1.5 ${c.text}`}>{card.valor}</p>
+                  <p className="text-sm text-white/30 mt-1">{card.detalle}</p>
+                </div>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${c.icon}`}>
+                  <Icon className="h-5 w-5" />
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Total de alertas */}
-        <Card className="bg-blue-50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <BellRing className="h-5 w-5 text-blue-600" />
-              <span className="text-blue-800 dark:text-blue-300">
-                Total
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-blue-600 mb-1">
-              {resumen.total}
-            </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Alertas activas
-            </p>
-            <div className="mt-2 space-y-1">
-              <div className="flex justify-between text-xs">
-                <span className="text-red-600">Críticas</span>
-                <span className="font-medium">{resumen.errorCritico}</span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-amber-600">Advertencias</span>
-                <span className="font-medium">{resumen.advertencia}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          );
+        })}
       </div>
     </div>
   );

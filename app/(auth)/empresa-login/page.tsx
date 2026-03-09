@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { apiClient } from "@/lib/api/client";
-import { Building2, Mail, Lock, AlertCircle } from "lucide-react";
+import { Building2, Mail, Lock, AlertCircle, ArrowLeft, Zap } from "lucide-react";
+import Link from "next/link";
 
 export default function LoginEmpresaPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,96 +21,127 @@ export default function LoginEmpresaPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
-      const { data } = await apiClient.post('/api/auth/login/empresa', { email, password });
-
-      const isProduction = window.location.protocol === 'https:';
-      const cookieOptions = `path=/; max-age=${24 * 60 * 60}; samesite=lax${isProduction ? '; secure' : ''}`;
-
+      const { data } = await apiClient.post("/api/auth/login/empresa", { email, password });
+      const isProduction = window.location.protocol === "https:";
+      const cookieOptions = `path=/; max-age=${24 * 60 * 60}; samesite=lax${isProduction ? "; secure" : ""}`;
+      // Limpiar token anterior primero
+      document.cookie = `auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
       document.cookie = `auth_token=${encodeURIComponent(data.token)}; ${cookieOptions}`;
       document.cookie = `refresh_token=${encodeURIComponent(data.refreshToken)}; ${cookieOptions}`;
       document.cookie = `user_data=${encodeURIComponent(JSON.stringify({
-        id: data.user._id,
-        nombre: data.user.nombre,
-        correo: data.user.correo,
-        role: data.user.role || 'empresa',
-        tipoUsuario: 'empresa',
-        empresaId: data.user.empresaId || data.user._id,
-        activo: data.user.activo,
+        id: data.user._id, nombre: data.user.nombre, correo: data.user.correo,
+        role: data.user.role || "empresa", tipoUsuario: "empresa",
+        empresaId: data.user.empresaId || data.user._id, activo: data.user.activo,
       }))}; ${cookieOptions}`;
-
       if (data.permisos) {
         document.cookie = `permisos=${encodeURIComponent(JSON.stringify(data.permisos))}; ${cookieOptions}`;
       }
-
-      window.location.href = "/empresa";
+      await new Promise(r => setTimeout(r, 50));
+      router.replace("/empresa");
     } catch (err: any) {
       const msg = err.response?.data?.error?.message || err.response?.data?.message || err.message || "Error al iniciar sesión";
-      setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
+      setError(typeof msg === "string" ? msg : JSON.stringify(msg));
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 text-center">
-          <div className="flex justify-center mb-4">
-            <div className="p-3 bg-orange-500 rounded-full">
-              <Building2 className="h-8 w-8 text-white" />
-            </div>
+    <div className="min-h-screen flex bg-black">
+      {/* Left panel — brand */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col items-center justify-center p-12">
+        <div className="absolute inset-0 hero-grid-pattern opacity-60" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-orange-500/8 rounded-full blur-[100px]" />
+        <div className="relative z-10 text-center space-y-6 max-w-sm">
+          <h2 className="text-3xl font-extrabold text-white tracking-tight">
+            Portal <span className="text-gradient-orange">Empresas</span>
+          </h2>
+          <p className="text-white/50 text-sm leading-relaxed">
+            Gestiona clientes, dispositivos y estadísticas de consumo eléctrico desde un solo lugar.
+          </p>
+          <div className="space-y-3 text-left">
+            {["Gestión de clientes", "Control de dispositivos", "Estadísticas avanzadas"].map((f) => (
+              <div key={f} className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center shrink-0">
+                  <Zap className="h-3 w-3 text-orange-400" />
+                </div>
+                <span className="text-sm text-white/60">{f}</span>
+              </div>
+            ))}
           </div>
-          <CardTitle className="text-2xl font-bold">Portal Empresas</CardTitle>
-          <CardDescription>Ingresa con tu email corporativo</CardDescription>
-        </CardHeader>
-        <CardContent>
+        </div>
+      </div>
+
+      {/* Right panel — form */}
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="w-full max-w-sm space-y-8">
+          <div className="text-center">
+            <div className="flex justify-center mb-6 lg:hidden">
+            </div>
+            <div className="w-14 h-14 bg-orange-500/15 border border-orange-500/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Building2 className="h-7 w-7 text-orange-400" />
+            </div>
+            <h1 className="text-2xl font-extrabold text-white tracking-tight">Acceso Empresa</h1>
+            <p className="text-sm text-white/40 mt-1">Ingresa con tu email corporativo</p>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <Alert variant="destructive">
+              <Alert variant="destructive" className="border-red-500/30 bg-red-500/10 text-red-400">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-xs font-semibold text-white/60 uppercase tracking-wide">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="usuario@empresa.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-orange-500/50 focus:ring-orange-500/20 rounded-xl h-11"
                   required
                 />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-xs font-semibold text-white/60 uppercase tracking-wide">Contraseña</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
                 <Input
                   id="password"
                   type="password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-orange-500/50 focus:ring-orange-500/20 rounded-xl h-11"
                   required
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600" disabled={loading}>
+
+            <Button
+              type="submit"
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold h-11 rounded-xl shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 transition-all duration-200"
+              disabled={loading}
+            >
               {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
             </Button>
-            <div className="text-center text-sm text-gray-600">
-              <a href="/" className="hover:text-orange-500">← Volver al inicio</a>
-            </div>
           </form>
-        </CardContent>
-      </Card>
+
+          <div className="text-center">
+            <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-white/30 hover:text-orange-400 transition-colors">
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Volver al inicio
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

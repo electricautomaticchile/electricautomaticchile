@@ -13,15 +13,15 @@ export function LiveBadge({ connected, className }: LiveBadgeProps) {
       className={cn(
         "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold",
         connected
-          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-          : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400",
+          ? "bg-orange-500/20 text-orange-400 dark:bg-orange-500/20 dark:text-orange-400"
+          : "bg-white/10 text-white/40 dark:bg-white/10 dark:text-white/40",
         className
       )}
     >
       <span
         className={cn(
           "h-2 w-2 rounded-full",
-          connected ? "bg-green-500 animate-pulse" : "bg-gray-400"
+          connected ? "bg-orange-500 animate-pulse" : "bg-white/30"
         )}
       />
       {connected ? "En vivo" : "Desconectado"}

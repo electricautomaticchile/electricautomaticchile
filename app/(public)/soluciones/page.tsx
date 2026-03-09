@@ -1,341 +1,259 @@
 "use client";
 
 import {
-  Building2,
-  Home,
-  Factory,
-  Store,
-  Zap,
-  Clock,
-  Shield,
-  BarChart3,
-  Smartphone,
-  MapPin,
-  CheckCircle2,
+  Building2, Home, Factory, Store, Zap, Clock, Shield,
+  BarChart3, Smartphone, MapPin, CheckCircle2, ArrowRight, ChevronRight,
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as any } },
+};
+
+const solutions = [
+  {
+    icon: Building2,
+    title: "Compañías Eléctricas",
+    description: "Optimiza la gestión de miles de clientes con nuestra plataforma integral. Reduce costos operativos hasta en un 70% y mejora la recuperación de cartera morosa.",
+    benefits: [
+      "Gestión masiva de cortes y reposiciones automáticas",
+      "Reducción drástica de costos de personal en terreno",
+      "Reportes automáticos de consumo y facturación",
+      "Dashboard centralizado para monitoreo en tiempo real",
+      "Integración con sistemas de facturación existentes",
+    ],
+    stat: { value: "70%", label: "Reducción de costos operativos" },
+    color: "text-orange-400", bg: "bg-orange-500/15", border: "border-orange-500/40",
+    gradient: "from-orange-500/10 to-transparent", statColor: "text-orange-400",
+    href: "/empresas-electricidad",
+  },
+  {
+    icon: Home,
+    title: "Condominios y Edificios",
+    description: "Control centralizado del suministro eléctrico de múltiples unidades con facturación individual automatizada y transparente.",
+    benefits: [
+      "Facturación automática por unidad habitacional",
+      "Control independiente de áreas comunes",
+      "Transparencia total en consumos individuales",
+      "Gestión de morosos sin afectar a otros residentes",
+      "Reportes mensuales automáticos para administración",
+    ],
+    stat: { value: "100%", label: "Transparencia en consumos" },
+    color: "text-sky-400", bg: "bg-sky-500/15", border: "border-sky-500/40",
+    gradient: "from-sky-500/10 to-transparent", statColor: "text-sky-400",
+    href: "/condominios",
+  },
+  {
+    icon: Factory,
+    title: "Industrias",
+    description: "Monitoreo detallado de consumo energético para optimizar procesos productivos y reducir costos operacionales significativamente.",
+    benefits: [
+      "Análisis de consumo por área o línea de producción",
+      "Detección automática de anomalías y fugas energéticas",
+      "Optimización de horarios de producción según tarifas",
+      "Reportes de eficiencia energética en tiempo real",
+      "Alertas de consumo fuera de parámetros normales",
+    ],
+    stat: { value: "30%", label: "Ahorro energético promedio" },
+    color: "text-amber-400", bg: "bg-amber-500/15", border: "border-amber-500/40",
+    gradient: "from-amber-500/10 to-transparent", statColor: "text-amber-400",
+    href: "/industrias",
+  },
+  {
+    icon: Store,
+    title: "Comercios y Retail",
+    description: "Gestión eficiente del suministro en locales comerciales con control remoto centralizado y alertas inteligentes de consumo.",
+    benefits: [
+      "Control remoto de múltiples sucursales desde un solo lugar",
+      "Alertas de consumo anormal o fuera de horario",
+      "Reportes mensuales automáticos por local",
+      "Programación de horarios de operación",
+      "Comparativas de consumo entre sucursales",
+    ],
+    stat: { value: "24/7", label: "Control remoto" },
+    color: "text-emerald-400", bg: "bg-emerald-500/15", border: "border-emerald-500/40",
+    gradient: "from-emerald-500/10 to-transparent", statColor: "text-emerald-400",
+    href: "/comercios",
+  },
+];
+
+const features = [
+  { icon: Clock,       title: "Reposición Automática",      desc: "De 24-48 hrs a minutos. Sin personal en terreno.",                    color: "text-orange-400", bg: "bg-orange-500/15", border: "border-orange-500/30" },
+  { icon: BarChart3,   title: "Lectura Inteligente",        desc: "Consumo mensual automático con reportes vía web, SMS y email.",        color: "text-amber-400",  bg: "bg-amber-500/15",  border: "border-amber-500/30" },
+  { icon: Shield,      title: "Gestión Remota",             desc: "Cortes y reposiciones desde la plataforma. Sin desplazamientos.",      color: "text-sky-400",    bg: "bg-sky-500/15",    border: "border-sky-500/30" },
+  { icon: MapPin,      title: "Protección GPS",             desc: "Localización en tiempo real. Alertas ante manipulación no autorizada.", color: "text-emerald-400",bg: "bg-emerald-500/15",border: "border-emerald-500/30" },
+  { icon: Smartphone,  title: "Notificaciones Instantáneas",desc: "Alertas de consumo, pagos y estado del servicio. WhatsApp, SMS, email.",color: "text-violet-400", bg: "bg-violet-500/15", border: "border-violet-500/30" },
+  { icon: Zap,         title: "Comandos Remotos",           desc: "Reconfiguración masiva sin visitas técnicas. Firmware remoto.",        color: "text-yellow-400", bg: "bg-yellow-500/15", border: "border-yellow-500/30" },
+];
+
+const checkColors = ["text-orange-400", "text-sky-400", "text-amber-400", "text-emerald-400", "text-violet-400"];
+
 export default function SolucionesPage() {
-  const solutions = [
-    {
-      icon: Building2,
-      title: "Compañías Eléctricas",
-      description:
-        "Optimiza la gestión de miles de clientes con nuestra plataforma integral. Reduce costos operativos hasta en un 70% y mejora la recuperación de cartera morosa.",
-      benefits: [
-        "Gestión masiva de cortes y reposiciones automáticas",
-        "Reducción drástica de costos de personal en terreno",
-        "Reportes automáticos de consumo y facturación",
-        "Dashboard centralizado para monitoreo en tiempo real",
-        "Integración con sistemas de facturación existentes",
-      ],
-      stats: { value: "70%", label: "Reducción de costos operativos" },
-    },
-    {
-      icon: Home,
-      title: "Condominios y Edificios",
-      description:
-        "Control centralizado del suministro eléctrico de múltiples unidades con facturación individual automatizada y transparente.",
-      benefits: [
-        "Facturación automática por unidad habitacional",
-        "Control independiente de áreas comunes",
-        "Transparencia total en consumos individuales",
-        "Gestión de morosos sin afectar a otros residentes",
-        "Reportes mensuales automáticos para administración",
-      ],
-      stats: { value: "100%", label: "Transparencia en consumos" },
-    },
-    {
-      icon: Factory,
-      title: "Industrias",
-      description:
-        "Monitoreo detallado de consumo energético para optimizar procesos productivos y reducir costos operacionales significativamente.",
-      benefits: [
-        "Análisis de consumo por área o línea de producción",
-        "Detección automática de anomalías y fugas energéticas",
-        "Optimización de horarios de producción según tarifas",
-        "Reportes de eficiencia energética en tiempo real",
-        "Alertas de consumo fuera de parámetros normales",
-      ],
-      stats: { value: "30%", label: "Ahorro energético promedio" },
-    },
-    {
-      icon: Store,
-      title: "Comercios y Retail",
-      description:
-        "Gestión eficiente del suministro en locales comerciales con control remoto centralizado y alertas inteligentes de consumo.",
-      benefits: [
-        "Control remoto de múltiples sucursales desde un solo lugar",
-        "Alertas de consumo anormal o fuera de horario",
-        "Reportes mensuales automáticos por local",
-        "Programación de horarios de operación",
-        "Comparativas de consumo entre sucursales",
-      ],
-      stats: { value: "24/7", label: "Control remoto" },
-    },
-  ];
-
-  const features = [
-    {
-      icon: Clock,
-      title: "Reposición Automática",
-      description:
-        "Elimina tiempos de espera. El servicio se restablece automáticamente al regularizar el pago, sin necesidad de personal en terreno. Según datos del Ministerio de Energía, reducimos los tiempos de reposición de 24-48 horas a minutos.",
-    },
-    {
-      icon: BarChart3,
-      title: "Lectura Inteligente",
-      description:
-        "Toma automática de consumo mensual con reportes instantáneos vía web, SMS y correo electrónico. Elimina errores de lectura manual y reduce costos de facturación en un 60%.",
-    },
-    {
-      icon: Shield,
-      title: "Gestión Remota",
-      description:
-        "Administra cortes y reposiciones desde la plataforma web. Control total sin desplazamientos. Gestión masiva o individual con comandos remotos seguros y encriptados.",
-    },
-    {
-      icon: MapPin,
-      title: "Protección GPS",
-      description:
-        "Localización en tiempo real del dispositivo. Protección contra extravío o manipulación indebida. Sistema de alertas ante intentos de remoción no autorizada.",
-    },
-    {
-      icon: Smartphone,
-      title: "Notificaciones Instantáneas",
-      description:
-        "Alertas automáticas de consumo, pagos pendientes y estado del servicio en tiempo real. Integración con WhatsApp, SMS y email para máxima cobertura.",
-    },
-    {
-      icon: Zap,
-      title: "Comandos Remotos",
-      description:
-        "Reconfiguración masiva o individual de dispositivos sin necesidad de visitas técnicas. Actualizaciones de firmware remotas y diagnóstico en línea.",
-    },
-  ];
-
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative py-20 px-4 bg-gradient-to-br from-orange-500 to-orange-600 overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-white rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-white rounded-full blur-3xl" />
-        </div>
+    <div className="min-h-screen bg-background">
 
-        <div className="container mx-auto text-white relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="max-w-4xl mx-auto text-center"
-          >
-            <div className="inline-block mb-4 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full">
-              <span className="text-white font-medium text-sm">
-                Nuestras Soluciones
-              </span>
-            </div>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Tecnología que Transforma la Gestión Eléctrica
+      {/* HERO */}
+      <section className="relative py-24 px-4 overflow-hidden bg-[#0a0a0a]">
+        <div className="absolute inset-0 hero-grid-pattern pointer-events-none opacity-40" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-orange-500/6 rounded-full blur-[120px] pointer-events-none" />
+        <div className="container mx-auto relative z-10 text-center max-w-4xl">
+          <motion.div variants={fadeUp} initial="hidden" animate="visible">
+            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 leading-[1.05]">
+              Tecnología que <span className="text-gradient-orange">Transforma</span>
+              <br />la Gestión Eléctrica
             </h1>
-            <p className="text-xl text-white/90 max-w-3xl mx-auto">
-              Soluciones integrales adaptadas a cada sector, desde compañías
-              eléctricas hasta hogares, con tecnología IoT de vanguardia y
-              soporte 24/7
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+              Soluciones integrales adaptadas a cada sector, con tecnología IoT de vanguardia y soporte 24/7
             </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link href="/formulario">
+                <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/25 gap-2 group">
+                  Solicitar Demo Gratuita
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+              <Link href="/acerca-de">
+                <Button size="lg" variant="outline" className="border-border hover:border-orange-500/40 hover:bg-orange-500/5">
+                  Conocer más
+                </Button>
+              </Link>
+            </div>
           </motion.div>
         </div>
       </section>
 
-      <section className="py-20 px-4 dark:bg-black">
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Soluciones para Cada Necesidad
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-white/70 max-w-2xl mx-auto">
-              Adaptable a diferentes sectores y escalas de operación, con
-              resultados medibles
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8 mb-12">
-           <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="relative aspect-video rounded-2xl overflow-hidden border border-orange-500/20"
-            >
-              <Image
-                src="/Instalación-arduino-medidor.png"
-                alt="Medidor con tecnología integrada"
-                fill
-                className="object-contain"
-              />
-            </motion.div>
-
+      {/* IMÁGENES */}
+      <section className="py-16 px-4 bg-background">
+        <div className="container mx-auto max-w-5xl">
+          <div className="grid md:grid-cols-2 gap-6">
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
+              initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
               className="relative aspect-video rounded-2xl overflow-hidden border border-orange-500/20"
             >
-              <Image
-                src="/Dashboard cliente.webp"
-                alt="Dashboard plataforma web de monitoreo"
-                fill
-                className="object-contain"
-              />
+              <Image src="/Instalación-arduino-medidor.png" alt="Medidor con tecnología integrada" fill className="object-contain" />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
+              className="relative aspect-video rounded-2xl overflow-hidden border border-orange-500/20"
+            >
+              <Image src="/Dashboard cliente.webp" alt="Dashboard plataforma web de monitoreo" fill className="object-contain" />
             </motion.div>
           </div>
+        </div>
+      </section>
 
-          <div className="space-y-12">
-            {solutions.map((solution, index) => (
+      {/* SOLUCIONES POR SECTOR */}
+      <section className="py-20 px-4 bg-[#0a0a0a]">
+        <div className="container mx-auto max-w-5xl">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-14">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">Soluciones para Cada Sector</h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">Adaptable a diferentes escalas de operación, con resultados medibles</p>
+          </motion.div>
+
+          <div className="space-y-6">
+            {solutions.map((s, i) => (
               <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                key={s.title}
+                initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className={`relative rounded-2xl border ${s.border} bg-gradient-to-br ${s.gradient} bg-[#0f0f0f] overflow-hidden`}
               >
-                <Card className="overflow-hidden border-orange-500/20 hover:border-orange-500/40 transition-all dark:bg-black">
-                  <CardContent className="p-8 md:p-12">
-                    <div className="grid md:grid-cols-[auto,1fr,auto] gap-8 items-start">
-                      <div className="w-16 h-16 rounded-xl bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center flex-shrink-0">
-                        <solution.icon className="h-8 w-8 text-orange-600 dark:text-orange-400" />
-                      </div>
-
-                      <div>
-                        <h3 className="text-2xl md:text-3xl font-bold mb-3">
-                          {solution.title}
-                        </h3>
-                        <p className="text-gray-600 dark:text-white/80 mb-6 text-lg">
-                          {solution.description}
-                        </p>
-
-                        <div className="space-y-3">
-                          {solution.benefits.map((benefit, idx) => (
-                            <div key={idx} className="flex items-start gap-3">
-                              <CheckCircle2 className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
-                              <span className="text-gray-700 dark:text-white/90">
-                                {benefit}
-                              </span>
-                            </div>
-                          ))}
+                <div className={`h-1 w-full ${s.bg}`} />
+                <div className="p-8 md:p-10">
+                  <div className="grid md:grid-cols-[1fr,auto] gap-8 items-start">
+                    <div>
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className={`w-12 h-12 rounded-xl ${s.bg} border ${s.border} flex items-center justify-center shrink-0`}>
+                          <s.icon className={`h-6 w-6 ${s.color}`} />
                         </div>
+                        <h3 className="text-2xl font-bold">{s.title}</h3>
                       </div>
-
-                      <div className="text-center bg-orange-50 dark:bg-orange-900/10 rounded-xl p-6 min-w-[180px]">
-                        <div className="text-4xl font-bold text-orange-500 mb-2">
-                          {solution.stats.value}
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-white/70">
-                          {solution.stats.label}
-                        </div>
+                      <p className="text-muted-foreground mb-6 leading-relaxed">{s.description}</p>
+                      <div className="space-y-2.5">
+                        {s.benefits.map((b, idx) => (
+                          <div key={idx} className="flex items-start gap-3">
+                            <CheckCircle2 className={`h-4 w-4 mt-0.5 shrink-0 ${checkColors[idx % checkColors.length]}`} />
+                            <span className="text-sm text-muted-foreground">{b}</span>
+                          </div>
+                        ))}
                       </div>
+                      <Link href={s.href} className={`inline-flex items-center gap-1.5 mt-6 text-sm font-medium ${s.color} hover:gap-2.5 transition-all duration-200`}>
+                        Ver más <ChevronRight className="h-4 w-4" />
+                      </Link>
                     </div>
-                  </CardContent>
-                </Card>
+                    <div className={`text-center rounded-xl ${s.bg} border ${s.border} p-6 min-w-[160px]`}>
+                      <div className={`text-4xl font-extrabold ${s.statColor} mb-1`}>{s.stat.value}</div>
+                      <div className="text-xs text-muted-foreground">{s.stat.label}</div>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-gray-50 dark:bg-black">
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Características de Nuestra Tecnología
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-white/70 max-w-2xl mx-auto">
-              Solución integral que automatiza procesos, reduce costos
-              operativos y mejora la experiencia del cliente
-            </p>
+      {/* CARACTERÍSTICAS */}
+      <section className="py-20 px-4 bg-background">
+        <div className="container mx-auto max-w-5xl">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-14">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">Características de Nuestra Tecnología</h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">Automatiza procesos, reduce costos y mejora la experiencia del cliente</p>
+          </motion.div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {features.map((f, i) => (
+              <motion.div
+                key={f.title}
+                initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                transition={{ delay: i * 0.07 }}
+                className={`relative rounded-xl border ${f.border} bg-[#0a0a0a] p-6 overflow-hidden`}
+              >
+                <div className={`absolute top-0 left-0 right-0 h-0.5 ${f.bg}`} />
+                <div className={`w-11 h-11 rounded-xl ${f.bg} border ${f.border} flex items-center justify-center mb-4`}>
+                  <f.icon className={`h-5 w-5 ${f.color}`} />
+                </div>
+                <h3 className="text-base font-bold mb-2">{f.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+              </motion.div>
+            ))}
           </div>
+        </div>
+      </section>
 
-          <div className="mb-12 relative aspect-[21/9] rounded-2xl overflow-hidden bg-gradient-to-br from-orange-500/10 to-orange-600/10 border border-orange-500/20">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <Zap className="h-24 w-24 mx-auto mb-4 text-orange-500 opacity-50" />
-                <p className="text-lg font-medium">
-                  Video: Proceso Completo de Reconexión
-                </p>
-                <p className="text-sm opacity-75 mt-2">
-                  Desde el pago hasta la reposición automática en minutos
-                </p>
+      {/* CTA */}
+      <section className="py-20 px-4 bg-[#0a0a0a]">
+        <div className="container mx-auto max-w-3xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            className="relative rounded-2xl border border-orange-500/30 overflow-hidden text-center p-12"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent pointer-events-none" />
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 via-amber-400 to-orange-600" />
+            <div className="relative z-10">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">¿Listo para Transformar tu Gestión Eléctrica?</h2>
+              <p className="text-muted-foreground mb-8 max-w-xl mx-auto">Agenda una demo gratuita y descubre cómo podemos optimizar tus operaciones</p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Link href="/formulario">
+                  <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/25 gap-2 group">
+                    Solicitar Demo Gratuita
+                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+                <Link href="/cliente-login">
+                  <Button size="lg" variant="outline" className="border-border hover:border-orange-500/40 hover:bg-orange-500/5">
+                    Acceder a la Plataforma
+                  </Button>
+                </Link>
               </div>
             </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <Card className="h-full hover:shadow-lg transition-shadow dark:bg-black dark:border-white/10">
-                  <CardContent className="p-6">
-                    <div className="w-12 h-12 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center mb-4">
-                      <feature.icon className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-3">
-                      {feature.title}
-                    </h3>
-                    <p className="text-gray-600 dark:text-white/80 leading-relaxed">
-                      {feature.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Final */}
-      <section className="py-20 px-4 dark:bg-black">
-        <div className="container mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="max-w-4xl mx-auto bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-12 text-center text-white"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              ¿Listo para Transformar tu Gestión Eléctrica?
-            </h2>
-            <p className="text-xl mb-8 text-white/90">
-              Agenda una demo gratuita y descubre cómo podemos optimizar tus
-              operaciones
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/formulario">
-                <Button size="lg" variant="secondary">
-                  Solicitar Demo Gratuita
-                </Button>
-              </Link>
-              <Link href="/auth/login">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="bg-white/10 text-white border-white hover:bg-white/20"
-                >
-                  Acceder a la Plataforma
-                </Button>
-              </Link>
-            </div>
           </motion.div>
         </div>
       </section>
+
     </div>
   );
 }

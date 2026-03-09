@@ -1,131 +1,60 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import {
-  BellRing,
-  Search,
-  Bell,
-  CheckCircle2,
-  RefreshCw,
-  FileSpreadsheet,
-} from "lucide-react";
+import { BellRing, FileSpreadsheet, FileText } from "lucide-react";
 import { AlertasSistemaAccionesProps } from './types';
-import { BadgeTiempoReal } from './AlertasSistemaIconos';
+
+interface AlertasSistemaAccionesExtendedProps extends AlertasSistemaAccionesProps {
+  onExportarPDF?: () => void;
+}
 
 export function AlertasSistemaAcciones({
-  isConnected,
-  busqueda,
-  onBusquedaChange,
-  onSimularAlerta,
-  onMarcarTodasLeidas,
   resumenAlertas,
   loading = false,
   onExportarExcel,
-}: AlertasSistemaAccionesProps) {
-
+  onExportarPDF,
+}: AlertasSistemaAccionesExtendedProps) {
   return (
-    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-      <div>
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <BellRing className="h-6 w-6 text-orange-600" />
-          Centro de Alertas
-          <BadgeTiempoReal conectado={isConnected} />
+    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex items-center gap-3">
+        <h2 className="text-2xl font-extrabold tracking-tight text-foreground">
+          Centro de <span className="text-gradient-orange">Alertas</span>
         </h2>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
-          Sistema de notificaciones y alertas en tiempo real
-        </p>
+        <Badge className="bg-orange-500/20 text-orange-400 border border-orange-500/40 text-xs">
+          {resumenAlertas.total} alertas
+        </Badge>
+        {resumenAlertas.noLeidas > 0 && (
+          <Badge className="bg-red-500/20 text-red-400 border border-red-500/40 text-xs">
+            {resumenAlertas.noLeidas} sin leer
+          </Badge>
+        )}
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-          <Input
-            type="search"
-            placeholder="Buscar alertas..."
-            className="pl-9 w-full sm:w-64"
-            value={busqueda}
-            onChange={(e) => onBusquedaChange(e.target.value)}
-            disabled={loading}
-          />
-        </div>
-
-        <div className="flex gap-2">
+      <div className="flex items-center gap-2">
+        {onExportarExcel && (
           <Button
             variant="outline"
-            className="flex items-center gap-2"
-            onClick={onSimularAlerta}
+            size="sm"
+            onClick={onExportarExcel}
             disabled={loading}
+            className="gap-2 text-xs hover:border-orange-500/40 hover:bg-orange-500/5"
           >
-            <Bell className="h-4 w-4" />
-            <span className="hidden sm:inline">Simular Alerta</span>
-            <span className="sm:hidden">Simular</span>
+            <FileSpreadsheet className="h-3.5 w-3.5" />
+            Excel
           </Button>
-
-          {onExportarExcel && (
-            <Button
-              variant="outline"
-              className="flex items-center gap-2"
-              onClick={onExportarExcel}
-              disabled={loading}
-            >
-              <FileSpreadsheet className="h-4 w-4" />
-              <span className="hidden sm:inline">Excel</span>
-            </Button>
-          )}
-
+        )}
+        {onExportarPDF && (
           <Button
-            className="flex items-center gap-2"
-            onClick={onMarcarTodasLeidas}
-            disabled={resumenAlertas.noLeidas === 0 || loading}
+            variant="outline"
+            size="sm"
+            onClick={onExportarPDF}
+            disabled={loading}
+            className="gap-2 text-xs hover:border-orange-500/40 hover:bg-orange-500/5"
           >
-            {loading ? (
-              <RefreshCw className="h-4 w-4 animate-spin" />
-            ) : (
-              <CheckCircle2 className="h-4 w-4" />
-            )}
-            <span className="hidden sm:inline">
-              Marcar todo como leído
-            </span>
-            <span className="sm:hidden">
-              Marcar ({resumenAlertas.noLeidas})
-            </span>
+            <FileText className="h-3.5 w-3.5" />
+            PDF
           </Button>
-        </div>
+        )}
       </div>
-    </div>
-  );
-}
-
-// Componente adicional para métricas rápidas en el encabezado
-export function MetricasRapidas({ resumen }: { resumen: any }) {
-  const metricas = [
-    {
-      label: "Total",
-      valor: resumen.total,
-      color: "text-gray-600"
-    },
-    {
-      label: "Críticas", 
-      valor: resumen.errorCritico,
-      color: "text-red-600"
-    },
-    {
-      label: "No leídas",
-      valor: resumen.noLeidas,
-      color: "text-orange-600"
-    }
-  ];
-
-  return (
-    <div className="flex items-center gap-4 text-sm">
-      {metricas.map((metrica, index) => (
-        <div key={index} className="flex items-center gap-1">
-          <span className="text-gray-500">{metrica.label}:</span>
-          <span className={`font-semibold ${metrica.color}`}>
-            {metrica.valor}
-          </span>
-        </div>
-      ))}
     </div>
   );
 }

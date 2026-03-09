@@ -18,6 +18,7 @@ import {
   Loader2,
   FileText,
   Clock,
+  MapPin,
 } from "lucide-react";
 import { useApi } from '@/hooks/useApi';
 import {
@@ -25,6 +26,25 @@ import {
   EstadoServicio,
 } from "@/lib/api/servicioElectricoService";
 import { useToast } from "@/components/ui/use-toast";
+import { MapaBasico } from "@/components/features/dashboard-cliente/ubicacion/MapaBasico";
+
+function UbicacionBlock({ user }: { user: any }) {
+  return (
+    <div className="relative rounded-xl border border-white/10 bg-[#0a0a0a] overflow-hidden">
+      <div className="h-1 w-full bg-orange-500" />
+      <div className="p-6 space-y-4">
+        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+          <MapPin className="h-5 w-5 text-orange-500" />
+          Ubicación del Suministro
+        </h3>
+        <MapaBasico
+          ubicacion={user?.ubicacion || { lat: -33.4489, lng: -70.6693 }}
+          direccionRegistrada={user?.direccion || "No especificada"}
+        />
+      </div>
+    </div>
+  );
+}
 
 export function ControlServicio() {
   const { user } = useApi();
@@ -94,24 +114,32 @@ export function ControlServicio() {
 
   if (cargando) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-orange-600 mx-auto" />
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <div className="relative rounded-xl border border-white/10 bg-[#0a0a0a] overflow-hidden">
+          <div className="h-1 w-full bg-orange-500" />
+          <div className="py-12 flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+          </div>
+        </div>
+        <UbicacionBlock user={user} />
+      </div>
     );
   }
 
   if (!estadoServicio) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">
-            No se pudo cargar el estado del servicio
-          </p>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <div className="relative rounded-xl border border-white/10 bg-[#0a0a0a] overflow-hidden">
+          <div className="h-1 w-full bg-orange-500" />
+          <div className="py-12 text-center">
+            <div className="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="h-7 w-7 text-white/30" />
+            </div>
+            <p className="text-white/40">No se pudo cargar el estado del servicio</p>
+          </div>
+        </div>
+        <UbicacionBlock user={user} />
+      </div>
     );
   }
 
@@ -286,6 +314,9 @@ export function ControlServicio() {
           )}
         </CardContent>
       </Card>
+
+      {/* Ubicación del punto de suministro */}
+      <UbicacionBlock user={user as any} />
     </div>
   );
 }

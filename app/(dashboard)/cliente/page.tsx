@@ -1,63 +1,60 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 import { CambioPasswordModal } from "@/components/ui/cambio-password-modal";
 import { ConsumoElectrico } from "@/components/features/dashboard-cliente/consumo-electrico";
 import { PagosFacturas } from "@/components/features/dashboard-cliente/pagos-facturas";
 import { SoporteUsuarioNuevo as SoporteUsuario } from "@/components/features/dashboard-cliente/soporte-usuario";
 import { PerfilUsuario } from "@/components/features/dashboard-cliente/perfil-usuario";
-import { MapaBasico } from "@/components/features/dashboard-cliente/ubicacion/MapaBasico";
 import { ControlServicio } from "@/components/features/dashboard-cliente/control-servicio";
 import { NotificacionesCliente } from "@/components/features/dashboard-cliente/notificaciones-cliente";
 import { ConsejosAhorroIA } from "@/components/features/dashboard-cliente/consejos-ahorro-ia";
 import NavigationCliente from "@/components/features/dashboard-cliente/layout/navigation";
 import { useApi } from "@/hooks/useApi";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useDashboardCliente } from "@/hooks/queries/useDashboardQuery";
+import { useDashboardClienteTodo } from "@/hooks/queries/useDashboardQuery";
+import { useWebSocket, type WSMessage } from "@/lib/websocket/useWebSocket";
 import { GlobalLoadingState } from "@/components/shared";
 import { useCambiarPassword } from "@/hooks/queries/useAuthMutations";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Zap, 
-  DollarSign, 
-  Activity,
-  AlertCircle,
-  Trophy,
-  Target,
-  Sparkles,
-  ArrowRight
+import {
+  TrendingUp, TrendingDown, Zap, DollarSign, Activity,
+  Trophy, Target, Sparkles, ArrowRight, Bell,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
-const fadeIn = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
-
-const staggerContainer = {
+const fadeIn = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } };
+const stagger = {
   hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-};
-
-const scaleIn = {
-  hidden: { scale: 0.8, opacity: 0 },
-  visible: { 
-    scale: 1, 
-    opacity: 1
-  }
+  visible: { opacity: 1, transition: { staggerChildren: 0.09 } },
 };
 
 export default function DashboardCliente() {
-  const { user, isLoading: loadingCliente, isRealAuthenticated } = useApi();
-  const { data: resumenData, isLoading: loadingResumen } = useDashboardCliente();
+  const { user, isLoading: loadingCliente } = useApi();
+  const { data: todoData, isLoading: loadingResumen } = useDashboardClienteTodo();
+
+  const resumen = todoData?.data?.resumen;
+  const boletas = todoData?.data?.boletas ?? [];
+
+  // Lectura en vivo desde WebSocket
+  const [lecturaVivo, setLecturaVivo] = React.useState<{ energia: number; costo: number; potencia: number } | null>(null);
+
+  const clienteId = (user as any)?._id?.toString() || user?.id?.toString();
+
+  const handleWsMessage = useCallback((msg: WSMessage) => {
+    if (msg.type === "device_update" && msg.data) {
+      const d = msg.data as any;
+      const energia = typeof d.energia === "number" ? d.energia : parseFloat(d.energia ?? "0");
+      const costo = typeof d.costo === "number" ? d.costo : parseFloat(d.costo ?? "0");
+      const potencia = typeof d.potenciaActiva === "number" ? d.potenciaActiva : parseFloat(d.potenciaActiva ?? "0");
+      setLecturaVivo({ energia, costo, potencia });
+    }
+  }, []);
+
+  useWebSocket({
+    enabled: !!clienteId,
+    onMessage: handleWsMessage,
+  });
   const cambiarPasswordMutation = useCambiarPassword();
   const [componenteActivo, setComponenteActivo] = useState<string | null>(null);
   const [mostrarModalPassword, setMostrarModalPassword] = useState(false);
@@ -66,10 +63,8 @@ export default function DashboardCliente() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const cookies = document.cookie.split(";");
-      const requiereCambioCookie = cookies.find((c) =>
-        c.trim().startsWith("requiereCambioPassword=")
-      );
-      if (requiereCambioCookie && requiereCambioCookie.split("=")[1] === "true") {
+      const c = cookies.find((c) => c.trim().startsWith("requiereCambioPassword="));
+      if (c && c.split("=")[1] === "true") {
         setRequiereCambioPassword(true);
         setMostrarModalPassword(true);
       }
@@ -77,181 +72,137 @@ export default function DashboardCliente() {
   }, []);
 
   useEffect(() => {
-    if (resumenData?.data?.cliente?.passwordTemporal) {
+    if (resumen?.cliente?.passwordTemporal) {
       setRequiereCambioPassword(true);
       setMostrarModalPassword(true);
     }
-  }, [resumenData]);
+  }, [resumen]);
+
+  const boletasPendientes = boletas.filter(b => !b.estado || b.estado !== "pagada").length;
 
   const datosCliente = {
     _id: (user as any)?._id?.toString() || user?.id?.toString(),
     id: user?.id?.toString() || (user as any)?._id?.toString(),
-    nombre: resumenData?.data?.cliente?.nombre || (user as any)?.nombre || user?.name || "Cliente",
-    numeroCliente: resumenData?.data?.cliente?.numeroCliente || (user as any)?.numeroCliente || "---",
-    direccion: (resumenData?.data?.cliente as any)?.direccion || (user as any)?.direccion || "No especificada",
-    correo: resumenData?.data?.cliente?.correo || (user as any)?.correo || user?.email || "",
+    nombre: resumen?.cliente?.nombre || (user as any)?.nombre || user?.name || "Cliente",
+    numeroCliente: resumen?.cliente?.numeroCliente || (user as any)?.numeroCliente || "---",
+    direccion: resumen?.cliente?.direccion || (user as any)?.direccion || "No especificada",
+    correo: resumen?.cliente?.correo || (user as any)?.correo || user?.email || "",
     email: user?.email || (user as any)?.correo || "",
-    telefono: (resumenData?.data?.cliente as any)?.telefono || (user as any)?.telefono || "",
-    imagenPerfil: (resumenData?.data?.cliente as any)?.imagenPerfil || (user as any)?.imagenPerfil || "",
+    telefono: resumen?.cliente?.telefono || (user as any)?.telefono || "",
+    imagenPerfil: resumen?.cliente?.imagenPerfil || (user as any)?.imagenPerfil || "",
     ultimoPago: (user as any)?.ultimoPago || "---",
-    consumoActual: resumenData?.data?.estadisticas?.consumoMensual || (user as any)?.consumoActual || 0,
+    consumoActual: lecturaVivo?.energia ?? resumen?.estadisticas?.consumoMensual ?? 0,
     ubicacion: (user as any)?.ubicacion || { lat: -33.4489, lng: -70.6693 },
-    estadisticas: resumenData?.data?.estadisticas || {
-      dispositivosActivos: 0,
-      dispositivosTotal: 0,
-      consumoMensual: 0,
-      costoMensual: 0,
-      boletasPendientes: 0,
+    estadisticas: {
+      dispositivosActivos: resumen?.estadisticas?.dispositivosActivos ?? 0,
+      dispositivosTotal: resumen?.estadisticas?.dispositivosTotal ?? 0,
+      consumoMensual: lecturaVivo?.energia ?? resumen?.estadisticas?.consumoMensual ?? 0,
+      costoMensual: lecturaVivo?.costo ?? resumen?.estadisticas?.costoMensual ?? 0,
+      boletasPendientes,
     },
   };
 
   const consumoMesAnterior = 120;
   const consumoActual = datosCliente.estadisticas.consumoMensual;
-  const diferenciaPorcentaje = consumoMesAnterior > 0 
-    ? ((consumoActual - consumoMesAnterior) / consumoMesAnterior) * 100 
-    : 0;
+  const diferenciaPorcentaje = consumoMesAnterior > 0
+    ? ((consumoActual - consumoMesAnterior) / consumoMesAnterior) * 100 : 0;
   const esAumento = diferenciaPorcentaje > 0;
-
-  const handlePasswordChangeSuccess = () => {
-    setRequiereCambioPassword(false);
-  };
 
   const renderizarComponenteActivo = () => {
     switch (componenteActivo) {
-      case "consumo":
-        return <ConsumoElectrico />;
-      case "boletas":
-        return <PagosFacturas />;
-      case "servicio":
-        return <ControlServicio />;
+      case "consumo":   return <ConsumoElectrico />;
+      case "boletas":   return <PagosFacturas />;
+      case "servicio":  return <ControlServicio />;
       case "perfil":
-        return (
-          <Tabs defaultValue="datos" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="datos">Mis Datos</TabsTrigger>
-              <TabsTrigger value="ubicacion">Ubicación</TabsTrigger>
-            </TabsList>
-            <TabsContent value="datos" className="mt-6">
-              <PerfilUsuario datos={datosCliente} />
-            </TabsContent>
-            <TabsContent value="ubicacion" className="mt-6">
-              <MapaBasico
-                ubicacion={datosCliente.ubicacion}
-                direccionRegistrada={datosCliente.direccion}
-              />
-            </TabsContent>
-          </Tabs>
-        );
-      case "notificaciones":
-        return <NotificacionesCliente />;
-      case "soporte":
-        return <SoporteUsuario />;
-      case "resumen":
-      case null:
+        return <PerfilUsuario datos={datosCliente} />;
+      case "notificaciones": return <NotificacionesCliente />;
+      case "soporte":        return <SoporteUsuario />;
       default:
         return (
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            animate="visible"
-            className="space-y-6"
-          >
-            {/* Hero Section - Proyección de Factura */}
+          <motion.div variants={stagger} initial="hidden" animate="visible" className="space-y-5">
+
+            {/* Factura estimada — hero card clickeable → Mi Consumo */}
             <motion.div variants={fadeIn}>
-              <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 text-white shadow-2xl">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32" />
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24" />
-                <CardContent className="relative p-8">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="h-5 w-5" />
-                        <span className="text-sm font-medium opacity-90">Tu factura estimada</span>
-                      </div>
-                      <div>
-                        <div className="text-5xl font-bold mb-2">
-                          ${datosCliente.estadisticas.costoMensual.toFixed(0)}
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          {esAumento ? (
-                            <>
-                              <TrendingUp className="h-4 w-4" />
-                              <span>+{Math.abs(diferenciaPorcentaje).toFixed(1)}% vs mes pasado</span>
-                            </>
-                          ) : (
-                            <>
-                              <TrendingDown className="h-4 w-4" />
-                              <span>-{Math.abs(diferenciaPorcentaje).toFixed(1)}% vs mes pasado</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      <Button 
-                        variant="secondary" 
-                        size="sm"
-                        onClick={() => setComponenteActivo("boletas")}
-                        className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-                      >
-                        Ver detalles
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
+              <div
+                onClick={() => setComponenteActivo("consumo")}
+                className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 text-white p-7 shadow-xl shadow-orange-500/20 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-orange-500/30"
+              >
+                <div className="absolute top-0 right-0 w-56 h-56 bg-white/10 rounded-full -mr-28 -mt-28 pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/10 rounded-full -ml-20 -mb-20 pointer-events-none" />
+                <div className="relative flex items-start justify-between">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-white/80 text-sm">
+                      <Sparkles className="h-4 w-4" />
+                      Tu factura estimada este mes
                     </div>
-                    <div className="text-right">
-                      <Badge className="bg-white/20 text-white border-white/30 mb-2">
-                        Este mes
-                      </Badge>
-                      <div className="text-sm opacity-90">
-                        {datosCliente.estadisticas.consumoMensual.toFixed(1)} kWh
-                      </div>
+                    <div className="text-5xl font-extrabold tracking-tight">
+                      ${datosCliente.estadisticas.costoMensual.toFixed(0)}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-sm text-white/80">
+                      {esAumento ? (
+                        <><TrendingUp className="h-4 w-4" /><span>+{Math.abs(diferenciaPorcentaje).toFixed(1)}% vs mes pasado</span></>
+                      ) : (
+                        <><TrendingDown className="h-4 w-4" /><span>-{Math.abs(diferenciaPorcentaje).toFixed(1)}% vs mes pasado</span></>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-white/70 text-xs mt-1">
+                      <ArrowRight className="h-3.5 w-3.5" />
+                      Ver mi consumo
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="text-right shrink-0">
+                    <Badge className="bg-white/20 text-white border-white/20 mb-2 text-xs">Este mes</Badge>
+                    <div className="text-sm text-white/80 mt-1">
+                      {datosCliente.estadisticas.consumoMensual.toFixed(1)} kWh
+                    </div>
+                  </div>
+                </div>
+              </div>
             </motion.div>
 
-            {/* Consumo Hoy vs Promedio */}
+            {/* Stats row */}
+            <motion.div variants={fadeIn} className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { label: "Consumo hoy", value: `${(consumoActual / 30).toFixed(1)} kWh`, icon: Zap, color: "text-orange-400", bg: "bg-orange-500/10 border-orange-500/40", onClick: undefined },
+                { label: "Consumo actual", value: `${(lecturaVivo?.potencia ?? 0).toFixed(0)} W`, icon: DollarSign, color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/40", onClick: undefined },
+                { label: "Dispositivos", value: `${datosCliente.estadisticas.dispositivosActivos}/${datosCliente.estadisticas.dispositivosTotal}`, icon: Activity, color: "text-sky-400", bg: "bg-sky-500/10 border-sky-500/40 cursor-pointer hover:border-sky-400/70 hover:bg-sky-500/20 transition-all", onClick: () => setComponenteActivo("servicio") },
+                { label: "Boletas pend.", value: `${datosCliente.estadisticas.boletasPendientes}`, icon: Bell, color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/40 cursor-pointer hover:border-amber-400/70 hover:bg-amber-500/20 transition-all", onClick: () => setComponenteActivo("boletas") },
+              ].map(({ label, value, icon: Icon, color, bg, onClick }) => (
+                <div key={label} onClick={onClick} className={cn("rounded-xl border p-4 card-hover", bg)}>
+                  <Icon className={cn("h-4 w-4 mb-2", color)} />
+                  <div className={cn("text-lg font-bold", color)}>{value}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
+                  {onClick && <div className="text-xs text-sky-400/70 mt-1 flex items-center gap-1"><ArrowRight className="h-3 w-3" />{label === "Dispositivos" ? "Ver servicio" : "Ver boletas"}</div>}
+                </div>
+              ))}
+            </motion.div>
+
+            {/* Consumo hoy vs promedio */}
             <motion.div variants={fadeIn}>
-              <Card className="border-l-4 border-l-blue-500 hover:shadow-xl transition-all duration-300">
+              <Card className="border-border/60 bg-card shadow-sm">
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-xl flex items-center justify-center">
-                        <Activity className="h-6 w-6 text-blue-600" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold">Consumo Hoy</h3>
-                        <p className="text-sm text-muted-foreground">Comparado con tu promedio</p>
-                      </div>
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-10 h-10 bg-orange-500/10 border border-orange-500/40 rounded-xl flex items-center justify-center">
+                      <Activity className="h-5 w-5 text-orange-500" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-foreground">Consumo Hoy vs Promedio</h3>
+                      <p className="text-xs text-muted-foreground">Comparado con tu historial</p>
                     </div>
                   </div>
-                  
                   <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <div className="text-sm text-muted-foreground">Hoy</div>
-                      <div className="text-3xl font-bold text-blue-600">
-                        {(consumoActual / 30).toFixed(1)} kWh
-                      </div>
-                      <div className="h-2 bg-blue-100 dark:bg-blue-900/20 rounded-full overflow-hidden">
-                        <motion.div 
-                          className="h-full bg-blue-600"
-                          initial={{ width: 0 }}
-                          animate={{ width: "75%" }}
-                          transition={{ duration: 1, ease: "easeOut" }}
-                        />
+                      <div className="text-xs text-muted-foreground">Hoy</div>
+                      <div className="text-2xl font-bold text-orange-500">{(consumoActual / 30).toFixed(1)} kWh</div>
+                      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                        <motion.div className="h-full bg-orange-500 rounded-full" initial={{ width: 0 }} animate={{ width: "75%" }} transition={{ duration: 1, ease: "easeOut" }} />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <div className="text-sm text-muted-foreground">Promedio</div>
-                      <div className="text-3xl font-bold text-gray-400">
-                        {(consumoMesAnterior / 30).toFixed(1)} kWh
-                      </div>
-                      <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                        <motion.div 
-                          className="h-full bg-gray-400"
-                          initial={{ width: 0 }}
-                          animate={{ width: "60%" }}
-                          transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
-                        />
+                      <div className="text-xs text-muted-foreground">Promedio</div>
+                      <div className="text-2xl font-bold text-muted-foreground">{(consumoMesAnterior / 30).toFixed(1)} kWh</div>
+                      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                        <motion.div className="h-full bg-muted-foreground/40 rounded-full" initial={{ width: 0 }} animate={{ width: "60%" }} transition={{ duration: 1, ease: "easeOut", delay: 0.2 }} />
                       </div>
                     </div>
                   </div>
@@ -259,123 +210,46 @@ export default function DashboardCliente() {
               </Card>
             </motion.div>
 
-            {/* Consejo IA del Día - Prominente */}
-            <motion.div variants={scaleIn}>
+            {/* IA Consejos */}
+            <motion.div variants={fadeIn}>
               <ConsejosAhorroIA />
             </motion.div>
 
-            {/* Ranking del Cliente */}
+            {/* Ranking */}
             <motion.div variants={fadeIn}>
-              <Card className="border-l-4 border-l-yellow-500 hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20">
+              <Card className="border-orange-500/40 bg-gradient-to-br from-orange-500/5 to-orange-600/5 shadow-sm">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/20 rounded-xl flex items-center justify-center">
-                        <Trophy className="h-6 w-6 text-yellow-600" />
+                      <div className="w-10 h-10 bg-orange-500/10 border border-orange-500/40 rounded-xl flex items-center justify-center">
+                        <Trophy className="h-5 w-5 text-orange-500" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold">Tu Ranking de Eficiencia</h3>
-                        <p className="text-sm text-muted-foreground">Comparado con clientes similares</p>
+                        <h3 className="text-sm font-bold text-foreground">Tu Ranking de Eficiencia</h3>
+                        <p className="text-xs text-muted-foreground">Comparado con clientes similares</p>
                       </div>
                     </div>
-                    <Badge className="bg-yellow-500 text-white">TOP 30%</Badge>
+                    <Badge className="bg-orange-500 text-white text-xs">TOP 30%</Badge>
                   </div>
-                  
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between text-sm">
-                      <span>Tu posición</span>
-                      <span className="font-bold">30 de 100 clientes</span>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Tu posición</span>
+                      <span className="font-bold text-foreground">30 de 100 clientes</span>
                     </div>
-                    <div className="relative h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                      <motion.div 
-                        className="absolute h-full bg-gradient-to-r from-yellow-400 to-yellow-600"
-                        initial={{ width: 0 }}
-                        animate={{ width: "70%" }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
-                      />
-                      <motion.div 
-                        className="absolute h-full w-1 bg-white shadow-lg"
-                        initial={{ left: 0 }}
-                        animate={{ left: "70%" }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
-                      />
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-green-600">
-                      <Target className="h-4 w-4" />
-                      <span>¡Sigue así! Estás consumiendo menos que el 70% de clientes similares</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Grid de Consumo y Notificaciones */}
-            <motion.div variants={fadeIn} className="grid gap-6 md:grid-cols-2">
-              <div onClick={() => setComponenteActivo("consumo")} className="cursor-pointer">
-                <ConsumoElectrico reducida={true} />
-              </div>
-              <div onClick={() => setComponenteActivo("notificaciones")} className="cursor-pointer">
-                <NotificacionesCliente />
-              </div>
-            </motion.div>
-
-            {/* Dispositivos */}
-            <motion.div variants={fadeIn}>
-              <Card className="hover:shadow-xl transition-all duration-300">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-xl flex items-center justify-center">
-                        <Zap className="h-6 w-6 text-green-600" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold">Tus Dispositivos</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {datosCliente.estadisticas.dispositivosActivos} de {datosCliente.estadisticas.dispositivosTotal} activos
-                        </p>
-                      </div>
-                    </div>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => setComponenteActivo("servicio")}
-                    >
-                      Ver detalles
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    {[1, 2].map((i) => (
+                    <div className="relative h-2 bg-muted rounded-full overflow-hidden">
                       <motion.div
-                        key={i}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: i * 0.1 }}
-                        className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-lg border border-green-200 dark:border-green-800"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium">Medidor {i}</span>
-                          <div className="flex items-center gap-1">
-                            <span className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
-                            <span className="text-xs text-green-600">Online</span>
-                          </div>
-                        </div>
-                        <div className="text-2xl font-bold text-green-600">
-                          {(consumoActual / 2).toFixed(1)} kWh
-                        </div>
-                      </motion.div>
-                    ))}
+                        className="absolute h-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-full"
+                        initial={{ width: 0 }} animate={{ width: "70%" }}
+                        transition={{ duration: 1.5, ease: "easeOut" }}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-orange-500">
+                      <Target className="h-3.5 w-3.5" />
+                      Consumiendo menos que el 70% de clientes similares
+                    </div>
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
-
-            {/* Pagos y Facturas */}
-            <motion.div variants={fadeIn}>
-              <div onClick={() => setComponenteActivo("boletas")} className="cursor-pointer">
-                <PagosFacturas reducida={true} />
-              </div>
             </motion.div>
           </motion.div>
         );
@@ -387,74 +261,51 @@ export default function DashboardCliente() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <div className="flex flex-1">
-        <NavigationCliente
-          onNavigate={setComponenteActivo}
-          activeItem={componenteActivo}
-        />
-        <main className="flex-1 bg-background p-6">
-          <AnimatePresence mode="wait">
-            {componenteActivo === null || componenteActivo === "resumen" ? (
-              <motion.div
-                key="resumen"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <div className="mb-6">
-                  <motion.h2 
-                    className="text-3xl font-bold text-foreground"
-                    initial={{ x: -20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 0.1 }}
-                  >
-                    👋 Bienvenido, {datosCliente.nombre}
-                  </motion.h2>
-                  <motion.p 
-                    className="text-muted-foreground"
-                    initial={{ x: -20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 0.2 }}
-                  >
-                    Cliente N° {datosCliente.numeroCliente}
-                  </motion.p>
-                </div>
-                {renderizarComponenteActivo()}
-              </motion.div>
-            ) : (
-              <motion.div
-                key={componenteActivo}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                {renderizarComponenteActivo()}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </main>
-      </div>
+    <div className="min-h-screen flex bg-background">
+      <NavigationCliente onNavigate={setComponenteActivo} activeItem={componenteActivo} imagenPerfil={datosCliente.imagenPerfil} />
+
+      <main className="flex-1 min-w-0 p-6 overflow-y-auto">
+        <AnimatePresence mode="wait">
+          {componenteActivo === null || componenteActivo === "resumen" ? (
+            <motion.div key="resumen" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div className="mb-6 max-w-4xl mx-auto">
+                <motion.h2
+                  className="text-2xl font-extrabold tracking-tight text-foreground"
+                  initial={{ x: -16, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.1 }}
+                >
+                  Bienvenido, <span className="text-gradient-orange">{datosCliente.nombre}</span>
+                </motion.h2>
+                <motion.p
+                  className="text-sm text-muted-foreground mt-1"
+                  initial={{ x: -16, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.18 }}
+                >
+                  Cliente N° {datosCliente.numeroCliente}
+                </motion.p>
+              </div>
+              <div className="max-w-4xl mx-auto">{renderizarComponenteActivo()}</div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key={componenteActivo}
+              initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.25 }}
+              className="max-w-4xl mx-auto"
+            >
+              {renderizarComponenteActivo()}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
 
       <CambioPasswordModal
         open={mostrarModalPassword}
-        onOpenChange={(open) => {
-          if (!requiereCambioPassword) {
-            setMostrarModalPassword(open);
-          }
-        }}
+        onOpenChange={(open) => { if (!requiereCambioPassword) setMostrarModalPassword(open); }}
         onConfirm={async (currentPassword, newPassword) => {
           cambiarPasswordMutation.mutate(
             { currentPassword, newPassword },
             {
-              onSuccess: () => {
-                handlePasswordChangeSuccess();
-                setMostrarModalPassword(false);
-              },
-              onError: (error) => {
-                throw error;
-              },
+              onSuccess: () => { setRequiereCambioPassword(false); setMostrarModalPassword(false); },
+              onError: (error) => { throw error; },
             }
           );
         }}
@@ -464,3 +315,6 @@ export default function DashboardCliente() {
     </div>
   );
 }
+
+
+

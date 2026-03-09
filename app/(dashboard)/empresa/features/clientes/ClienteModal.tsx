@@ -21,11 +21,63 @@ import {
 import { Loader2 } from "lucide-react";
 import { ICliente } from "@/lib/api/apiService";
 import { TarifasService, Tarifa } from "@/lib/api/services/tarifasService";
-
 import {
   useCreateClienteMutation,
   useUpdateClienteMutation,
 } from '@/hooks/queries/useClientesQuery';
+
+// --- Validadores chilenos ---
+function formatRut(value: string): string {
+  // Solo números y K, máximo 9 caracteres (8 cuerpo + 1 DV)
+  const clean = value.replace(/[^0-9kK]/g, "").toUpperCase().slice(0, 9);
+  if (clean.length < 2) return clean;
+  const dv = clean.slice(-1);
+  const body = clean.slice(0, -1).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return `${body}-${dv}`;
+}
+
+function validarRut(rut: string): boolean {
+  const clean = rut.replace(/[^0-9kK]/g, "").toUpperCase();
+  if (clean.length < 2) return false;
+  const dv = clean.slice(-1);
+  const body = clean.slice(0, -1);
+  if (!/^\d+$/.test(body)) return false;
+  const serie = [2, 3, 4, 5, 6, 7];
+  let suma = 0;
+  let idx = 0;
+  for (let i = body.length - 1; i >= 0; i--) {
+    suma += parseInt(body[i]) * serie[idx % 6];
+    idx++;
+  }
+  const resto = 11 - (suma % 11);
+  const dvCalc = resto === 11 ? "0" : resto === 10 ? "K" : String(resto);
+  return dv === dvCalc;
+}
+
+function formatTelefono(value: string): string {
+  const clean = value.replace(/[^0-9+]/g, "");
+  // Si empieza con 56 o +56
+  if (clean.startsWith("56") && clean.length > 2) {
+    const num = clean.slice(2);
+    if (num.length <= 1) return `+56 ${num}`;
+    if (num.length <= 5) return `+56 ${num.slice(0, 1)} ${num.slice(1)}`;
+    return `+56 ${num.slice(0, 1)} ${num.slice(1, 5)} ${num.slice(5, 9)}`;
+  }
+  if (clean.startsWith("+56")) return formatTelefono(clean.slice(1));
+  // Número local: 9XXXXXXXX
+  if (clean.startsWith("9") && clean.length <= 9) {
+    if (clean.length <= 1) return clean;
+    if (clean.length <= 5) return `+56 ${clean.slice(0, 1)} ${clean.slice(1)}`;
+    return `+56 ${clean.slice(0, 1)} ${clean.slice(1, 5)} ${clean.slice(5, 9)}`;
+  }
+  return value;
+}
+
+function validarTelefono(tel: string): boolean {
+  const clean = tel.replace(/[^0-9]/g, "");
+  // Acepta: 56912345678 (11 dígitos) o 912345678 (9 dígitos)
+  return /^(56)?9\d{8}$/.test(clean);
+}
 
 interface ClienteModalProps {
   isOpen: boolean;
@@ -56,6 +108,7 @@ export function ClienteModal({
 
   const [tarifas, setTarifas] = useState<Tarifa[]>([]);
   const [tarifasFiltradas, setTarifasFiltradas] = useState<Tarifa[]>([]);
+  const [errores, setErrores] = useState<{ rut?: string; telefono?: string }>({});
 
   const { toast } = useToast();
 
@@ -177,22 +230,31 @@ export function ClienteModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validar RUT y teléfono antes de enviar
+    const nuevosErrores: { rut?: string; telefono?: string } = {};
+    if (formData.rut && !validarRut(formData.rut)) {
+      nuevosErrores.rut = "RUT inválido — verifica el dígito verificador";
+    }
+    if (formData.telefono && !validarTelefono(formData.telefono)) {
+      nuevosErrores.telefono = "Teléfono inválido — debe ser un número chileno (+56 9 XXXX XXXX)";
+    }
+    if (Object.keys(nuevosErrores).length > 0) {
+      setErrores(nuevosErrores);
+      return;
+    }
+    setErrores({});
+
     if (cliente) {
-      // Actualizar cliente existente
-      updateMutation.mutate({
-        id: cliente._id,
-        datos: formData,
-      });
+      updateMutation.mutate({ id: cliente._id, datos: formData });
     } else {
-      // Crear nuevo cliente
       createMutation.mutate(formData);
     }
   };
 
   const handleClose = () => {
-    // Resetear mutaciones si hay errores
     if (createMutation.isError) createMutation.reset();
     if (updateMutation.isError) updateMutation.reset();
+    setErrores({});
     onClose();
   };
 
@@ -246,13 +308,17 @@ export function ClienteModal({
               <Input
                 id="telefono"
                 value={formData.telefono}
-                onChange={(e) =>
-                  setFormData({ ...formData, telefono: e.target.value })
-                }
+                onChange={(e) => {
+                  const formatted = formatTelefono(e.target.value);
+                  setFormData({ ...formData, telefono: formatted });
+                  if (errores.telefono) setErrores(prev => ({ ...prev, telefono: undefined }));
+                }}
                 placeholder="+56 9 1234 5678"
                 required
                 disabled={isLoading}
+                className={errores.telefono ? "border-red-500 focus-visible:ring-red-500" : ""}
               />
+              {errores.telefono && <p className="text-xs text-red-500">{errores.telefono}</p>}
             </div>
 
             <div className="space-y-2">
@@ -260,12 +326,16 @@ export function ClienteModal({
               <Input
                 id="rut"
                 value={formData.rut}
-                onChange={(e) =>
-                  setFormData({ ...formData, rut: e.target.value })
-                }
+                onChange={(e) => {
+                  const formatted = formatRut(e.target.value);
+                  setFormData({ ...formData, rut: formatted });
+                  if (errores.rut) setErrores(prev => ({ ...prev, rut: undefined }));
+                }}
                 placeholder="12.345.678-9"
                 disabled={isLoading}
+                className={errores.rut ? "border-red-500 focus-visible:ring-red-500" : ""}
               />
+              {errores.rut && <p className="text-xs text-red-500">{errores.rut}</p>}
             </div>
 
             <div className="space-y-2">

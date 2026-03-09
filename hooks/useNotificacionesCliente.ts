@@ -5,6 +5,7 @@ import { useApi } from "./useApi";
 
 interface NotificacionCliente {
   _id: string;
+  id: string;
   titulo: string;
   mensaje: string;
   tipo: "info" | "success" | "warning" | "error";
@@ -56,7 +57,18 @@ export function useNotificacionesCliente() {
       const data = await response.json();
 
       if (data.success) {
-        setNotificaciones(data.data || []);
+        // Normalizar: el backend devuelve "id", el componente usa "_id"
+        // También mapear campos del modelo Go al formato esperado por el componente
+        const normalized = (data.data || []).map((n: any) => ({
+          ...n,
+          _id: n._id || n.id,
+          id: n.id || n._id,
+          prioridad: n.prioridad || n.severidad || "media",
+          categoria: n.categoria || "sistema",
+          createdAt: n.createdAt || n.fechaCreacion || new Date().toISOString(),
+          metadata: n.metadata || n.metadatos,
+        }));
+        setNotificaciones(normalized);
       } else {
       }
     } catch (error) {
@@ -80,7 +92,7 @@ export function useNotificacionesCliente() {
         headers.Authorization = `Bearer ${token}`;
       }
       
-      const response = await fetch(`${apiUrl}/api/notificaciones/${notificacionId}/leer`, {
+      const response = await fetch(`${apiUrl}/api/notificaciones/${notificacionId}/marcar-leida`, {
         method: "PUT",
         headers,
         credentials: "include",
@@ -148,7 +160,7 @@ export function useNotificacionesCliente() {
         headers.Authorization = `Bearer ${token}`;
       }
       
-      const response = await fetch(`${apiUrl}/api/notificaciones/leer-todas`, {
+      const response = await fetch(`${apiUrl}/api/notificaciones/marcar-todas-leidas`, {
         method: "PUT",
         headers,
         credentials: "include",

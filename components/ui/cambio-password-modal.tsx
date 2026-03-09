@@ -1,17 +1,13 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogDescription,
+  DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Check, X } from "lucide-react";
 
 interface CambioPasswordModalProps {
   open: boolean;
@@ -21,12 +17,18 @@ interface CambioPasswordModalProps {
   esForzado?: boolean;
 }
 
+function usePasswordStrength(password: string) {
+  return useMemo(() => ({
+    longitud:   password.length >= 8,
+    mayuscula:  /[A-Z]/.test(password),
+    minuscula:  /[a-z]/.test(password),
+    numero:     /[0-9]/.test(password),
+    especial:   /[^A-Za-z0-9]/.test(password),
+  }), [password]);
+}
+
 export function CambioPasswordModal({
-  open,
-  onOpenChange,
-  onConfirm,
-  requiereActual = true,
-  esForzado = false,
+  open, onOpenChange, onConfirm, requiereActual = true, esForzado = false,
 }: CambioPasswordModalProps) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -34,31 +36,29 @@ export function CambioPasswordModal({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const requisitos = usePasswordStrength(newPassword);
+  const passwordValida = Object.values(requisitos).every(Boolean);
+
   const handleSubmit = async () => {
     setError("");
-
+    if (!passwordValida) {
+      setError("La contraseña no cumple los requisitos de seguridad");
+      return;
+    }
     if (newPassword !== confirmPassword) {
       setError("Las contraseñas no coinciden");
       return;
     }
-
-    if (newPassword.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres");
-      return;
-    }
-
     if (requiereActual && !currentPassword) {
       setError("Debes ingresar tu contraseña actual");
       return;
     }
-
     setIsLoading(true);
     try {
       await onConfirm(currentPassword, newPassword);
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      onOpenChange(false);
     } catch (err: any) {
       setError(err.message || "Error al cambiar contraseña");
     } finally {
@@ -66,13 +66,20 @@ export function CambioPasswordModal({
     }
   };
 
+  const Req = ({ ok, label }: { ok: boolean; label: string }) => (
+    <div className="flex items-center gap-1.5 text-xs">
+      {ok
+        ? <Check className="h-3 w-3 text-green-500" />
+        : <X className="h-3 w-3 text-muted-foreground" />}
+      <span className={ok ? "text-green-600 dark:text-green-400" : "text-muted-foreground"}>{label}</span>
+    </div>
+  );
+
   return (
     <Dialog open={open} onOpenChange={esForzado ? () => {} : onOpenChange}>
       <DialogContent className={esForzado ? "pointer-events-auto" : ""}>
         <DialogHeader>
-          <DialogTitle>
-            {esForzado ? "Cambio de Contraseña Obligatorio" : "Cambiar Contraseña"}
-          </DialogTitle>
+          <DialogTitle>{esForzado ? "Cambio de Contraseña Obligatorio" : "Cambiar Contraseña"}</DialogTitle>
           <DialogDescription>
             {esForzado
               ? "Por seguridad, debes cambiar tu contraseña temporal antes de continuar"
@@ -93,34 +100,35 @@ export function CambioPasswordModal({
           {requiereActual && (
             <div>
               <Label htmlFor="current">Contraseña Actual</Label>
-              <Input
-                id="current"
-                type="password"
-                value={currentPassword}
+              <Input id="current" type="password" value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="Ingresa tu contraseña temporal"
-              />
+                placeholder="Ingresa tu contraseña temporal" />
             </div>
           )}
           <div>
             <Label htmlFor="new">Nueva Contraseña</Label>
-            <Input
-              id="new"
-              type="password"
-              value={newPassword}
+            <Input id="new" type="password" value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Mínimo 6 caracteres"
-            />
+              placeholder="Ej: MiClave2024!" />
+            {newPassword.length > 0 && (
+              <div className="mt-2 grid grid-cols-2 gap-1 p-2 bg-muted/50 rounded-lg">
+                <Req ok={requisitos.longitud}  label="Mínimo 8 caracteres" />
+                <Req ok={requisitos.mayuscula} label="Una mayúscula" />
+                <Req ok={requisitos.minuscula} label="Una minúscula" />
+                <Req ok={requisitos.numero}    label="Un número" />
+                <Req ok={requisitos.especial}  label="Un carácter especial (!@#$...)" />
+              </div>
+            )}
           </div>
           <div>
             <Label htmlFor="confirm">Confirmar Nueva Contraseña</Label>
-            <Input
-              id="confirm"
-              type="password"
-              value={confirmPassword}
+            <Input id="confirm" type="password" value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Repite la nueva contraseña"
-            />
+              className={confirmPassword && confirmPassword !== newPassword ? "border-red-500" : ""} />
+            {confirmPassword && confirmPassword !== newPassword && (
+              <p className="text-xs text-red-500 mt-1">Las contraseñas no coinciden</p>
+            )}
           </div>
 
           {error && (
@@ -133,11 +141,9 @@ export function CambioPasswordModal({
 
         <DialogFooter>
           {!esForzado && (
-            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-              Cancelar
-            </Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>Cancelar</Button>
           )}
-          <Button onClick={handleSubmit} disabled={isLoading}>
+          <Button onClick={handleSubmit} disabled={isLoading || !passwordValida || (!!confirmPassword && confirmPassword !== newPassword)}>
             {isLoading ? "Cambiando..." : "Cambiar Contraseña"}
           </Button>
         </DialogFooter>

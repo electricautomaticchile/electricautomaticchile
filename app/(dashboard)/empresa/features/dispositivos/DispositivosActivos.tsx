@@ -1,22 +1,17 @@
 "use client";
 
-import { DispositivosActivosProps } from "./types";
 import { useDispositivosActivos } from "./useDispositivosActivos";
 import { DispositivosActivosStats } from "./DispositivosActivosStats";
 import { DispositivosActivosAcciones } from "./DispositivosActivosAcciones";
 import { DispositivosActivosTabla } from "./DispositivosActivosTabla";
-import { DispositivosActivosReducido } from "./DispositivosActivosReducido";
-import { ExportService } from "@/lib/api/services/exportService";
+import { ReportesService } from "@/lib/api/services/reportesService";
 import { useToast } from "@/components/ui/use-toast";
 
-export function DispositivosActivos({
-  reducida = false,
-}: DispositivosActivosProps) {
+export function DispositivosActivos() {
   const { toast } = useToast();
   const {
     loading,
     dispositivos,
-    dispositivosOriginales,
     resumenDispositivos,
     filtros,
     isWebSocketConnected,
@@ -28,7 +23,7 @@ export function DispositivosActivos({
 
   const handleExportarExcel = async () => {
     try {
-      await ExportService.exportarDispositivosExcel();
+      await ReportesService.dispositivosExcel();
       toast({
         title: "Exportación exitosa",
         description: "El archivo Excel se ha descargado correctamente.",
@@ -44,7 +39,7 @@ export function DispositivosActivos({
 
   const handleExportarPDF = async () => {
     try {
-      await ExportService.exportarDispositivosPDF();
+      await ReportesService.dispositivosPDF();
       toast({
         title: "Exportación exitosa",
         description: "El archivo PDF se ha descargado correctamente.",
@@ -58,18 +53,9 @@ export function DispositivosActivos({
     }
   };
 
-  if (reducida) {
-    return (
-      <DispositivosActivosReducido
-        dispositivos={dispositivosOriginales}
-        resumen={resumenDispositivos}
-        loading={loading}
-      />
-    );
-  }
 
   return (
-    <div className="bg-background p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+    <div className="bg-background p-6 rounded-lg border border-orange-500/20">
       <div className="space-y-6">
         <DispositivosActivosAcciones
           busqueda={filtros.busqueda}
@@ -77,7 +63,6 @@ export function DispositivosActivos({
           tabActiva={filtros.tabActiva}
           onTabChange={cambiarTabActiva}
           loading={loading}
-          onRefresh={refrescarDatos}
           totalDispositivos={resumenDispositivos.total}
           isWebSocketConnected={isWebSocketConnected}
           onExportarExcel={handleExportarExcel}
@@ -87,6 +72,8 @@ export function DispositivosActivos({
         <DispositivosActivosStats
           resumen={resumenDispositivos}
           loading={loading}
+          tabActiva={filtros.tabActiva}
+          onTabChange={cambiarTabActiva}
         />
 
         <DispositivosActivosTabla

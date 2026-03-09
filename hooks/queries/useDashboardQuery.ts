@@ -22,6 +22,15 @@ export function useDashboardCliente() {
   });
 }
 
+export function useDashboardClienteTodo() {
+  return useQuery({
+    queryKey: ["dashboard", "cliente", "todo"],
+    queryFn: () => dashboardClienteService.obtenerTodo(),
+    staleTime: 1000 * 30,
+    refetchInterval: 1000 * 60,
+  });
+}
+
 export function useConsumoCliente() {
   return useQuery({
     queryKey: ["consumo", "cliente"],

@@ -52,10 +52,10 @@ export default function UsuariosPage() {
 
   const getRoleBadge = (role: string) => {
     const roles: Record<string, { label: string; color: string }> = {
-      EMPRESA_ADMIN: { label: "Administrador", color: "bg-purple-100 text-purple-800" },
-      EMPRESA_OPERADOR: { label: "Operador", color: "bg-blue-100 text-blue-800" },
-      EMPRESA_SOPORTE: { label: "Soporte", color: "bg-green-100 text-green-800" },
-      EMPRESA_FINANCIERO: { label: "Financiero", color: "bg-yellow-100 text-yellow-800" },
+      EMPRESA_ADMIN: { label: "Administrador", color: "bg-orange-500/20 text-orange-400 border border-orange-500/30" },
+      EMPRESA_OPERADOR: { label: "Operador", color: "bg-white/10 text-white/70 border border-white/20" },
+      EMPRESA_SOPORTE: { label: "Soporte", color: "bg-orange-500/10 text-orange-300 border border-orange-500/20" },
+      EMPRESA_FINANCIERO: { label: "Financiero", color: "bg-white/10 text-white/60 border border-white/20" },
     };
 
     const roleInfo = roles[role] || { label: role, color: "bg-gray-100 text-gray-800" };
@@ -111,10 +111,10 @@ export default function UsuariosPage() {
                   {getRoleBadge(usuario.role)}
                   
                   <div className="flex items-center gap-2">
-                    <span className={`px-2 py-1 rounded-full text-xs ${
+                    <span className={`px-2 py-1 rounded-full text-xs border ${
                       usuario.activo 
-                        ? "bg-green-100 text-green-800" 
-                        : "bg-red-100 text-red-800"
+                        ? "bg-orange-500/20 text-orange-400 border-orange-500/30" 
+                        : "bg-red-500/20 text-red-400 border-red-500/30"
                     }`}>
                       {usuario.activo ? "Activo" : "Inactivo"}
                     </span>

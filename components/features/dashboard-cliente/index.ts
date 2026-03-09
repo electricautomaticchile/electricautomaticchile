@@ -1,8 +1,8 @@
 export { ConsumoElectrico } from './consumo-electrico';
 export { ControlServicio } from './control-servicio';
 export { EstadoServicio } from './estado-servicio';
-export { HistorialConsumoReal } from './historial-consumo-real';
-export { HistorialConsumo } from './historial-consumo';
+export { HistorialConsumoReal } from './historial-consumo';
+export { HistorialConsumoReal as HistorialConsumo } from './historial-consumo';
 export { NotificacionesCliente } from './notificaciones-cliente';
 export { PagosFacturas } from './pagos-facturas';
 export { PerfilUsuario } from './perfil-usuario';

@@ -1,8 +1,6 @@
 "use client";
 import { useApi } from "@/hooks/useApi";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PerfilUsuario as PerfilUsuarioComponent } from "@/components/features/dashboard-cliente/perfil-usuario";
-import { MapaBasico } from "@/components/features/dashboard-cliente/ubicacion/MapaBasico";
 
 export default function PerfilUsuario() {
   const { user } = useApi();
@@ -20,20 +18,6 @@ export default function PerfilUsuario() {
   };
 
   return (
-    <Tabs defaultValue="datos" className="w-full">
-      <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="datos">Mis Datos</TabsTrigger>
-        <TabsTrigger value="ubicacion">Ubicación</TabsTrigger>
-      </TabsList>
-      <TabsContent value="datos" className="mt-6">
-        <PerfilUsuarioComponent datos={datosCliente} />
-      </TabsContent>
-      <TabsContent value="ubicacion" className="mt-6">
-        <MapaBasico
-          ubicacion={datosCliente.ubicacion}
-          direccionRegistrada={datosCliente.direccion}
-        />
-      </TabsContent>
-    </Tabs>
+    <PerfilUsuarioComponent datos={datosCliente} />
   );
 }

@@ -1,11 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
-
-import {
-  UserPlus,
-  RefreshCw,
-} from "lucide-react";
-import { ReporteExportSimple } from "@/components/ui/reporte-export-menu";
+import { Badge } from "@/components/ui/badge";
+import { UserPlus, FileSpreadsheet, FileText } from "lucide-react";
 
 interface ClientesAccionesProps {
   onNuevoCliente: () => void;
@@ -21,65 +17,61 @@ interface ClientesAccionesProps {
 
 export function ClientesAcciones({
   onNuevoCliente,
-  onRefresh,
   onExportarExcel,
-  onExportarCSV,
   onExportarPDF,
   isRefreshing = false,
-  isExporting = false,
   totalClientes,
   clientesFiltrados,
 }: ClientesAccionesProps) {
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      {/* Información de totales */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-        <span>
-          Mostrando{" "}
-          <span className="font-medium text-gray-900 dark:text-gray-100">
-            {clientesFiltrados}
-          </span>{" "}
-          de{" "}
-          <span className="font-medium text-gray-900 dark:text-gray-100">
-            {totalClientes}
-          </span>{" "}
-          clientes
-        </span>
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex items-center gap-3">
+        <h2 className="text-2xl font-extrabold tracking-tight text-foreground">
+          Gestión de <span className="text-gradient-orange">Clientes</span>
+        </h2>
+        <Badge className="bg-orange-500/20 text-orange-400 border border-orange-500/40 text-xs">
+          {totalClientes} clientes
+        </Badge>
         {clientesFiltrados !== totalClientes && (
-          <span className="text-orange-600 dark:text-orange-400">
-            (filtrado)
-          </span>
+          <Badge className="bg-white/10 text-white/60 border border-white/10 text-xs">
+            {clientesFiltrados} filtrados
+          </Badge>
         )}
       </div>
 
-      {/* Acciones principales */}
-      <div className="flex flex-wrap gap-2">
-        {/* Botón principal - Nuevo cliente */}
+      <div className="flex items-center gap-2">
+        {onExportarExcel && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onExportarExcel}
+            disabled={isRefreshing}
+            className="gap-2 text-xs bg-[#0a0a0a] border-white/10 text-white/60 hover:border-orange-500/50 hover:text-orange-400 hover:bg-orange-500/5"
+          >
+            <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-500" />
+            Excel
+          </Button>
+        )}
+        {onExportarPDF && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onExportarPDF}
+            disabled={isRefreshing}
+            className="gap-2 text-xs bg-[#0a0a0a] border-white/10 text-white/60 hover:border-orange-500/50 hover:text-orange-400 hover:bg-orange-500/5"
+          >
+            <FileText className="h-3.5 w-3.5 text-red-400" />
+            PDF
+          </Button>
+        )}
         <Button
+          size="sm"
           onClick={onNuevoCliente}
-          className="bg-orange-600 hover:bg-orange-700"
+          className="gap-2 text-xs bg-orange-500 hover:bg-orange-600 text-white"
         >
-          <UserPlus className="h-4 w-4 mr-2" />
+          <UserPlus className="h-3.5 w-3.5" />
           Nuevo Cliente
         </Button>
-
-        {/* Botón de actualizar */}
-        <Button variant="outline" onClick={onRefresh} disabled={isRefreshing}>
-          <RefreshCw
-            className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
-          />
-          {isRefreshing ? "Actualizando..." : "Actualizar"}
-        </Button>
-
-        {/* Componente unificado de exportación */}
-        <ReporteExportSimple
-          onExportarExcel={onExportarExcel}
-          onExportarCSV={onExportarCSV}
-          onExportarPDF={onExportarPDF}
-          isExporting={isExporting}
-          disabled={isRefreshing}
-          className="min-w-[120px]"
-        />
       </div>
     </div>
   );

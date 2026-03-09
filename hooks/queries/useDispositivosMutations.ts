@@ -123,7 +123,7 @@ export function useAsignarDispositivo() {
     mutationFn: async ({ dispositivoId, clienteId }: { dispositivoId: string; clienteId: string }) => {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       const response = await fetch(`${apiUrl}/api/dispositivos/${dispositivoId}/asignar`, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -163,7 +163,7 @@ export function useDesasignarDispositivo() {
     mutationFn: async (dispositivoId: string) => {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       const response = await fetch(`${apiUrl}/api/dispositivos/${dispositivoId}/desasignar`, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },

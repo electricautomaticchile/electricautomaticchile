@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { LoadingState, EmptyState } from "@/components/shared";
 import {
   Dialog,
@@ -15,18 +13,11 @@ import {
   MapPin,
   Clock,
   Zap,
-  User,
-  X,
   UserPlus,
-  Power,
-  PowerOff,
-  RefreshCw,
+  Thermometer,
 } from "lucide-react";
 import {
   IconoConexion,
-  NivelBateria,
-  NivelSenal,
-  EstadoDispositivo,
   TemperaturaIndicador,
   BadgeEstado,
 } from "./DispositivosActivosIconos";
@@ -39,7 +30,6 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { AsignarDispositivoModal } from "@/components/features/dashboard-empresa/AsignarDispositivoModal";
 import { useDispositivoDetalle, useDispositivosDetalles } from "@/hooks/queries/useDispositivoDetalle";
-import { useArduinoCommand } from "@/hooks/queries";
 
 export function DispositivosActivosTabla({
   dispositivos,
@@ -47,20 +37,15 @@ export function DispositivosActivosTabla({
   onRefresh,
 }: DispositivosTablaProps) {
   const { toast } = useToast();
-  const [dispositivoSeleccionado, setDispositivoSeleccionado] =
-    useState<string | null>(null);
-  const [estadoServicio, setEstadoServicio] = useState<EstadoServicio | null>(
-    null
-  );
+  const [dispositivoSeleccionado, setDispositivoSeleccionado] = useState<string | null>(null);
+  const [estadoServicio, setEstadoServicio] = useState<EstadoServicio | null>(null);
   const [cargandoEstado, setCargandoEstado] = useState(false);
   const [modalAsignarOpen, setModalAsignarOpen] = useState(false);
   const [dispositivoAsignar, setDispositivoAsignar] = useState<any>(null);
-  const [servicioActivo, setServicioActivo] = useState<boolean>(true);
 
   const dispositivoIds = dispositivos.map(d => d.id);
   const { data: datosDispositivos } = useDispositivosDetalles(dispositivoIds);
   const { data: dispositivoDetalle, refetch: refetchDetalle } = useDispositivoDetalle(dispositivoSeleccionado);
-  const arduinoCommandMutation = useArduinoCommand();
 
   const consumoTiempoReal = dispositivoDetalle?.ultimaLectura?.energy || 0;
   const costoTiempoReal = dispositivoDetalle?.ultimaLectura?.cost || 0;
@@ -72,51 +57,22 @@ export function DispositivosActivosTabla({
       if (response.success && response.data) {
         setEstadoServicio(response.data);
       }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo cargar el estado del servicio",
-        variant: "destructive",
-      });
+    } catch {
+      toast({ title: "Error", description: "No se pudo cargar el estado del servicio", variant: "destructive" });
     } finally {
       setCargandoEstado(false);
     }
   }, [toast]);
 
-  const controlarServicio = useCallback(async (comando: string) => {
-    arduinoCommandMutation.mutate(comando, {
-      onSuccess: (data) => {
-        if (data.success) {
-          setServicioActivo(comando === 'ACTIVAR_SERVICIO');
-          toast({
-            title: "Éxito",
-            description: comando === 'ACTIVAR_SERVICIO' 
-              ? "Servicio eléctrico restablecido" 
-              : "Suministro eléctrico cortado",
-          });
-          
-          setTimeout(() => {
-            if (dispositivoSeleccionado) {
-              refetchDetalle();
-            }
-          }, 2000);
-        }
-      },
-      onError: () => {
-        toast({
-          title: "Error",
-          description: "No se pudo controlar el servicio",
-          variant: "destructive",
-        });
-      },
-    });
-  }, [dispositivoSeleccionado, refetchDetalle, toast, arduinoCommandMutation]);
-
   useEffect(() => {
     if (dispositivoSeleccionado) {
-      cargarEstadoServicio(dispositivoSeleccionado);
+      const dispositivo = dispositivos.find(d => d.id === dispositivoSeleccionado);
+      const clienteId = dispositivo?.cliente?.id;
+      if (clienteId) {
+        cargarEstadoServicio(clienteId);
+      }
     }
-  }, [dispositivoSeleccionado, cargarEstadoServicio]);
+  }, [dispositivoSeleccionado, dispositivos, cargarEstadoServicio]);
 
   const abrirDetalles = (dispositivoId: string) => {
     setDispositivoSeleccionado(dispositivoId);
@@ -143,125 +99,128 @@ export function DispositivosActivosTabla({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {dispositivos.map((dispositivo, index) => (
-        <Card
-          key={dispositivo.id || `dispositivo-${index}`}
-          onClick={() => abrirDetalles(dispositivo.id)}
-          className={`transition-all duration-200 hover:shadow-lg cursor-pointer ${dispositivo.estado === "alerta"
-            ? "border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10"
-            : dispositivo.estado === "inactivo"
-              ? "border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/10"
-              : "border-gray-200 dark:border-gray-700"
-            }`}
-        >
-          <CardHeader className="pb-3">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <span>{dispositivo.cliente?.nombre || dispositivo.nombre}</span>
-                  <IconoConexion
-                    tipo={dispositivo.tipoConexion}
-                    senal={dispositivo.senal}
-                  />
-                </CardTitle>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  {dispositivo.numeroDispositivo}
-                </p>
+      {dispositivos.map((dispositivo, index) => {
+        const consumo = datosDispositivos?.get(dispositivo.id)?.consumo;
+        const costo = datosDispositivos?.get(dispositivo.id)?.costo || 0;
+        const isAlerta = dispositivo.estado === "alerta";
+        const isInactivo = dispositivo.estado === "inactivo";
+
+        return (
+          <div
+            key={dispositivo.id || `dispositivo-${index}`}
+            onClick={() => abrirDetalles(dispositivo.id)}
+            className={`
+              group relative rounded-xl border cursor-pointer
+              bg-[#0a0a0a] transition-all duration-200
+              hover:shadow-[0_0_20px_rgba(249,115,22,0.15)]
+              hover:-translate-y-0.5
+              ${isAlerta
+                ? "border-red-500/50 hover:border-red-500"
+                : isInactivo
+                  ? "border-white/10 hover:border-white/20"
+                  : "border-orange-500/30 hover:border-orange-500/60"
+              }
+            `}
+          >
+            {/* Franja superior de color según estado */}
+            <div className={`h-1 w-full rounded-t-xl ${
+              isAlerta ? "bg-red-500" :
+              isInactivo ? "bg-white/20" :
+              dispositivo.estado === "mantenimiento" ? "bg-amber-500" :
+              "bg-orange-500"
+            }`} />
+
+            <div className="p-4 space-y-4">
+              {/* Header */}
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <Zap className={`h-4 w-4 shrink-0 ${isInactivo ? "text-white/30" : "text-orange-500"}`} />
+                    <p className="font-semibold text-sm text-white truncate">
+                      {dispositivo.cliente?.nombre || dispositivo.nombre}
+                    </p>
+                  </div>
+                  <p className="text-xs text-white/40 mt-0.5 ml-6">
+                    #{dispositivo.numeroDispositivo}
+                  </p>
+                </div>
+                <BadgeEstado estado={dispositivo.estado} />
               </div>
 
-              <BadgeEstado estado={dispositivo.estado} />
-            </div>
+              {/* Ubicación */}
+              <div className="flex items-center gap-1.5 text-xs text-white/50">
+                <MapPin className="h-3 w-3 shrink-0" />
+                <span className="truncate">{dispositivo.cliente?.direccion || dispositivo.ubicacion}</span>
+              </div>
 
-            <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400 mt-2">
-              <MapPin className="h-4 w-4" />
-              <span>{dispositivo.cliente?.direccion || dispositivo.ubicacion}</span>
-            </div>
-          </CardHeader>
-
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <EstadoDispositivo estado={dispositivo.estado} />
-
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <div className="text-xs text-gray-500 mb-1">Consumo</div>
-                  <div className="font-medium text-blue-600">
-                    {datosDispositivos?.get(dispositivo.id)?.consumo?.toFixed(6) || '0.000000'} kWh
-                  </div>
+              {/* Métricas */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-white/5 rounded-lg p-2.5 border border-white/5">
+                  <p className="text-[10px] text-white/40 uppercase tracking-wide mb-1">Consumo</p>
+                  <p className="text-sm font-bold text-orange-400">
+                    {consumo != null ? consumo.toFixed(4) : "—"}
+                    <span className="text-[10px] font-normal text-white/40 ml-1">kWh</span>
+                  </p>
                 </div>
-                <div>
-                  <div className="text-xs text-gray-500 mb-1">Costo</div>
-                  <div className="font-medium text-green-600">
+                <div className="bg-white/5 rounded-lg p-2.5 border border-white/5">
+                  <p className="text-[10px] text-white/40 uppercase tracking-wide mb-1">Costo</p>
+                  <p className="text-sm font-bold text-white">
                     {new Intl.NumberFormat('es-CL', {
                       style: 'currency',
                       currency: 'CLP',
                       minimumFractionDigits: 0,
-                      maximumFractionDigits: 0
-                    }).format(datosDispositivos?.get(dispositivo.id)?.costo || 0)}
-                  </div>
+                    }).format(costo)}
+                  </p>
                 </div>
               </div>
 
-              {dispositivo.temperaturaOperacion && (
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">Temperatura</span>
-                  <TemperaturaIndicador
-                    valor={dispositivo.temperaturaOperacion}
-                  />
+              {/* Fila inferior: conexión, temperatura, última transmisión */}
+              <div className="flex items-center justify-between text-xs text-white/40 pt-1 border-t border-white/5">
+                <div className="flex items-center gap-3">
+                  <IconoConexion tipo={dispositivo.tipoConexion} senal={dispositivo.senal} />
+                  {dispositivo.temperaturaOperacion && (
+                    <div className="flex items-center gap-1">
+                      <Thermometer className="h-3 w-3" />
+                      <TemperaturaIndicador valor={dispositivo.temperaturaOperacion} />
+                    </div>
+                  )}
                 </div>
-              )}
-
-              {/* Ubicación detallada si está disponible */}
-              {dispositivo.ubicacionDetallada && (
-                <div className="text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 p-2 rounded">
-                  <div className="font-medium mb-1">Ubicación detallada:</div>
-                  <div>
-                    {dispositivo.ubicacionDetallada.edificio}, Piso{" "}
-                    {dispositivo.ubicacionDetallada.piso}
-                  </div>
-                  <div>{dispositivo.ubicacionDetallada.sala}</div>
-                </div>
-              )}
-
-              {/* Última transmisión */}
-              <div className="flex items-center justify-between text-xs text-gray-500">
                 <div className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  <span>Última transmisión</span>
+                  <span>{dispositivo.ultimaTransmision}</span>
                 </div>
-                <span>{dispositivo.ultimaTransmision}</span>
               </div>
 
-              <div className="flex gap-2">
+              {/* Acciones */}
+              <div className="flex gap-2 pt-1">
                 {!dispositivo.cliente && (
                   <Button
                     size="sm"
                     variant="outline"
-                    className="flex-1"
+                    className="flex-1 h-8 text-xs border-orange-500/30 text-orange-400 hover:bg-orange-500/10 hover:border-orange-500"
                     onClick={(e) => {
                       e.stopPropagation();
                       setDispositivoAsignar(dispositivo);
                       setModalAsignarOpen(true);
                     }}
                   >
-                    <UserPlus className="h-4 w-4 mr-1" />
+                    <UserPlus className="h-3.5 w-3.5 mr-1" />
                     Asignar
                   </Button>
                 )}
                 <Button
                   size="sm"
-                  variant="ghost"
-                  className="flex-1"
-                  onClick={() => abrirDetalles(dispositivo.id)}
+                  className="flex-1 h-8 text-xs bg-orange-500/10 text-orange-400 border border-orange-500/30 hover:bg-orange-500/20 hover:border-orange-500"
+                  onClick={(e) => { e.stopPropagation(); abrirDetalles(dispositivo.id); }}
                 >
-                  <Eye className="h-4 w-4 mr-1" />
-                  Detalles
+                  <Eye className="h-3.5 w-3.5 mr-1" />
+                  Ver detalles
                 </Button>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      ))}
+          </div>
+        );
+      })}
 
       <AsignarDispositivoModal
         open={modalAsignarOpen}
@@ -280,179 +239,115 @@ export function DispositivosActivosTabla({
 
       {/* Modal de Detalles del Dispositivo */}
       <Dialog open={!!dispositivoSeleccionado} onOpenChange={(open) => !open && cerrarDetalles()}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle className="flex items-center gap-2">
-                  <Zap className="h-6 w-6 text-orange-600" />
-                  Detalles del Dispositivo
-                </DialogTitle>
-                <DialogDescription>
-                  {dispositivoSeleccionado && (
-                    <>
-                      Dispositivo: {dispositivos.find((d) => d.id === dispositivoSeleccionado)?.nombre}
-                    </>
-                  )}
-                </DialogDescription>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={cerrarDetalles}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </DialogHeader>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-[#0a0a0a] border border-orange-500/30 p-0">
+          {dispositivoSeleccionado && (() => {
+            const dispositivo = dispositivos.find((d) => d.id === dispositivoSeleccionado);
+            if (!dispositivo) return null;
 
-          <div className="space-y-6 py-4">
-            {/* Información del Dispositivo */}
-            {dispositivoSeleccionado && (() => {
-              const dispositivo = dispositivos.find((d) => d.id === dispositivoSeleccionado);
-              if (!dispositivo) return null;
-
-              return (
-                <>
-                  {/* Información General */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Zap className="h-5 w-5 text-orange-600" />
-                        Información del Dispositivo
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Nombre</p>
-                          <p className="font-medium">
-                            {dispositivo.cliente?.nombre || dispositivo.nombre}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Número Dispositivo</p>
-                          <p className="font-medium">{dispositivo.numeroDispositivo}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Ubicación</p>
-                          <p className="font-medium flex items-center gap-1">
-                            <MapPin className="h-4 w-4" />
-                            {dispositivo.cliente?.direccion || dispositivo.ubicacion}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Estado</p>
-                          <BadgeEstado estado={dispositivo.estado} />
-                        </div>
+            return (
+              <>
+                {/* Header del modal */}
+                <div className="relative border-b border-orange-500/20 p-6">
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-orange-500 rounded-t-lg" />
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center">
+                        <Zap className="h-5 w-5 text-orange-500" />
                       </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Zap className="h-5 w-5 text-orange-600" />
-                        Consumo en Tiempo Real
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm text-muted-foreground">Energía Consumida</p>
-                            <Zap className="h-4 w-4 text-blue-500" />
-                          </div>
-                          <p className="text-3xl font-bold text-blue-600">
-                            {consumoTiempoReal !== null ? consumoTiempoReal.toFixed(3) : '0.000'}
-                          </p>
-                          <p className="text-xs text-muted-foreground">kWh</p>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm text-muted-foreground">Costo Acumulado</p>
-                            <span className="text-green-600">$</span>
-                          </div>
-                          <p className="text-3xl font-bold text-green-600">
-                            {new Intl.NumberFormat('es-CL', {
-                              minimumFractionDigits: 0,
-                              maximumFractionDigits: 0
-                            }).format(costoTiempoReal !== null ? costoTiempoReal : 0)}
-                          </p>
-                          <p className="text-xs text-muted-foreground">CLP</p>
-                        </div>
+                      <div>
+                        <DialogTitle className="text-lg font-bold text-white">
+                          {dispositivo.cliente?.nombre || dispositivo.nombre}
+                        </DialogTitle>
+                        <DialogDescription className="text-white/40 text-xs mt-0.5">
+                          #{dispositivo.numeroDispositivo} · {dispositivo.tipoConexion}
+                        </DialogDescription>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <BadgeEstado estado={dispositivo.estado} />
+                    </div>
+                  </div>
+                </div>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Power className="h-5 w-5 text-orange-600" />
-                        Control de Suministro Eléctrico
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                        <div className="flex items-center gap-3">
-                          {servicioActivo ? (
-                            <>
-                              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-                              <div>
-                                <p className="font-medium">Servicio Activo</p>
-                                <p className="text-sm text-muted-foreground">El suministro eléctrico está funcionando</p>
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <div className="w-3 h-3 bg-red-500 rounded-full" />
-                              <div>
-                                <p className="font-medium">Servicio Cortado</p>
-                                <p className="text-sm text-muted-foreground">El suministro eléctrico está desactivado</p>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                        <Button
-                          variant={servicioActivo ? "destructive" : "default"}
-                          onClick={() => controlarServicio(servicioActivo ? 'DESACTIVAR_SERVICIO' : 'ACTIVAR_SERVICIO')}
-                          disabled={arduinoCommandMutation.isPending}
-                          className="gap-2"
-                        >
-                          {arduinoCommandMutation.isPending ? (
-                            <>
-                              <RefreshCw className="h-4 w-4 animate-spin" />
-                              Procesando...
-                            </>
-                          ) : servicioActivo ? (
-                            <>
-                              <PowerOff className="h-4 w-4" />
-                              Cortar Suministro
-                            </>
-                          ) : (
-                            <>
-                              <Power className="h-4 w-4" />
-                              Restablecer Energía
-                            </>
-                          )}
-                        </Button>
+                <div className="p-6 space-y-4">
+                  {/* Info general */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+                      <p className="text-[10px] text-white/40 uppercase tracking-wide mb-1">Ubicación</p>
+                      <div className="flex items-center gap-1.5 text-sm text-white">
+                        <MapPin className="h-3.5 w-3.5 text-orange-500 shrink-0" />
+                        <span className="truncate">{dispositivo.cliente?.direccion || dispositivo.ubicacion}</span>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+                      <p className="text-[10px] text-white/40 uppercase tracking-wide mb-1">Última transmisión</p>
+                      <div className="flex items-center gap-1.5 text-sm text-white">
+                        <Clock className="h-3.5 w-3.5 text-orange-500 shrink-0" />
+                        <span>{dispositivo.ultimaTransmision}</span>
+                      </div>
+                    </div>
+                    {dispositivo.firmware && (
+                      <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+                        <p className="text-[10px] text-white/40 uppercase tracking-wide mb-1">Firmware</p>
+                        <p className="text-sm text-white">{dispositivo.firmware}</p>
+                      </div>
+                    )}
+                    {dispositivo.temperaturaOperacion && (
+                      <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+                        <p className="text-[10px] text-white/40 uppercase tracking-wide mb-1">Temperatura</p>
+                        <TemperaturaIndicador valor={dispositivo.temperaturaOperacion} />
+                      </div>
+                    )}
+                  </div>
 
+                  {/* Consumo en tiempo real */}
+                  <div className="border border-orange-500/20 rounded-xl overflow-hidden">
+                    <div className="bg-orange-500/10 px-4 py-2.5 border-b border-orange-500/20 flex items-center gap-2">
+                      <Zap className="h-4 w-4 text-orange-500" />
+                      <span className="text-sm font-semibold text-white">Consumo en Tiempo Real</span>
+                    </div>
+                    <div className="grid grid-cols-2 divide-x divide-white/10">
+                      <div className="p-5">
+                        <p className="text-[10px] text-white/40 uppercase tracking-wide mb-2">Energía consumida</p>
+                        <p className="text-3xl font-black text-orange-400">
+                          {consumoTiempoReal !== null ? consumoTiempoReal.toFixed(3) : '0.000'}
+                        </p>
+                        <p className="text-xs text-white/40 mt-1">kWh</p>
+                      </div>
+                      <div className="p-5">
+                        <p className="text-[10px] text-white/40 uppercase tracking-wide mb-2">Costo acumulado</p>
+                        <p className="text-3xl font-black text-white">
+                          {new Intl.NumberFormat('es-CL', {
+                            style: 'currency',
+                            currency: 'CLP',
+                            minimumFractionDigits: 0,
+                          }).format(costoTiempoReal ?? 0)}
+                        </p>
+                        <p className="text-xs text-white/40 mt-1">CLP</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Control de servicio */}
                   {cargandoEstado ? (
                     <LoadingState message="Cargando estado del servicio..." />
-                  ) : estadoServicio ? (
-                    <ControlServicioEmpresa
-                      clienteId={dispositivoSeleccionado}
-                      estadoServicio={estadoServicio}
-                      onActualizar={() => cargarEstadoServicio(dispositivoSeleccionado)}
-                    />
-                  ) : null}
-                </>
-              );
-            })()}
-          </div>
+                  ) : dispositivo.cliente ? (
+                    estadoServicio ? (
+                      <ControlServicioEmpresa
+                        clienteId={dispositivo.cliente.id}
+                        estadoServicio={estadoServicio}
+                        onActualizar={() => cargarEstadoServicio(dispositivo.cliente!.id)}
+                      />
+                    ) : null
+                  ) : (
+                    <div className="border border-white/10 rounded-xl p-4 text-center">
+                      <p className="text-sm text-white/40">Sin cliente asignado — asigna un cliente para gestionar el servicio</p>
+                    </div>
+                  )}
+                </div>
+              </>
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </div>

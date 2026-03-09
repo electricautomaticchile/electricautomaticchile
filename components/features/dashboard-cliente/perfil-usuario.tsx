@@ -1,12 +1,5 @@
 "use client";
 import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -15,16 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { FormField } from "@/components/shared";
 import { ImagenPerfil } from "@/components/shared/ImagenPerfil";
 import {
-  User,
-  Home,
-  Phone,
-  Mail,
-  Lock,
-  Bell,
-  CreditCard,
-  Shield,
-  AlertTriangle,
-  Check,
+  User, Lock, Bell, Check, Mail, Phone, Hash, Save, KeyRound,
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { apiService } from "@/lib/api/apiService";
@@ -41,6 +25,7 @@ interface DatosUsuario {
   email?: string;
   correo?: string;
   telefono?: string;
+  ubicacion?: { lat: number; lng: number };
 }
 
 interface PerfilUsuarioProps {
@@ -52,8 +37,8 @@ export function PerfilUsuario({ datos }: PerfilUsuarioProps) {
   const cambiarPasswordMutation = useCambiarPassword();
   const [formData, setFormData] = useState({
     nombre: datos.nombre || "",
-    email: datos.email || "usuario@ejemplo.com",
-    telefono: datos.telefono || "+56 9 1234 5678",
+    email: datos.email || "",
+    telefono: datos.telefono || "",
     direccion: datos.direccion || "",
     notificacionesEmail: true,
     notificacionesSMS: false,
@@ -63,14 +48,8 @@ export function PerfilUsuario({ datos }: PerfilUsuarioProps) {
     passwordNueva: "",
     passwordConfirmar: "",
   });
-
   const [mensajeExito, setMensajeExito] = useState("");
   const [cargando, setCargando] = useState(false);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
 
   const handleSwitchChange = (name: string, checked: boolean) => {
     setFormData((prev) => ({ ...prev, [name]: checked }));
@@ -78,9 +57,10 @@ export function PerfilUsuario({ datos }: PerfilUsuarioProps) {
 
   const guardarCambios = async () => {
     setCargando(true);
-
     try {
-      const datosActualizacion = {
+      const clienteId = datos._id || datos.id;
+      if (!clienteId) throw new Error("ID de cliente no disponible");
+      const response = await apiService.actualizarCliente(clienteId, {
         nombre: formData.nombre,
         correo: formData.email,
         telefono: formData.telefono,
@@ -91,40 +71,16 @@ export function PerfilUsuario({ datos }: PerfilUsuarioProps) {
           actualizaciones: formData.actualizaciones,
           reportesMensuales: formData.reportesMensuales,
         },
-      };
-
-      const clienteId = datos._id || datos.id;
-      if (!clienteId) {
-        throw new Error("ID de cliente no disponible");
-      }
-
-      const response = await apiService.actualizarCliente(
-        clienteId,
-        datosActualizacion as any
-      );
-
+      } as any);
       if (response.success) {
         setMensajeExito("Cambios guardados correctamente");
-        toast({
-          title: "Éxito",
-          description: "Tu perfil ha sido actualizado correctamente.",
-          variant: "default",
-        });
-
-        // Ocultar mensaje después de 3 segundos
-        setTimeout(() => {
-          setMensajeExito("");
-        }, 3000);
+        toast({ title: "Éxito", description: "Tu perfil ha sido actualizado correctamente." });
+        setTimeout(() => setMensajeExito(""), 3000);
       } else {
         throw new Error(response.error || "Error al actualizar el perfil");
       }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          "No se pudieron guardar los cambios. Por favor, intente nuevamente.",
-        variant: "destructive",
-      });
+    } catch {
+      toast({ title: "Error", description: "No se pudieron guardar los cambios.", variant: "destructive" });
     } finally {
       setCargando(false);
     }
@@ -132,447 +88,291 @@ export function PerfilUsuario({ datos }: PerfilUsuarioProps) {
 
   return (
     <div className="space-y-6">
-      <div className="mb-6">
-        <h2 className="text-3xl font-bold flex items-center gap-3 text-foreground">
-          <User className="h-8 w-8 text-orange-600" />
+      {/* Header */}
+      <div>
+        <h2 className="text-4xl font-black text-white flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center">
+            <User className="h-6 w-6 text-orange-500" />
+          </div>
           Mi Perfil
         </h2>
-        <p className="text-muted-foreground mt-1">
-          Administre su información personal y preferencias
-        </p>
+        <p className="text-white/40 mt-1 text-sm">Administra tu información personal y preferencias</p>
       </div>
 
-      <Tabs defaultValue="datos" className="mb-4">
-        <TabsList className="mb-4 grid grid-cols-3 gap-4">
-          <TabsTrigger value="datos" className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            <span>Datos Personales</span>
+      {/* Avatar + info rápida */}
+      <div className="relative rounded-xl border border-white/10 bg-[#0a0a0a] overflow-hidden">
+        <div className="h-1 w-full bg-orange-500" />
+        <div className="p-6 flex items-center gap-6">
+          <ImagenPerfil
+            imageUrl={imagenPerfil}
+            tipoUsuario="cliente"
+            userId={datos._id || datos.id || ""}
+            size="lg"
+            onImageUpdate={(newUrl) => setImagenPerfil(newUrl)}
+          />
+          <div className="flex-1 min-w-0">
+            <p className="text-2xl font-bold text-white">{datos.nombre}</p>
+            <div className="flex flex-wrap gap-4 mt-2">
+              <div className="flex items-center gap-1.5 text-sm text-white/40">
+                <Hash className="h-4 w-4" />
+                <span>{datos.numeroCliente}</span>
+              </div>
+              {formData.email && (
+                <div className="flex items-center gap-1.5 text-sm text-white/40">
+                  <Mail className="h-4 w-4" />
+                  <span>{formData.email}</span>
+                </div>
+              )}
+              {formData.telefono && (
+                <div className="flex items-center gap-1.5 text-sm text-white/40">
+                  <Phone className="h-4 w-4" />
+                  <span>{formData.telefono}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <Tabs defaultValue="datos">
+        <TabsList className="bg-[#0a0a0a] border border-white/10 p-1 rounded-xl w-full grid grid-cols-3">
+          <TabsTrigger value="datos"
+            className="rounded-lg data-[state=active]:bg-orange-500 data-[state=active]:text-white text-white/40 flex items-center gap-2 transition-all">
+            <User className="h-4 w-4" /><span>Datos Personales</span>
           </TabsTrigger>
-          <TabsTrigger value="seguridad" className="flex items-center gap-2">
-            <Lock className="h-4 w-4" />
-            <span>Seguridad</span>
+          <TabsTrigger value="seguridad"
+            className="rounded-lg data-[state=active]:bg-orange-500 data-[state=active]:text-white text-white/40 flex items-center gap-2 transition-all">
+            <Lock className="h-4 w-4" /><span>Seguridad</span>
           </TabsTrigger>
-          <TabsTrigger
-            value="notificaciones"
-            className="flex items-center gap-2"
-          >
-            <Bell className="h-4 w-4" />
-            <span>Notificaciones</span>
+          <TabsTrigger value="notificaciones"
+            className="rounded-lg data-[state=active]:bg-orange-500 data-[state=active]:text-white text-white/40 flex items-center gap-2 transition-all">
+            <Bell className="h-4 w-4" /><span>Notificaciones</span>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="datos" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Información Personal</CardTitle>
-              <CardDescription>
-                Actualice sus datos personales de contacto
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex justify-center mb-6">
-                <ImagenPerfil
-                  imageUrl={imagenPerfil}
-                  tipoUsuario="cliente"
-                  userId={datos._id || datos.id || ""}
-                  size="lg"
-                  onImageUpdate={(newUrl) => setImagenPerfil(newUrl)}
+        {/* Tab: Datos Personales */}
+        <TabsContent value="datos" className="mt-4">
+          <div className="relative rounded-xl border border-white/10 bg-[#0a0a0a] overflow-hidden">
+            <div className="h-1 w-full bg-orange-500" />
+            <div className="p-6 space-y-5">
+              <div>
+                <p className="text-base font-bold text-white">Información Personal</p>
+                <p className="text-sm text-white/30 mt-0.5">Actualiza tus datos de contacto</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-white/50 text-sm mb-1.5 block">Nombre Completo</Label>
+                  <FormField
+                    label=""
+                    name="nombre"
+                    value={formData.nombre}
+                    onChange={(v) => setFormData(p => ({ ...p, nombre: v as string }))}
+                    placeholder="Ingrese su nombre completo"
+                  />
+                </div>
+                <div>
+                  <Label className="text-white/50 text-sm mb-1.5 block">Número de Cliente</Label>
+                  <FormField
+                    label=""
+                    name="cliente"
+                    value={datos.numeroCliente}
+                    onChange={() => {}}
+                    disabled
+                  />
+                </div>
+                <div>
+                  <Label className="text-white/50 text-sm mb-1.5 block">Correo Electrónico</Label>
+                  <FormField
+                    label=""
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(v) => setFormData(p => ({ ...p, email: v as string }))}
+                    placeholder="tu@email.com"
+                  />
+                </div>
+                <div>
+                  <Label className="text-white/50 text-sm mb-1.5 block">Teléfono Móvil</Label>
+                  <FormField
+                    label=""
+                    name="telefono"
+                    type="tel"
+                    value={formData.telefono}
+                    onChange={(v) => setFormData(p => ({ ...p, telefono: v as string }))}
+                    placeholder="+56 9 1234 5678"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="text-white/50 text-sm mb-1.5 block">Dirección</Label>
+                <FormField
+                  label=""
+                  name="direccion"
+                  value={formData.direccion}
+                  onChange={(v) => setFormData(p => ({ ...p, direccion: v as string }))}
+                  placeholder="Ingrese su dirección"
                 />
               </div>
-
-              <Separator />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  label="Nombre Completo"
-                  name="nombre"
-                  value={formData.nombre}
-                  onChange={(value) => setFormData(prev => ({ ...prev, nombre: value as string }))}
-                  placeholder="Ingrese su nombre completo"
-                />
-
-                <FormField
-                  label="Número de Cliente"
-                  name="cliente"
-                  value={datos.numeroCliente}
-                  onChange={() => {}}
-                  disabled
-                />
-
-                <FormField
-                  label="Correo Electrónico"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(value) => setFormData(prev => ({ ...prev, email: value as string }))}
-                  placeholder="tu@email.com"
-                />
-
-                <FormField
-                  label="Teléfono Móvil"
-                  name="telefono"
-                  type="tel"
-                  value={formData.telefono}
-                  onChange={(value) => setFormData(prev => ({ ...prev, telefono: value as string }))}
-                  placeholder="+56 9 1234 5678"
-                />
-              </div>
-
-              <FormField
-                label="Dirección"
-                name="direccion"
-                value={formData.direccion}
-                onChange={(value) => setFormData(prev => ({ ...prev, direccion: value as string }))}
-                placeholder="Ingrese su dirección"
-              />
 
               {mensajeExito && (
-                <div className="p-3 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 text-green-800 dark:text-green-300 flex items-center gap-2">
-                  <Check className="h-5 w-5" />
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-400 text-sm">
+                  <Check className="h-4 w-4 shrink-0" />
                   {mensajeExito}
                 </div>
               )}
 
-              <div className="flex justify-end">
-                <Button
-                  onClick={guardarCambios}
-                  disabled={cargando}
-                  className="bg-orange-600 hover:bg-orange-700"
-                >
+              <div className="flex justify-end pt-1">
+                <Button onClick={guardarCambios} disabled={cargando}
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-semibold gap-2">
+                  <Save className="h-4 w-4" />
                   {cargando ? "Guardando..." : "Guardar Cambios"}
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Servicio</CardTitle>
-              <CardDescription>
-                Información de su servicio con nosotros
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-4 rounded-lg bg-gray-50 dark:bg-slate-900">
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                    Dirección de Servicio
-                  </h3>
-                  <p className="font-medium">{datos.direccion}</p>
-                </div>
-
-                <div className="p-4 rounded-lg bg-gray-50 dark:bg-slate-900">
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                    Tipo de Medidor
-                  </h3>
-                  <p className="font-medium">Medidor Inteligente E-45S</p>
-                </div>
-
-                <div className="p-4 rounded-lg bg-gray-50 dark:bg-slate-900">
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                    Fecha de Alta
-                  </h3>
-                  <p className="font-medium">15/01/2023</p>
-                </div>
-
-                <div className="p-4 rounded-lg bg-gray-50 dark:bg-slate-900">
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                    Tarifa Contratada
-                  </h3>
-                  <p className="font-medium">BT1 Residencial</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
-        <TabsContent value="seguridad" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Cambiar Contraseña</CardTitle>
-              <CardDescription>
-                Actualice su contraseña de acceso
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <FormField
-                label="Contraseña Actual"
-                name="current-password"
-                type="password"
-                value={formData.passwordActual || ""}
-                onChange={(value) => setFormData(prev => ({ ...prev, passwordActual: value as string }))}
-                placeholder="Ingrese su contraseña actual"
-              />
-
-              <Separator />
-
+        {/* Tab: Seguridad */}
+        <TabsContent value="seguridad" className="mt-4">
+          <div className="relative rounded-xl border border-white/10 bg-[#0a0a0a] overflow-hidden">
+            <div className="h-1 w-full bg-orange-500" />
+            <div className="p-6 space-y-5">
+              <div>
+                <p className="text-base font-bold text-white">Cambiar Contraseña</p>
+                <p className="text-sm text-white/30 mt-0.5">Actualiza tu contraseña de acceso</p>
+              </div>
               <div className="space-y-4">
-                <FormField
-                  label="Nueva Contraseña"
-                  name="new-password"
-                  type="password"
-                  value={formData.passwordNueva || ""}
-                  onChange={(value) => setFormData(prev => ({ ...prev, passwordNueva: value as string }))}
-                  placeholder="Ingrese su nueva contraseña"
-                />
-
-                <FormField
-                  label="Confirmar Nueva Contraseña"
-                  name="confirm-password"
-                  type="password"
-                  value={formData.passwordConfirmar || ""}
-                  onChange={(value) => setFormData(prev => ({ ...prev, passwordConfirmar: value as string }))}
-                  placeholder="Confirme su nueva contraseña"
-                />
+                <div>
+                  <Label className="text-white/50 text-sm mb-1.5 block">Contraseña Actual</Label>
+                  <FormField label="" name="current-password" type="password"
+                    value={formData.passwordActual || ""}
+                    onChange={(v) => setFormData(p => ({ ...p, passwordActual: v as string }))}
+                    placeholder="Ingrese su contraseña actual" />
+                </div>
+                <Separator className="bg-white/5" />
+                <div>
+                  <Label className="text-white/50 text-sm mb-1.5 block">Nueva Contraseña</Label>
+                  <FormField label="" name="new-password" type="password"
+                    value={formData.passwordNueva || ""}
+                    onChange={(v) => setFormData(p => ({ ...p, passwordNueva: v as string }))}
+                    placeholder="Ingrese su nueva contraseña" />
+                </div>
+                <div>
+                  <Label className="text-white/50 text-sm mb-1.5 block">Confirmar Nueva Contraseña</Label>
+                  <FormField label="" name="confirm-password" type="password"
+                    value={formData.passwordConfirmar || ""}
+                    onChange={(v) => setFormData(p => ({ ...p, passwordConfirmar: v as string }))}
+                    placeholder="Confirme su nueva contraseña" />
+                </div>
               </div>
 
-              <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 text-sm">
-                <h3 className="font-medium text-blue-800 dark:text-blue-300 mb-2">
-                  Requisitos de seguridad:
-                </h3>
-                <ul className="list-disc list-inside space-y-1 text-gray-600 dark:text-gray-300">
-                  <li>Mínimo 6 caracteres</li>
-                  <li>Recomendado: letra mayúscula, número y símbolo</li>
-                </ul>
+              <div className="p-4 rounded-xl bg-orange-500/5 border border-orange-500/20 text-sm space-y-1">
+                <p className="font-semibold text-orange-400">Requisitos de seguridad</p>
+                <p className="text-white/40">· Mínimo 6 caracteres</p>
+                <p className="text-white/40">· Recomendado: mayúscula, número y símbolo</p>
               </div>
 
-              <div className="flex justify-end">
-                <Button 
-                  className="bg-orange-600 hover:bg-orange-700"
+              <div className="flex justify-end pt-1">
+                <Button
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-semibold gap-2"
                   onClick={async () => {
                     if (!formData.passwordNueva || !formData.passwordConfirmar) {
-                      toast({
-                        title: "Error",
-                        description: "Por favor complete todos los campos",
-                        variant: "destructive",
-                      });
-                      return;
+                      toast({ title: "Error", description: "Por favor complete todos los campos", variant: "destructive" }); return;
                     }
-
                     if (formData.passwordNueva !== formData.passwordConfirmar) {
-                      toast({
-                        title: "Error",
-                        description: "Las contraseñas no coinciden",
-                        variant: "destructive",
-                      });
-                      return;
+                      toast({ title: "Error", description: "Las contraseñas no coinciden", variant: "destructive" }); return;
                     }
-
                     if (formData.passwordNueva.length < 6) {
-                      toast({
-                        title: "Error",
-                        description: "La contraseña debe tener al menos 6 caracteres",
-                        variant: "destructive",
-                      });
-                      return;
+                      toast({ title: "Error", description: "La contraseña debe tener al menos 6 caracteres", variant: "destructive" }); return;
                     }
-
                     cambiarPasswordMutation.mutate(
-                      {
-                        currentPassword: formData.passwordActual || "",
-                        newPassword: formData.passwordNueva,
-                      },
-                      {
-                        onSuccess: () => {
-                          setFormData(prev => ({
-                            ...prev,
-                            passwordActual: "",
-                            passwordNueva: "",
-                            passwordConfirmar: "",
-                          }));
-                        },
-                      }
+                      { currentPassword: formData.passwordActual || "", newPassword: formData.passwordNueva },
+                      { onSuccess: () => setFormData(p => ({ ...p, passwordActual: "", passwordNueva: "", passwordConfirmar: "" })) }
                     );
                   }}
                   disabled={cambiarPasswordMutation.isPending}
                 >
+                  <KeyRound className="h-4 w-4" />
                   {cambiarPasswordMutation.isPending ? "Cambiando..." : "Cambiar Contraseña"}
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Seguridad de la Cuenta</CardTitle>
-              <CardDescription>
-                Opciones adicionales de seguridad
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex justify-between items-center">
-                <div className="space-y-0.5">
-                  <Label className="flex items-center gap-1.5">
-                    <Shield className="h-4 w-4 text-gray-500" />
-                    Autenticación de Dos Factores
-                  </Label>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Active la verificación en dos pasos para mayor seguridad
-                  </p>
-                </div>
-                <Button variant="outline">Configurar</Button>
-              </div>
-
-              <Separator />
-
-              <div className="flex justify-between items-center">
-                <div className="space-y-0.5">
-                  <Label>Dispositivos Conectados</Label>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Administre los dispositivos que tienen acceso a su cuenta
-                  </p>
-                </div>
-                <Button variant="outline">Ver Dispositivos</Button>
-              </div>
-
-              <Separator />
-
-              <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50">
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
-                  <div>
-                    <h3 className="font-medium text-red-800 dark:text-red-300">
-                      Zona de Peligro
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 mb-3">
-                      Las siguientes acciones son irreversibles y pueden afectar
-                      su acceso al servicio.
-                    </p>
-                    <Button
-                      variant="outline"
-                      className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
-                    >
-                      Desactivar Cuenta
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
-        <TabsContent value="notificaciones" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Preferencias de Notificación</CardTitle>
-              <CardDescription>
-                Configure cómo desea recibir sus notificaciones
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="email-notif">
-                      Notificaciones por Email
-                    </Label>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Recibir notificaciones en su correo electrónico
-                    </p>
-                  </div>
-                  <Switch
-                    id="email-notif"
-                    checked={formData.notificacionesEmail}
-                    onCheckedChange={(checked) =>
-                      handleSwitchChange("notificacionesEmail", checked)
-                    }
-                  />
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="sms-notif">Notificaciones por SMS</Label>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Recibir notificaciones a su teléfono móvil
-                    </p>
-                  </div>
-                  <Switch
-                    id="sms-notif"
-                    checked={formData.notificacionesSMS}
-                    onCheckedChange={(checked) =>
-                      handleSwitchChange("notificacionesSMS", checked)
-                    }
-                  />
-                </div>
+        {/* Tab: Notificaciones */}
+        <TabsContent value="notificaciones" className="mt-4">
+          <div className="relative rounded-xl border border-white/10 bg-[#0a0a0a] overflow-hidden">
+            <div className="h-1 w-full bg-orange-500" />
+            <div className="p-6 space-y-5">
+              <div>
+                <p className="text-base font-bold text-white">Preferencias de Notificación</p>
+                <p className="text-sm text-white/30 mt-0.5">Configura cómo deseas recibir tus notificaciones</p>
               </div>
 
-              <Separator />
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Tipos de Notificaciones</h3>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="updates-notif">
-                      Actualizaciones de Servicio
-                    </Label>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Recibir información sobre cambios o mejoras en el servicio
-                    </p>
+              <div className="space-y-1">
+                <p className="text-xs text-white/30 uppercase tracking-wide mb-3">Canal</p>
+                {[
+                  { id: "notificacionesEmail", label: "Notificaciones por Email", desc: "Recibir notificaciones en tu correo electrónico" },
+                  { id: "notificacionesSMS", label: "Notificaciones por SMS", desc: "Recibir notificaciones en tu teléfono móvil" },
+                ].map((item) => (
+                  <div key={item.id} className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
+                    <div>
+                      <p className="text-sm font-semibold text-white">{item.label}</p>
+                      <p className="text-xs text-white/30 mt-0.5">{item.desc}</p>
+                    </div>
+                    <Switch
+                      checked={formData[item.id as keyof typeof formData] as boolean}
+                      onCheckedChange={(c) => handleSwitchChange(item.id, c)}
+                      className="data-[state=checked]:bg-orange-500"
+                    />
                   </div>
-                  <Switch
-                    id="updates-notif"
-                    checked={formData.actualizaciones}
-                    onCheckedChange={(checked) =>
-                      handleSwitchChange("actualizaciones", checked)
-                    }
-                  />
-                </div>
+                ))}
+              </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="reports-notif">
-                      Informes de Consumo Mensuales
-                    </Label>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Recibir informes detallados sobre su consumo cada mes
-                    </p>
+              <div className="space-y-1">
+                <p className="text-xs text-white/30 uppercase tracking-wide mb-3">Tipos</p>
+                {[
+                  { id: "actualizaciones", label: "Actualizaciones de Servicio", desc: "Cambios o mejoras en el servicio" },
+                  { id: "reportesMensuales", label: "Informes de Consumo Mensuales", desc: "Informes detallados de tu consumo cada mes" },
+                ].map((item) => (
+                  <div key={item.id} className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
+                    <div>
+                      <p className="text-sm font-semibold text-white">{item.label}</p>
+                      <p className="text-xs text-white/30 mt-0.5">{item.desc}</p>
+                    </div>
+                    <Switch
+                      checked={formData[item.id as keyof typeof formData] as boolean}
+                      onCheckedChange={(c) => handleSwitchChange(item.id, c)}
+                      className="data-[state=checked]:bg-orange-500"
+                    />
                   </div>
-                  <Switch
-                    id="reports-notif"
-                    checked={formData.reportesMensuales}
-                    onCheckedChange={(checked) =>
-                      handleSwitchChange("reportesMensuales", checked)
-                    }
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="alerts-notif">Alertas de Facturación</Label>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Recibir alertas sobre nuevas facturas y fechas de
-                      vencimiento
-                    </p>
+                ))}
+                <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5 opacity-50">
+                  <div>
+                    <p className="text-sm font-semibold text-white">Alertas de Facturación</p>
+                    <p className="text-xs text-white/30 mt-0.5">Obligatorio — no puede desactivarse</p>
                   </div>
-                  <Switch id="alerts-notif" defaultChecked disabled />
+                  <Switch checked disabled className="data-[state=checked]:bg-orange-500" />
                 </div>
-                <p className="text-xs text-gray-500 italic">
-                  Las alertas de facturación son obligatorias y no pueden ser
-                  desactivadas.
-                </p>
               </div>
 
               {mensajeExito && (
-                <div className="p-3 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 text-green-800 dark:text-green-300 flex items-center gap-2">
-                  <Check className="h-5 w-5" />
-                  {mensajeExito}
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-400 text-sm">
+                  <Check className="h-4 w-4 shrink-0" />{mensajeExito}
                 </div>
               )}
 
-              <div className="flex justify-end">
-                <Button
-                  onClick={guardarCambios}
-                  disabled={cargando}
-                  className="bg-orange-600 hover:bg-orange-700"
-                >
+              <div className="flex justify-end pt-1">
+                <Button onClick={guardarCambios} disabled={cargando}
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-semibold gap-2">
+                  <Save className="h-4 w-4" />
                   {cargando ? "Guardando..." : "Guardar Preferencias"}
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
