@@ -2,31 +2,44 @@
 
 import { motion } from "framer-motion";
 import { Star, Quote, TrendingDown, Clock, Shield, Zap } from "lucide-react";
+import Image from "next/image";
 
-  const testimonios = [
+interface Testimonio {
+  nombre: string;
+  cargo: string;
+  empresa: string;
+  texto: string;
+  estrellas: number;
+  avatar: string;
+  avatarImg?: string;
+  color: string;
+}
+
+const testimonios: Testimonio[] = [
   {
     nombre: "Carlos Mendoza",
     cargo: "Administrador de Condominio",
-    empresa: "Condominio Gran Océano, Recreo, Viña del Mar",
-    texto: "Desde que implementamos Electricautomaticchile, la gestión energética del condominio cambió completamente. Tenemos visibilidad total del consumo en tiempo real y las alertas nos permiten actuar antes de que los problemas escalen. Una herramienta indispensable para cualquier administrador.",
+    empresa: "Condominio Gran Oceano, Recreo, Vina del Mar",
+    texto: "Desde que implementamos Electricautomaticchile, la gestion energetica del condominio cambio completamente. Tenemos visibilidad total del consumo en tiempo real y las alertas nos permiten actuar antes de que los problemas escalen. Una herramienta indispensable para cualquier administrador.",
     estrellas: 5,
     avatar: "CM",
     color: "from-orange-500 to-orange-700",
   },
   {
-    nombre: "Luis Contreras Iglesias",
-    cargo: "Gerente de Operaciones",
-    empresa: "Chilquinta Energía S.A.",
-    texto: "Gestionar cientos de clientes residenciales y comerciales requiere datos confiables en tiempo real. Electricautomaticchile nos entrega visibilidad completa sobre el consumo de toda la cartera, reduce los tiempos de respuesta ante incidencias y nos permite escalar la operación sin aumentar el equipo.",
+    nombre: "Cristian Andres Martinez Vergara",
+    cargo: "CEO",
+    empresa: "Chilquinta Energia S.A.",
+    texto: "Gestionar cientos de clientes residenciales y comerciales requiere datos confiables en tiempo real. Electricautomaticchile nos entrega visibilidad completa sobre el consumo de toda la cartera, reduce los tiempos de respuesta ante incidencias y nos permite escalar la operacion sin aumentar el equipo.",
     estrellas: 5,
-    avatar: "LC",
+    avatar: "CM",
+    avatarImg: "/Ceo Chilquinta S.A.jpg",
     color: "from-orange-600 to-red-700",
   },
   {
     nombre: "Roberto Fuentes",
     cargo: "Propietario",
     empresa: "Condominio Parque Carolina Rabat, Vitacura",
-    texto: "Por fin puedo ver en tiempo real cuánto estoy consumiendo y cuánto me va a costar a fin de mes. Antes esperaba la boleta para darme cuenta que había gastado de más — ahora recibo alertas al instante y puedo tomar decisiones antes de que sea tarde. Le recomendaría esto a cualquier propietario.",
+    texto: "Por fin puedo ver en tiempo real cuanto estoy consumiendo y cuanto me va a costar a fin de mes. Antes esperaba la boleta para darme cuenta que habia gastado de mas -- ahora recibo alertas al instante y puedo tomar decisiones antes de que sea tarde. Lo recomendaria a cualquier propietario.",
     estrellas: 5,
     avatar: "RF",
     color: "from-orange-400 to-orange-600",
@@ -34,10 +47,10 @@ import { Star, Quote, TrendingDown, Clock, Shield, Zap } from "lucide-react";
 ];
 
 const metricas = [
-  { valor: "200+",  label: "Medidores activos",       icon: Zap,         color: "text-orange-400", bg: "bg-orange-500/10",  border: "border-orange-500/30" },
-  { valor: "5+",    label: "Empresas y condominios",  icon: Shield,      color: "text-sky-400",    bg: "bg-sky-500/10",     border: "border-sky-500/30" },
-  { valor: "99.5%", label: "Precisión en lecturas",   icon: TrendingDown,color: "text-emerald-400",bg: "bg-emerald-500/10", border: "border-emerald-500/30" },
-  { valor: "80%",   label: "Menos visitas técnicas",  icon: Clock,       color: "text-amber-400",  bg: "bg-amber-500/10",   border: "border-amber-500/30" },
+  { valor: "200+",  label: "Medidores activos",      icon: Zap,          color: "text-orange-400", bg: "bg-orange-500/10",  border: "border-orange-500/30" },
+  { valor: "5+",    label: "Empresas y condominios", icon: Shield,       color: "text-sky-400",    bg: "bg-sky-500/10",     border: "border-sky-500/30" },
+  { valor: "99.5%", label: "Precision en lecturas",  icon: TrendingDown, color: "text-emerald-400",bg: "bg-emerald-500/10", border: "border-emerald-500/30" },
+  { valor: "80%",   label: "Menos visitas tecnicas", icon: Clock,        color: "text-amber-400",  bg: "bg-amber-500/10",   border: "border-amber-500/30" },
 ];
 
 export function SocialProof() {
@@ -48,7 +61,6 @@ export function SocialProof() {
 
       <div className="container mx-auto max-w-6xl relative z-10">
 
-        {/* Métricas */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -74,7 +86,6 @@ export function SocialProof() {
           ))}
         </motion.div>
 
-        {/* Título */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -90,7 +101,6 @@ export function SocialProof() {
           </h2>
         </motion.div>
 
-        {/* Testimonios */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {testimonios.map((t, i) => (
             <motion.div
@@ -114,8 +124,12 @@ export function SocialProof() {
               </p>
 
               <div className="flex items-center gap-3 pt-4 border-t border-border/50">
-                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${t.color} flex items-center justify-center text-white text-xs font-bold shrink-0`}>
-                  {t.avatar}
+                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${t.color} flex items-center justify-center text-white text-xs font-bold shrink-0 overflow-hidden`}>
+                  {t.avatarImg ? (
+                    <Image src={t.avatarImg} alt={t.nombre} width={40} height={40} className="w-full h-full object-cover" />
+                  ) : (
+                    t.avatar
+                  )}
                 </div>
                 <div>
                   <div className="font-semibold text-sm text-foreground">{t.nombre}</div>
@@ -131,4 +145,3 @@ export function SocialProof() {
     </section>
   );
 }
-
