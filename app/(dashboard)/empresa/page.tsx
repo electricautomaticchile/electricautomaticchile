@@ -25,136 +25,22 @@ import { GestionTickets } from "@/components/features/dashboard-empresa/gestion-
 import { ticketsService } from "@/lib/api/ticketsService";
 
 import {
-  Users, Battery, BellRing, TrendingUp, TrendingDown,
-  Activity, Settings, MapPin, RefreshCw, Headphones,
-  BarChart3, DollarSign, Flame, AlertTriangle, Zap,
+  Users, Battery, BellRing,
+  Activity, MapPin, RefreshCw, Headphones,
+  BarChart3, DollarSign, Flame, AlertTriangle,
 } from "lucide-react";
-import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { LiveBadge } from "@/components/ui/live-badge";
 import { SkeletonKPICard } from "@/components/ui/skeleton-card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { BarraNavegacionLateral } from "@/components/features/dashboard-empresa/layout/navigation";
+import { KPICard } from "./components/KPICard";
+import { TendenciasChart } from "./components/TendenciasChart";
+import { MapaCalor } from "./components/MapaCalor";
 
 const fadeIn = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } };
 const staggerContainer = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
-};
-
-// ── KPI Card ──────────────────────────────────────────────────────────────────
-const KPICard = ({
-  title, value, subtitle, icon: Icon, trend, trendValue, colorScheme, delay = 0,
-}: {
-  title: string; value: string | number; subtitle?: string; icon: any;
-  trend?: "up" | "down" | "neutral"; trendValue?: string;
-  colorScheme: "blue" | "orange" | "green" | "purple" | "emerald" | "red"; delay?: number;
-}) => {
-  const schemes = {
-    blue:    { accent: "text-sky-400",     bg: "bg-sky-500/10",     border: "border-sky-500/40",     icon: "bg-sky-500" },
-    orange:  { accent: "text-orange-400",  bg: "bg-orange-500/10",  border: "border-orange-500/40",  icon: "bg-orange-500" },
-    green:   { accent: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/40", icon: "bg-emerald-600" },
-    purple:  { accent: "text-violet-400",  bg: "bg-violet-500/10",  border: "border-violet-500/40",  icon: "bg-violet-600" },
-    emerald: { accent: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/40", icon: "bg-emerald-500" },
-    red:     { accent: "text-red-400",     bg: "bg-red-500/10",     border: "border-red-500/40",     icon: "bg-red-500" },
-  };
-  const s = schemes[colorScheme];
-
-  return (
-    <motion.div
-      initial="hidden" animate="visible" variants={fadeIn}
-      transition={{ duration: 0.5, delay }}
-    >
-      <div className={cn("stat-card bg-card border", s.border, "group")}>
-        {/* Shimmer on hover */}
-        <div className="absolute inset-0 animate-shimmer opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl pointer-events-none" />
-        <div className="flex items-start justify-between mb-5">
-          <p className={cn("text-sm font-semibold uppercase tracking-wide", s.accent)}>{title}</p>
-          <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shadow-md", s.icon)}>
-            <Icon className="h-6 w-6 text-white" />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-baseline gap-2">
-            <p className="text-4xl font-extrabold tracking-tight text-foreground">
-              {typeof value === "number" ? <AnimatedCounter value={value} duration={1200} /> : value}
-            </p>
-            {subtitle && <span className="text-base text-muted-foreground">{subtitle}</span>}
-          </div>
-          {trendValue && (
-            <div className="flex items-center gap-1.5">
-              {trend === "up" ? (
-                <TrendingUp className="h-4 w-4 text-red-500" />
-              ) : trend === "down" ? (
-                <TrendingDown className="h-4 w-4 text-emerald-400" />
-              ) : (
-                <Activity className="h-4 w-4 text-orange-400" />
-              )}
-              <span className="text-sm text-muted-foreground">{trendValue}</span>
-            </div>
-          )}
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
-// ── Bar Chart ─────────────────────────────────────────────────────────────────
-const TendenciasChart = ({ data }: { data: any[] }) => (
-  <div className="h-64 w-full flex items-end gap-2 px-2">
-    {data.map((item, idx) => (
-      <div key={idx} className="flex-1 flex flex-col items-center gap-2">
-        <span className="text-xs font-medium text-muted-foreground">{item.value}</span>
-        <motion.div
-          className="w-full bg-gradient-to-t from-orange-500 to-orange-400 rounded-t-lg relative group cursor-default"
-          style={{ height: `${item.percentage}%` }}
-          initial={{ scaleY: 0, originY: 1 }}
-          animate={{ scaleY: 1 }}
-          transition={{ delay: idx * 0.08 + 0.2, duration: 0.5, type: "spring" }}
-        >
-          <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-t-lg" />
-        </motion.div>
-        <span className="text-xs text-muted-foreground">{item.label}</span>
-      </div>
-    ))}
-  </div>
-);
-
-// ── Heatmap ───────────────────────────────────────────────────────────────────
-const MapaCalor = () => {
-  const zonas = [
-    { nombre: "Zona Norte", consumo: 85, color: "bg-red-500" },
-    { nombre: "Zona Centro", consumo: 65, color: "bg-orange-500" },
-    { nombre: "Zona Sur", consumo: 45, color: "bg-orange-400" },
-    { nombre: "Zona Este", consumo: 72, color: "bg-orange-600" },
-    { nombre: "Zona Oeste", consumo: 38, color: "bg-orange-300" },
-  ];
-  return (
-    <div className="space-y-4">
-      {zonas.map((zona, idx) => (
-        <motion.div
-          key={zona.nombre}
-          initial={{ opacity: 0, x: -16 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: idx * 0.08 }}
-          className="space-y-2"
-        >
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-semibold text-foreground">{zona.nombre}</span>
-            <span className="text-muted-foreground font-medium">{zona.consumo}%</span>
-          </div>
-          <div className="h-3 bg-muted rounded-full overflow-hidden">
-            <motion.div
-              className={cn("h-full rounded-full", zona.color)}
-              initial={{ width: 0 }}
-              animate={{ width: `${zona.consumo}%` }}
-              transition={{ delay: idx * 0.08 + 0.2, duration: 0.7, ease: "easeOut" }}
-            />
-          </div>
-        </motion.div>
-      ))}
-    </div>
-  );
 };
 
 // ── Main Dashboard Content ────────────────────────────────────────────────────
