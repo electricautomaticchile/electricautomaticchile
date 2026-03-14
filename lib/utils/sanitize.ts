@@ -9,22 +9,25 @@ const DANGEROUS_PATTERNS = [
   /expression\(/gi,
 ];
 
+// MED-04: Sanitización idempotente — escapar primero, luego limpiar patrones
 export function sanitizeHTML(input: string): string {
   if (!input) return '';
   
-  let sanitized = input;
-  
-  DANGEROUS_PATTERNS.forEach(pattern => {
-    sanitized = sanitized.replace(pattern, '');
-  });
-  
-  return sanitized
+  // Escapar HTML entities primero
+  let sanitized = input
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#x27;')
     .replace(/\//g, '&#x2F;');
+  
+  // Luego remover patrones peligrosos sobre el texto ya escapado
+  DANGEROUS_PATTERNS.forEach(pattern => {
+    sanitized = sanitized.replace(pattern, '');
+  });
+  
+  return sanitized;
 }
 
 export function sanitizeInput(input: string): string {

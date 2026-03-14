@@ -30,7 +30,7 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+              `script-src 'self'${isDev ? " 'unsafe-eval'" : ""} https://www.google-analytics.com`,
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: blob: https:",
               "font-src 'self' https://fonts.gstatic.com",
@@ -81,10 +81,10 @@ const nextConfig = {
         port: "",
         pathname: "/**",
       },
-      // Notion external images
+      // Notion external images — MED-06: Restringir wildcard
       {
         protocol: "https",
-        hostname: "*.notion.so",
+        hostname: "www.notion.so",
         port: "",
         pathname: "/**",
       },
@@ -107,7 +107,7 @@ const nextConfig = {
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? {
-      exclude: ['error', 'warn'],
+      exclude: ['warn'],
     } : false,
   },
   webpack: (config, { isServer }) => {

@@ -13,8 +13,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 1000 * 60 * 5,
-            gcTime: 1000 * 60 * 10,
+            staleTime: 1000 * 30, // MED-03: 30 segundos para sistema de monitoreo en tiempo real
+            gcTime: 1000 * 60 * 5,
             retry: 1,
             retryDelay: 1000,
             refetchOnWindowFocus: process.env.NODE_ENV === "production",

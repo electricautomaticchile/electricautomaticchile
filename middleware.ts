@@ -137,7 +137,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Si no hay token válido, redirigir al login
+  // HIGH-05: Validar que callbackUrl sea ruta relativa (prevenir open redirect)
   if (!tokenPayload) {
     logger.warn(`Acceso denegado - Sin token válido para: ${pathname}`);
 
@@ -147,7 +147,10 @@ export async function middleware(request: NextRequest) {
     }
 
     const url = new URL(loginUrl, request.url);
-    url.searchParams.set("callbackUrl", pathname);
+    // Solo permitir rutas relativas como callbackUrl
+    if (pathname.startsWith('/') && !pathname.startsWith('//')) {
+      url.searchParams.set("callbackUrl", pathname);
+    }
     return NextResponse.redirect(url);
   }
 
@@ -173,8 +176,11 @@ export async function middleware(request: NextRequest) {
     }
 
     const url = new URL(loginUrl, request.url);
+    // HIGH-05: Solo rutas relativas
+    if (pathname.startsWith('/') && !pathname.startsWith('//')) {
+      url.searchParams.set("callbackUrl", pathname);
+    }
     url.searchParams.set("error", "insufficient_permissions");
-    url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);
   }
 
@@ -182,11 +188,16 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
+// HIGH-04: Ampliar matcher para cubrir todas las rutas protegidas
 export const config = {
   matcher: [
     "/cliente",
     "/cliente/:path*",
     "/empresa",
     "/empresa/:path*",
+    "/admin",
+    "/admin/:path*",
+    "/dashboard",
+    "/dashboard/:path*",
   ],
 };

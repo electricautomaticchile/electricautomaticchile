@@ -39,15 +39,6 @@ export function useWebSocket(options: UseNativeWSOptions = {}): RetornoUseWebSoc
   const pingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pingTimestampRef = useRef<number | null>(null);
 
-  const getToken = useCallback((): string | null => {
-    if (typeof window === 'undefined') return null;
-    const raw = document.cookie
-      .split('; ')
-      .find((c) => c.startsWith('auth_token='))
-      ?.split('=')[1];
-    return raw ? decodeURIComponent(raw) : null;
-  }, []);
-
   const connect = useCallback(() => {
     if (typeof window === 'undefined') return;
     // Ya conectado o conectando
@@ -57,12 +48,9 @@ export function useWebSocket(options: UseNativeWSOptions = {}): RetornoUseWebSoc
     const wsUrl = apiUrl.replace(/^http/, 'ws') + '/api/ws/connect';
 
     intentionalCloseRef.current = false;
-    // Conectar sin token en URL — el backend lee la cookie auth_token automáticamente
-    // (las cookies se envían automáticamente en conexiones WS del mismo origen)
-    // Si hay token disponible lo pasamos como fallback
-    const token = getToken();
-    const fullUrl = token ? `${wsUrl}?token=${token}` : wsUrl;
-    const ws = new WebSocket(fullUrl);
+    // HIGH-01: Conectar sin token en URL — las cookies se envían automáticamente
+    // en conexiones WS del mismo origen (withCredentials)
+    const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     ws.onopen = () => {
@@ -107,7 +95,7 @@ export function useWebSocket(options: UseNativeWSOptions = {}): RetornoUseWebSoc
     ws.onerror = (event) => {
       setUltimoError(new Error('WebSocket error'));
     };
-  }, [getToken]);
+  }, []);
 
   useEffect(() => {
     if (!enabled) return;

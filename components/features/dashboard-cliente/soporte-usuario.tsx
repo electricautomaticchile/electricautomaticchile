@@ -332,9 +332,9 @@ export function SoporteUsuarioNuevo() {
               {ticketSeleccionado.respuestas.length > 0 && (
                 <div className="space-y-3">
                   <p className="text-xs text-white/30 uppercase tracking-wide">Conversación</p>
-                  {ticketSeleccionado.respuestas.map((respuesta) => (
+                  {ticketSeleccionado.respuestas.map((respuesta, index) => (
                     <div
-                      key={respuesta._id}
+                      key={respuesta._id || `respuesta-${index}`}
                       className={`rounded-xl p-4 border ${
                         respuesta.autorTipo === "cliente"
                           ? "bg-orange-500/5 border-orange-500/20 ml-8"

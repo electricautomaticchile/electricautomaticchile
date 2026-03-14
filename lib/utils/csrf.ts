@@ -13,7 +13,10 @@ export async function fetchCSRFToken(): Promise<string> {
       return csrfToken || '';
     }
   } catch (error) {
-    console.error('Error obteniendo CSRF token:', error);
+    // LOW-03: No exponer errores en consola de producción
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error obteniendo CSRF token:', error);
+    }
   }
   
   return '';
