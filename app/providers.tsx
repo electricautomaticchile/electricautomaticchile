@@ -41,6 +41,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         enableSystem={false}
         disableTransitionOnChange={false}
         storageKey="electricautomaticchile-theme"
+        forcedTheme={undefined}
         themes={["light", "dark"]}
       >
         <AppContextProvider>{children}</AppContextProvider>
