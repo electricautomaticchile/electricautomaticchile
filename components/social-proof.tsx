@@ -64,7 +64,7 @@ export function SocialProof() {
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: "-50px" }}
           transition={{ duration: 0.6 }}
           className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-20"
         >
@@ -73,7 +73,7 @@ export function SocialProof() {
               key={m.label}
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, margin: "-50px" }}
               transition={{ delay: i * 0.08 }}
               className={`glass rounded-2xl p-6 text-center card-hover cursor-default border ${m.border}`}
             >
@@ -89,7 +89,7 @@ export function SocialProof() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: "-50px" }}
           className="text-center mb-12"
         >
           <div className="inline-flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full border border-border bg-muted/50 text-muted-foreground text-xs font-semibold">
@@ -107,7 +107,7 @@ export function SocialProof() {
               key={t.nombre}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, margin: "-50px" }}
               transition={{ delay: i * 0.1 }}
               className="glass rounded-2xl p-6 relative card-hover cursor-default flex flex-col"
             >

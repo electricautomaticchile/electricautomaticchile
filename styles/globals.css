@@ -115,9 +115,14 @@ html.light {
 @layer utilities {
   .glass {
     background: var(--surface-glass);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
     border: 1px solid var(--surface-glass-border);
+  }
+
+  @supports (backdrop-filter: blur(1px)) {
+    .glass {
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+    }
   }
 
   .glow-orange {

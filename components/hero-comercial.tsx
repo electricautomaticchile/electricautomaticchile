@@ -153,13 +153,13 @@ export function HeroComercial() {
         <motion.div
           initial={{ opacity: 0, y: 32 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: "-50px" }}
           transition={{ duration: 0.7 }}
           className="mb-28"
         >
-          <div className="rounded-3xl border border-border/60 overflow-hidden glass">
+          <div className="rounded-3xl border border-border/60 glass">
             <div className="grid lg:grid-cols-2 gap-0">
-              <div className="relative overflow-hidden min-h-[320px]">
+              <div className="relative overflow-hidden min-h-[320px] rounded-tl-3xl rounded-bl-3xl lg:rounded-tr-none rounded-tr-3xl">
                 <Image
                   src="/medidor-arduino.png"
                   alt="Dispositivo Arduino instalado en tablero eléctrico"
@@ -199,7 +199,7 @@ export function HeroComercial() {
         <motion.div
           initial={{ opacity: 0, y: 32 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: "-50px" }}
           transition={{ duration: 0.7 }}
           className="mb-28 text-center"
         >
@@ -222,7 +222,7 @@ export function HeroComercial() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
+                  viewport={{ once: true, margin: "-50px" }}
                   transition={{ delay: i * 0.12 }}
                   className="flex flex-col items-center gap-2"
                 >
@@ -249,7 +249,7 @@ export function HeroComercial() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: "-50px" }}
           transition={{ duration: 0.6 }}
           className="mb-28 text-center"
         >
@@ -280,7 +280,7 @@ export function HeroComercial() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: "-50px" }}
           className="text-center mb-10"
         >
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">
@@ -297,7 +297,7 @@ export function HeroComercial() {
               key={item.title}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, margin: "-50px" }}
               transition={{ delay: i * 0.08 }}
             >
               <Link href={item.href} className="block h-full">
