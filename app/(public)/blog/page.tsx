@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: "Artículos sobre IoT, electricidad inteligente y eficiencia energética para hogares y empresas en Chile.",
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 const coloresCat: Record<string, string> = {
   IoT: "bg-orange-500/20 text-orange-300 border-orange-500/30",

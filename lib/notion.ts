@@ -49,7 +49,7 @@ function pageToPost(page: any): BlogPost {
 async function getFirstImageFromBlocks(pageId: string): Promise<string | null> {
   const res = await fetch(`https://api.notion.com/v1/blocks/${pageId}/children`, {
     headers,
-    cache: "no-store",
+    next: { revalidate: 300 },
   });
   const data = await res.json();
   const imageBlock = (data.results ?? []).find((b: any) => b.type === "image");
@@ -66,7 +66,7 @@ export async function getPublishedPosts(): Promise<BlogPost[]> {
       filter: { property: "Estado", select: { equals: "Publicado" } },
       sorts: [{ property: "Fecha", direction: "descending" }],
     }),
-    cache: "no-store",
+    next: { revalidate: 300 },
   });
   const data = await res.json();
   const posts: BlogPost[] = await Promise.all(
@@ -88,7 +88,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
     body: JSON.stringify({
       filter: { property: "Slug", rich_text: { equals: slug } },
     }),
-    cache: "no-store",
+    next: { revalidate: 300 },
   });
   const data = await res.json();
   if (!data.results?.length) return null;
@@ -98,7 +98,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
 export async function getPostBlocks(pageId: string): Promise<any[]> {
   const res = await fetch(`https://api.notion.com/v1/blocks/${pageId}/children`, {
     headers,
-    cache: "no-store",
+    next: { revalidate: 300 },
   });
   const data = await res.json();
   return data.results ?? [];
