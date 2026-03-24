@@ -63,7 +63,7 @@ export function HeroComercial() {
         <div className="grid lg:grid-cols-2 gap-16 items-center mb-28">
           <motion.div variants={stagger} initial="hidden" animate="visible">
 
-            <motion.h1 variants={fadeUp} className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] tracking-tight mb-6">
+            <motion.h1 variants={fadeUp} className="text-4xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] tracking-tight mb-6">
               <span className="text-foreground">Automatización</span>
               <br />
               <span className="text-gradient-orange">Inteligente</span>
