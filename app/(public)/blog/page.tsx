@@ -43,7 +43,7 @@ export default async function BlogPage() {
           <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 bg-orange-500/20 border border-orange-500/30 rounded-full">
             <span className="text-sm font-medium text-orange-300">Contenido educativo</span>
           </div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4 leading-tight">
+          <h1 className="text-2xl sm:text-5xl md:text-6xl font-bold text-white mb-4 leading-tight">
             Blog de{" "}
             <span className="text-orange-500 block sm:inline">Electricautomaticchile</span>
           </h1>
