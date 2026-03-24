@@ -43,8 +43,9 @@ export default async function BlogPage() {
           <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 bg-orange-500/20 border border-orange-500/30 rounded-full">
             <span className="text-sm font-medium text-orange-300">Contenido educativo</span>
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-4">
-            Blog de <span className="text-orange-500">Electricautomaticchile</span>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4 leading-tight">
+            Blog de{" "}
+            <span className="text-orange-500 block sm:inline">Electricautomaticchile</span>
           </h1>
           <p className="text-lg text-white/60 max-w-2xl mx-auto">
             Artículos sobre IoT, electricidad inteligente y eficiencia energética
@@ -110,24 +111,6 @@ export default async function BlogPage() {
             ))}
           </div>
         )}
-
-        {/* Newsletter */}
-        <div className="text-center border border-white/10 rounded-2xl p-12 bg-white/5">
-          <h2 className="text-2xl font-bold text-white mb-2">Mantente al día</h2>
-          <p className="text-white/50 mb-6 text-sm">
-            Recibe los últimos artículos sobre electricidad inteligente e IoT en tu correo.
-          </p>
-          <div className="flex gap-2 max-w-sm mx-auto">
-            <input
-              type="email"
-              placeholder="tu@correo.com"
-              className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-            <button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-              Suscribir
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );
