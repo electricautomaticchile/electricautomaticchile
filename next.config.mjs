@@ -30,12 +30,16 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google-analytics.com`,
+              // MED-14: Removido unsafe-eval. unsafe-inline necesario para Next.js hydration.
+              // Para eliminar unsafe-inline se requiere middleware con nonces (ver docs Next.js CSP).
+              `script-src 'self' 'unsafe-inline' https://www.google-analytics.com`,
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: blob: https:",
               "font-src 'self' https://fonts.gstatic.com",
               `connect-src ${connectSrc}`,
               "frame-ancestors 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
             ].join('; '),
           },
         ],
