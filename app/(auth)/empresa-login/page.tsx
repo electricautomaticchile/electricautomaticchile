@@ -24,7 +24,7 @@ export default function LoginEmpresaPage() {
     try {
       const { data } = await apiClient.post("/api/auth/login/empresa", { email, password });
       const isProduction = window.location.protocol === "https:";
-      const cookieOptions = `path=/; max-age=${24 * 60 * 60}; samesite=lax${isProduction ? "; secure" : ""}`;
+      const cookieOptions = `path=/; max-age=${24 * 60 * 60}; samesite=strict${isProduction ? "; secure" : ""}`;
       // Limpiar token anterior primero
       document.cookie = `auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
       document.cookie = `auth_token=${encodeURIComponent(data.token)}; ${cookieOptions}`;
