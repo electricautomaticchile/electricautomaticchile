@@ -6,6 +6,7 @@ frontend:
         - npm ci --silent
     build:
       commands:
+        - env | grep -e JWT_SECRET -e NEXT_PUBLIC_API_URL -e NEXT_PUBLIC_BASE_URL -e NEXTAUTH_SECRET -e NEXTAUTH_URL -e NOTION_TOKEN -e NOTION_BLOG_DB_ID >> .env.production
         - npm run build
   artifacts:
     baseDirectory: .next
