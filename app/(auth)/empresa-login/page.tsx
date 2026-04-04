@@ -24,7 +24,7 @@ export default function LoginEmpresaPage() {
     try {
       const { data } = await apiClient.post("/api/auth/login/empresa", { email, password });
       const isProduction = window.location.protocol === "https:";
-      const cookieOptions = `path=/; max-age=${24 * 60 * 60}; samesite=strict${isProduction ? "; secure" : ""}`;
+      const cookieOptions = `path=/; max-age=${24 * 60 * 60}; samesite=lax${isProduction ? "; secure" : ""}`;
       // Limpiar token anterior primero
       document.cookie = `auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
       document.cookie = `auth_token=${encodeURIComponent(data.token)}; ${cookieOptions}`;
@@ -37,8 +37,9 @@ export default function LoginEmpresaPage() {
       if (data.permisos) {
         document.cookie = `permisos=${encodeURIComponent(JSON.stringify(data.permisos))}; ${cookieOptions}`;
       }
-      await new Promise(r => setTimeout(r, 50));
-      router.replace("/empresa");
+      // Full page redirect para que el middleware de Next.js verifique la cookie
+      const callbackUrl = new URLSearchParams(window.location.search).get("callbackUrl");
+      window.location.href = callbackUrl || "/empresa/";
     } catch (err: any) {
       const msg = err.response?.data?.error?.message || err.response?.data?.message || err.message || "Error al iniciar sesión";
       setError(typeof msg === "string" ? msg : JSON.stringify(msg));
