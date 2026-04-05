@@ -71,3 +71,4 @@ bun.lock*
 .tool-versions
 .kiro
 .vscode
+next.config.mjs
