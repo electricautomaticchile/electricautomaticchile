@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/components/ui/use-toast";
-// import { useWebSocket } from "@/hooks/useWebSocket";
+import { useWebSocket, type WSMessage } from "@/lib/websocket/useWebSocket";
 import { apiService } from "@/lib/api/apiService";
 import { dispositivosService } from "@/lib/api/services/dispositivosService";
 import {
@@ -274,36 +274,36 @@ export function useDispositivosActivos() {
     return () => clearInterval(interval);
   }, [cargarDispositivos]); */
 
-  // Efecto para procesar datos de WebSocket - COMENTADO
-  /* useEffect(() => {
-    if (!deviceData) return;
+  // Efecto para procesar datos de WebSocket en tiempo real
+  const handleWsMessage = useCallback((msg: WSMessage) => {
+    if (msg.type !== "device_update" || !msg.data) return;
+    const data = msg.data as any;
+    const deviceId = data.idDispositivo;
+    if (!deviceId) return;
 
-    const data = deviceData as WebSocketDeviceData;
-
-    setDispositivos((prev) =>
-      prev.map((dispositivo) =>
-        dispositivo.id === data.dispositivoId
-          ? {
-              ...dispositivo,
-              consumoActual: data.data?.consumo || dispositivo.consumoActual,
-              bateria: data.data?.bateria || dispositivo.bateria,
-              ultimaTransmision: new Date().toLocaleString("es-CL"),
-              estado: "activo",
-              temperaturaOperacion:
-                data.data?.temperatura || dispositivo.temperaturaOperacion,
-              senal: data.data?.senal || dispositivo.senal,
-            }
-          : dispositivo
-      )
-    );
-
-    // Recalcular resumen después de actualización WebSocket
-    setDispositivos((current) => {
-      const resumen = calcularResumen(current);
-      setResumenDispositivos(resumen);
-      return current;
+    setDispositivos((prev) => {
+      let changed = false;
+      const updated = prev.map((dispositivo) => {
+        if (dispositivo.numeroDispositivo !== deviceId && dispositivo.id !== deviceId) return dispositivo;
+        const newConsumo = data.energia ?? dispositivo.consumoActual;
+        // Solo actualizar si el valor cambió significativamente (evita re-renders innecesarios)
+        if (Math.abs(newConsumo - dispositivo.consumoActual) < 0.0001) return dispositivo;
+        changed = true;
+        return {
+          ...dispositivo,
+          consumoActual: newConsumo,
+          ultimaTransmision: new Date().toLocaleString("es-CL"),
+          estado: "activo" as const,
+        };
+      });
+      return changed ? updated : prev;
     });
-  }, [deviceData, calcularResumen]); */
+  }, []);
+
+  const { connected: wsConnected } = useWebSocket({
+    enabled: true,
+    onMessage: handleWsMessage,
+  });
 
   // Recalcular resumen cuando cambian los dispositivos
   useEffect(() => {
@@ -318,7 +318,7 @@ export function useDispositivosActivos() {
     dispositivosOriginales: dispositivos,
     resumenDispositivos,
     filtros,
-    isWebSocketConnected: false, // Valor estático
+    isWebSocketConnected: wsConnected,
 
     // Acciones
     cargarDispositivos,

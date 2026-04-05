@@ -48,12 +48,24 @@ export function useWebSocket(options: UseNativeWSOptions = {}): RetornoUseWebSoc
     const wsUrl = apiUrl.replace(/^http/, 'ws') + '/api/ws/connect';
 
     intentionalCloseRef.current = false;
-    // HIGH-01: Conectar sin token en URL — las cookies se envían automáticamente
-    // en conexiones WS del mismo origen (withCredentials)
-    const ws = new WebSocket(wsUrl);
+
+    // Obtener token de las cookies para autenticar el WebSocket
+    const cookies = document.cookie.split(';');
+    const authCookie = cookies.find(c => c.trim().startsWith('auth_token='));
+    const token = authCookie ? decodeURIComponent(authCookie.split('=').slice(1).join('=').trim()) : '';
+
+    if (!token) {
+      console.warn('[WS] No auth_token cookie found, skipping WebSocket connection');
+      return;
+    }
+
+    console.log('[WS] Connecting to', wsUrl, 'with token length:', token.length);
+    const wsUrlWithToken = `${wsUrl}?token=${encodeURIComponent(token)}`;
+    const ws = new WebSocket(wsUrlWithToken);
     wsRef.current = ws;
 
     ws.onopen = () => {
+      console.log('[WS] Connected successfully');
       setConnected(true);
       if (reconnectRef.current) {
         clearTimeout(reconnectRef.current);
@@ -69,6 +81,7 @@ export function useWebSocket(options: UseNativeWSOptions = {}): RetornoUseWebSoc
     ws.onmessage = (event) => {
       try {
         const msg: WSMessage = JSON.parse(event.data);
+        console.log('[WS] Message received:', msg.type, msg.data);
         if (msg.type === 'pong' && pingTimestampRef.current) {
           setLatencia(Date.now() - pingTimestampRef.current);
           pingTimestampRef.current = null;
@@ -78,6 +91,7 @@ export function useWebSocket(options: UseNativeWSOptions = {}): RetornoUseWebSoc
     };
 
     ws.onclose = () => {
+      console.log('[WS] Disconnected');
       setConnected(false);
       setLatencia(null);
       if (pingIntervalRef.current) {
@@ -93,6 +107,7 @@ export function useWebSocket(options: UseNativeWSOptions = {}): RetornoUseWebSoc
     };
 
     ws.onerror = (event) => {
+      console.error('[WS] Error:', event);
       setUltimoError(new Error('WebSocket error'));
     };
   }, []);
