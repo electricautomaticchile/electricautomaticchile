@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { LoadingState, EmptyState } from "@/components/shared";
 import {
@@ -45,10 +45,19 @@ export function DispositivosActivosTabla({
 
   const dispositivoIds = dispositivos.map(d => d.id);
   const { data: datosDispositivos } = useDispositivosDetalles(dispositivoIds);
-  const { data: dispositivoDetalle, refetch: refetchDetalle } = useDispositivoDetalle(dispositivoSeleccionado);
+  const { data: dispositivoDetalle } = useDispositivoDetalle(dispositivoSeleccionado);
 
   const consumoTiempoReal = dispositivoDetalle?.ultimaLectura?.energy || 0;
   const costoTiempoReal = dispositivoDetalle?.ultimaLectura?.cost || 0;
+
+  // Memoizar el dispositivo seleccionado para evitar re-renders del modal
+  const dispositivoModal = useMemo(() => {
+    if (!dispositivoSeleccionado) return null;
+    return dispositivos.find(d => d.id === dispositivoSeleccionado) || null;
+  }, [dispositivoSeleccionado, dispositivos]);
+
+  // Guardar clienteId en ref para no re-ejecutar el efecto con cada WS update
+  const clienteIdRef = useRef<string | null>(null);
 
   const cargarEstadoServicio = useCallback(async (clienteId: string) => {
     setCargandoEstado(true);
@@ -67,12 +76,16 @@ export function DispositivosActivosTabla({
   useEffect(() => {
     if (dispositivoSeleccionado) {
       const dispositivo = dispositivos.find(d => d.id === dispositivoSeleccionado);
-      const clienteId = dispositivo?.cliente?.id;
-      if (clienteId) {
+      const clienteId = dispositivo?.cliente?.id || null;
+      // Solo cargar estado si cambió el dispositivo seleccionado
+      if (clienteId && clienteId !== clienteIdRef.current) {
+        clienteIdRef.current = clienteId;
         cargarEstadoServicio(clienteId);
       }
+    } else {
+      clienteIdRef.current = null;
     }
-  }, [dispositivoSeleccionado, dispositivos, cargarEstadoServicio]);
+  }, [dispositivoSeleccionado, cargarEstadoServicio]); // Sin 'dispositivos' en deps
 
   const abrirDetalles = (dispositivoId: string) => {
     setDispositivoSeleccionado(dispositivoId);
@@ -240,9 +253,8 @@ export function DispositivosActivosTabla({
       {/* Modal de Detalles del Dispositivo */}
       <Dialog open={!!dispositivoSeleccionado} onOpenChange={(open) => !open && cerrarDetalles()}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-[#0a0a0a] border border-orange-500/30 p-0">
-          {dispositivoSeleccionado && (() => {
-            const dispositivo = dispositivos.find((d) => d.id === dispositivoSeleccionado);
-            if (!dispositivo) return null;
+          {dispositivoModal && (() => {
+            const dispositivo = dispositivoModal;
 
             return (
               <>
