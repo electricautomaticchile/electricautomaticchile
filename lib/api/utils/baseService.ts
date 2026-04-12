@@ -32,6 +32,7 @@ export class BaseApiService {
 
     const config: RequestInit = {
       ...options,
+      credentials: 'include', // Enviar cookies HttpOnly automáticamente
       headers: {
         ...defaultHeaders,
         ...options.headers,
