@@ -8,6 +8,7 @@ const nextConfig = {
     const connectSrc = [
       "'self'",
       "https://api-electricautomaticchile.com",
+      "wss://api-electricautomaticchile.com",
       "https://api.notion.com",
       "https://www.google-analytics.com",
       ...(isDev ? ["http://localhost:4000", "ws://localhost:4000", "ws://localhost:3000"] : []),
@@ -30,9 +31,9 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              // MED-14: Removido unsafe-eval. unsafe-inline necesario para Next.js hydration.
-              // Para eliminar unsafe-inline se requiere middleware con nonces (ver docs Next.js CSP).
-              `script-src 'self' 'unsafe-inline' https://www.google-analytics.com`,
+              // unsafe-eval solo en desarrollo (Next.js hot reload lo necesita).
+              // En producción solo unsafe-inline (requerido por Next.js hydration).
+              `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://www.google-analytics.com`,
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: blob: https:",
               "font-src 'self' https://fonts.gstatic.com",
