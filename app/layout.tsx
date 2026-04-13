@@ -4,6 +4,7 @@ import Navbar from "@/components/layout/navbar/navbar";
 import { Providers } from "./providers";
 import { Toaster } from "@/components/ui/toaster";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ServiceWorkerRegistrar } from "@/components/shared/ServiceWorkerRegistrar";
 
 export const metadata: Metadata = {
   title: "Electricautomaticchile - Automatización Eléctrica Inteligente",
@@ -59,6 +60,7 @@ export default function RootLayout({
             <Navbar />
             {children}
             <Toaster />
+            <ServiceWorkerRegistrar />
           </Providers>
         </ErrorBoundary>
       </body>

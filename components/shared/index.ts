@@ -17,3 +17,5 @@ export { GlobalLoadingState, InlineLoadingState, ButtonLoadingState } from "./Gl
 export { ErrorState, InlineErrorState } from "./ErrorState";
 export { PageWrapper } from "./PageWrapper";
 export { SafeInput, SafeTextarea } from "./SafeInput";
+export { SkeletonDashboardCliente, SkeletonDashboardEmpresa, SkeletonList } from "./SkeletonDashboard";
+export { ServiceWorkerRegistrar } from "./ServiceWorkerRegistrar";
