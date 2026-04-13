@@ -99,13 +99,11 @@ const nextConfig = {
   },
   output: "standalone",
   trailingSlash: true,
-  staticPageGenerationTimeout: 1000,
+  staticPageGenerationTimeout: 120,
   experimental: {
     serverComponentsExternalPackages: [
       "mongoose",
       "mongodb",
-      "serialport",
-      "@serialport/bindings-cpp",
     ],
     esmExternals: "loose",
     optimizePackageImports: ['lucide-react', '@tanstack/react-query'],
@@ -116,10 +114,6 @@ const nextConfig = {
     } : false,
   },
   webpack: (config, { isServer }) => {
-    if (isServer) {
-      config.externals.push("serialport", "@serialport/bindings-cpp");
-    }
-
     config.optimization = {
       ...config.optimization,
       splitChunks: {
