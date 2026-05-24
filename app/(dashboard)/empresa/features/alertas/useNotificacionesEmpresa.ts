@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { TokenManager } from "@/lib/api/utils/tokenManager";
+import { ensureCSRFToken } from "@/lib/utils/csrf";
 
 interface Notificacion {
   _id: string;
@@ -50,21 +50,14 @@ export function useNotificacionesEmpresa() {
     }
 
     try {
-      setLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-      const url = `${apiUrl}/api/notificaciones`;
-      const token = TokenManager.getToken();
-      
-      
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-      
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-      
-      const response = await fetch(url, {
+	      setLoading(true);
+	      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+	      const url = `${apiUrl}/api/notificaciones`;
+	      const headers: HeadersInit = {
+	        "Content-Type": "application/json",
+	      };
+	      
+	      const response = await fetch(url, {
         headers,
         credentials: "include",
       });
@@ -108,19 +101,13 @@ export function useNotificacionesEmpresa() {
   const cargarEstadisticas = useCallback(async () => {
     if (!empresaId) return;
 
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-      const token = TokenManager.getToken();
-      
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-      
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-      
-      const response = await fetch(`${apiUrl}/api/notificaciones/estadisticas`, {
+	    try {
+	      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+	      const headers: HeadersInit = {
+	        "Content-Type": "application/json",
+	      };
+	      
+	      const response = await fetch(`${apiUrl}/api/notificaciones/estadisticas`, {
         headers,
         credentials: "include",
       });
@@ -138,20 +125,17 @@ export function useNotificacionesEmpresa() {
   /**
    * Marcar notificación como leída
    */
-  const marcarComoLeida = useCallback(async (notificacionId: string) => {
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-      const token = TokenManager.getToken();
-      
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-      
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-      
-      const response = await fetch(`${apiUrl}/api/notificaciones/${notificacionId}/marcar-leida`, {
+	  const marcarComoLeida = useCallback(async (notificacionId: string) => {
+	    try {
+	      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+	      const csrfToken = await ensureCSRFToken();
+	      
+	      const headers: HeadersInit = {
+	        "Content-Type": "application/json",
+	        ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
+	      };
+	      
+	      const response = await fetch(`${apiUrl}/api/notificaciones/${notificacionId}/marcar-leida`, {
         method: "PUT",
         headers,
         credentials: "include",
@@ -175,20 +159,17 @@ export function useNotificacionesEmpresa() {
   /**
    * Marcar todas las notificaciones como leídas
    */
-  const marcarTodasComoLeidas = useCallback(async () => {
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-      const token = TokenManager.getToken();
-      
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-      
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-      
-      const response = await fetch(`${apiUrl}/api/notificaciones/marcar-todas-leidas`, {
+	  const marcarTodasComoLeidas = useCallback(async () => {
+	    try {
+	      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+	      const csrfToken = await ensureCSRFToken();
+	      
+	      const headers: HeadersInit = {
+	        "Content-Type": "application/json",
+	        ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
+	      };
+	      
+	      const response = await fetch(`${apiUrl}/api/notificaciones/marcar-todas-leidas`, {
         method: "PUT",
         headers,
         credentials: "include",
@@ -220,20 +201,17 @@ export function useNotificacionesEmpresa() {
   /**
    * Eliminar notificación
    */
-  const eliminarNotificacion = useCallback(async (notificacionId: string) => {
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-      const token = TokenManager.getToken();
-      
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-      
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-      
-      const response = await fetch(`${apiUrl}/api/notificaciones/${notificacionId}`, {
+	  const eliminarNotificacion = useCallback(async (notificacionId: string) => {
+	    try {
+	      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+	      const csrfToken = await ensureCSRFToken();
+	      
+	      const headers: HeadersInit = {
+	        "Content-Type": "application/json",
+	        ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
+	      };
+	      
+	      const response = await fetch(`${apiUrl}/api/notificaciones/${notificacionId}`, {
         method: "DELETE",
         headers,
         credentials: "include",

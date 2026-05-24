@@ -1,5 +1,5 @@
 import axios from "axios";
-import { TokenManager } from "../utils/tokenManager";
+import { ensureCSRFToken } from "@/lib/utils/csrf";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -36,18 +36,20 @@ export interface CalculoConsumo {
   tramoEstabilizacion: string;
 }
 
-const getHeaders = () => {
-  const token = TokenManager.getToken();
+const getHeaders = async (method = "GET") => {
+  const csrfToken = ["POST", "PUT", "DELETE", "PATCH"].includes(method)
+    ? await ensureCSRFToken()
+    : "";
   return {
     'Content-Type': 'application/json',
-    'Authorization': token ? `Bearer ${token}` : '',
+    ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
   };
 };
 
 export class TarifasService {
   static async obtenerTarifas() {
     try {
-      const response = await axios.get(`${API_URL}/api/tarifas`, { headers: getHeaders() });
+      const response = await axios.get(`${API_URL}/api/tarifas`, { headers: await getHeaders(), withCredentials: true });
       return { success: true, data: response.data.data };
     } catch (error: any) {
       const errorMessage = error.response?.data?.error?.message || error.response?.data?.error || 'Error al obtener tarifas';
@@ -57,7 +59,7 @@ export class TarifasService {
 
   static async obtenerTarifaActiva(comuna: string, tipoTarifa: string) {
     try {
-      const response = await axios.get(`${API_URL}/api/tarifas/activa?comuna=${comuna}&tipoTarifa=${tipoTarifa}`, { headers: getHeaders() });
+      const response = await axios.get(`${API_URL}/api/tarifas/activa?comuna=${comuna}&tipoTarifa=${tipoTarifa}`, { headers: await getHeaders(), withCredentials: true });
       return { success: true, data: response.data.data };
     } catch (error: any) {
       const errorMessage = error.response?.data?.error?.message || error.response?.data?.error || 'Error al obtener tarifa';
@@ -67,7 +69,7 @@ export class TarifasService {
 
   static async obtenerTarifa(id: string) {
     try {
-      const response = await axios.get(`${API_URL}/api/tarifas/${id}`, { headers: getHeaders() });
+      const response = await axios.get(`${API_URL}/api/tarifas/${id}`, { headers: await getHeaders(), withCredentials: true });
       return { success: true, data: response.data.data };
     } catch (error: any) {
       const errorMessage = error.response?.data?.error?.message || error.response?.data?.error || 'Error al obtener tarifa';
@@ -77,7 +79,7 @@ export class TarifasService {
 
   static async crearTarifa(tarifa: Partial<Tarifa>) {
     try {
-      const response = await axios.post(`${API_URL}/api/tarifas`, tarifa, { headers: getHeaders() });
+      const response = await axios.post(`${API_URL}/api/tarifas`, tarifa, { headers: await getHeaders("POST"), withCredentials: true });
       return { success: true, data: response.data.data };
     } catch (error: any) {
       const errorMessage = error.response?.data?.error?.message || error.response?.data?.error || 'Error al crear tarifa';
@@ -87,7 +89,7 @@ export class TarifasService {
 
   static async actualizarTarifa(id: string, tarifa: Partial<Tarifa>) {
     try {
-      const response = await axios.put(`${API_URL}/api/tarifas/${id}`, tarifa, { headers: getHeaders() });
+      const response = await axios.put(`${API_URL}/api/tarifas/${id}`, tarifa, { headers: await getHeaders("PUT"), withCredentials: true });
       return { success: true, data: response.data.data };
     } catch (error: any) {
       const errorMessage = error.response?.data?.error?.message || error.response?.data?.error || 'Error al actualizar tarifa';
@@ -97,7 +99,7 @@ export class TarifasService {
 
   static async eliminarTarifa(id: string) {
     try {
-      const response = await axios.delete(`${API_URL}/api/tarifas/${id}`, { headers: getHeaders() });
+      const response = await axios.delete(`${API_URL}/api/tarifas/${id}`, { headers: await getHeaders("DELETE"), withCredentials: true });
       return { success: true, data: response.data.data };
     } catch (error: any) {
       const errorMessage = error.response?.data?.error?.message || error.response?.data?.error || 'Error al eliminar tarifa';
@@ -107,7 +109,7 @@ export class TarifasService {
 
   static async calcularConsumo(kwhConsumidos: number, tarifaId: string) {
     try {
-      const response = await axios.post(`${API_URL}/api/tarifas/calcular`, { kwhConsumidos, tarifaId }, { headers: getHeaders() });
+      const response = await axios.post(`${API_URL}/api/tarifas/calcular`, { kwhConsumidos, tarifaId }, { headers: await getHeaders("POST"), withCredentials: true });
       return { success: true, data: response.data.data };
     } catch (error: any) {
       const errorMessage = error.response?.data?.error?.message || error.response?.data?.error || 'Error al calcular consumo';
@@ -117,7 +119,7 @@ export class TarifasService {
 
   static async calcularCostoCliente(clienteId: string, kwh: number) {
     try {
-      const response = await axios.get(`${API_URL}/api/consumo/cliente/${clienteId}/calcular?kwh=${kwh}`, { headers: getHeaders() });
+      const response = await axios.get(`${API_URL}/api/consumo/cliente/${clienteId}/calcular?kwh=${kwh}`, { headers: await getHeaders(), withCredentials: true });
       return { success: true, data: response.data.data };
     } catch (error: any) {
       const errorMessage = error.response?.data?.error?.message || error.response?.data?.error || 'Error al calcular costo';

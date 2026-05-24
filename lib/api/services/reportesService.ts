@@ -4,7 +4,10 @@ const BASE = "/api/reportes";
 
 async function descargar(url: string, filename: string): Promise<void> {
   const response = await apiClient.get(url, { responseType: "blob" });
-  const blob = new Blob([response.data], { type: response.headers["content-type"] });
+  const contentType = response.headers["content-type"];
+  const blob = new Blob([response.data], {
+    type: typeof contentType === "string" ? contentType : undefined,
+  });
   const link = document.createElement("a");
   link.href = window.URL.createObjectURL(blob);
   link.download = filename;

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { TokenManager } from "@/lib/api/utils/tokenManager";
+import { ensureCSRFToken } from "@/lib/utils/csrf";
 import { useApi } from "./useApi";
 
 interface NotificacionCliente {
@@ -36,20 +36,13 @@ export function useNotificacionesCliente() {
     
     try {
       setLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-      const url = `${apiUrl}/api/notificaciones`;
-      const token = TokenManager.getToken();
-      
-      
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-      
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-      
-      const response = await fetch(url, {
+	      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+	      const url = `${apiUrl}/api/notificaciones`;
+	      const headers: HeadersInit = {
+	        "Content-Type": "application/json",
+	      };
+	      
+	      const response = await fetch(url, {
         headers,
         credentials: "include",
       });
@@ -80,19 +73,16 @@ export function useNotificacionesCliente() {
   const marcarComoLeida = useCallback(async (notificacionId: string) => {
     if (!isRealAuthenticated) return;
     
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-      const token = TokenManager.getToken();
-      
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-      
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-      
-      const response = await fetch(`${apiUrl}/api/notificaciones/${notificacionId}/marcar-leida`, {
+	    try {
+	      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+	      const csrfToken = await ensureCSRFToken();
+	      
+	      const headers: HeadersInit = {
+	        "Content-Type": "application/json",
+	        ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
+	      };
+	      
+	      const response = await fetch(`${apiUrl}/api/notificaciones/${notificacionId}/marcar-leida`, {
         method: "PUT",
         headers,
         credentials: "include",
@@ -114,19 +104,16 @@ export function useNotificacionesCliente() {
   const eliminarNotificacion = useCallback(async (notificacionId: string) => {
     if (!isRealAuthenticated) return;
     
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-      const token = TokenManager.getToken();
-      
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-      
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-      
-      const response = await fetch(`${apiUrl}/api/notificaciones/${notificacionId}`, {
+	    try {
+	      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+	      const csrfToken = await ensureCSRFToken();
+	      
+	      const headers: HeadersInit = {
+	        "Content-Type": "application/json",
+	        ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
+	      };
+	      
+	      const response = await fetch(`${apiUrl}/api/notificaciones/${notificacionId}`, {
         method: "DELETE",
         headers,
         credentials: "include",
@@ -148,19 +135,16 @@ export function useNotificacionesCliente() {
   const marcarTodasComoLeidas = useCallback(async () => {
     if (!isRealAuthenticated) return;
     
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-      const token = TokenManager.getToken();
-      
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-      
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-      
-      const response = await fetch(`${apiUrl}/api/notificaciones/marcar-todas-leidas`, {
+	    try {
+	      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+	      const csrfToken = await ensureCSRFToken();
+	      
+	      const headers: HeadersInit = {
+	        "Content-Type": "application/json",
+	        ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
+	      };
+	      
+	      const response = await fetch(`${apiUrl}/api/notificaciones/marcar-todas-leidas`, {
         method: "PUT",
         headers,
         credentials: "include",

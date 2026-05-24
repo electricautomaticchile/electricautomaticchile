@@ -6,8 +6,8 @@ export interface LoginClienteRequest {
 }
 
 export interface LoginClienteResponse {
-  token: string;
-  refreshToken: string;
+  token?: never;
+  refreshToken?: never;
   user: {
     _id: string;
     nombre: string;

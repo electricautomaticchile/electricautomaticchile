@@ -9,7 +9,7 @@ export async function fetchCSRFToken(): Promise<string> {
     
     if (response.ok) {
       const data = await response.json();
-      csrfToken = data.token;
+      csrfToken = data?.data?.token ?? data?.token ?? null;
       return csrfToken || '';
     }
   } catch (error) {

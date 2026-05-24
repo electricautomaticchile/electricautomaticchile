@@ -1,7 +1,7 @@
 import { baseService } from "../utils/baseService";
 import { ApiResponse } from "../types";
 import { API_BASE_URL } from "../utils/config";
-import { TokenManager } from "../utils/tokenManager";
+import { ensureCSRFToken } from "@/lib/utils/csrf";
 
 export interface IConfiguracion {
   id: string;
@@ -49,20 +49,22 @@ class ConfiguracionService {
       const API_URL =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
       const url = `${API_URL}/api${endpoint}`;
-      const token =
-        localStorage.getItem("auth_token") || localStorage.getItem("token");
-
-      const defaultHeaders: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-
-      if (token) {
-        defaultHeaders.Authorization = `Bearer ${token}`;
-      }
-
-      const config: RequestInit = {
-        ...options,
-        headers: {
+	      const defaultHeaders: HeadersInit = {
+	        "Content-Type": "application/json",
+	      };
+	
+	      const method = options.method || "GET";
+	      if (["POST", "PUT", "DELETE", "PATCH"].includes(method)) {
+	        const csrfToken = await ensureCSRFToken();
+	        if (csrfToken) {
+	          defaultHeaders["X-CSRF-Token"] = csrfToken;
+	        }
+	      }
+	
+	      const config: RequestInit = {
+	        ...options,
+	        credentials: "include",
+	        headers: {
           ...defaultHeaders,
           ...options.headers,
         },
@@ -177,20 +179,18 @@ class ConfiguracionService {
     formData.append("logo", logo);
 
     const endpoint = `/configuracion/${empresaId}/logo`;
-    const url = `${API_BASE_URL}/api${endpoint}`;
-
-    try {
-      const token = TokenManager.getToken();
-      const headers: HeadersInit = {};
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(url, {
-        method: "POST",
-        body: formData,
-        headers,
-      });
+	    const url = `${API_BASE_URL}/api${endpoint}`;
+	
+	    try {
+	      const csrfToken = await ensureCSRFToken();
+	      const headers: HeadersInit = csrfToken ? { "X-CSRF-Token": csrfToken } : {};
+	
+	      const response = await fetch(url, {
+	        method: "POST",
+	        body: formData,
+	        headers,
+	        credentials: "include",
+	      });
 
       const data = await response.json();
       if (!response.ok) {

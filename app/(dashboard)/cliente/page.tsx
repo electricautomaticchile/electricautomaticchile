@@ -309,12 +309,11 @@ export default function DashboardCliente() {
             }
           );
         }}
-        requiereActual={!requiereCambioPassword}
+        requiereActual={true}
         esForzado={requiereCambioPassword}
       />
     </div>
   );
 }
-
 
 

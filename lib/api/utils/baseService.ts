@@ -1,7 +1,7 @@
 import { ApiResponse } from "../types";
 import { API_URL } from "./config";
 import { TokenManager } from "./tokenManager";
-import { getCSRFToken } from "@/lib/utils/csrf";
+import { ensureCSRFToken } from "@/lib/utils/csrf";
 import { sanitizeInput } from "@/lib/utils/sanitize";
 
 // Clase base para servicios API
@@ -11,8 +11,10 @@ export class BaseApiService {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${API_URL}${endpoint}`;
-    const token = TokenManager.getToken();
-    const csrfToken = getCSRFToken();
+    const method = options.method || "GET";
+    const csrfToken = ["POST", "PUT", "DELETE", "PATCH"].includes(method)
+      ? await ensureCSRFToken()
+      : "";
 
     const defaultHeaders: HeadersInit = {
       "Content-Type": "application/json",
@@ -22,11 +24,7 @@ export class BaseApiService {
       delete defaultHeaders["Content-Type"];
     }
 
-    if (token) {
-      defaultHeaders.Authorization = `Bearer ${token}`;
-    }
-
-    if (csrfToken && options.method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method)) {
+    if (csrfToken && ["POST", "PUT", "DELETE", "PATCH"].includes(method)) {
       defaultHeaders['X-CSRF-Token'] = csrfToken;
     }
 
@@ -48,12 +46,6 @@ export class BaseApiService {
         if (response.status === 401 && !endpoint.includes("/auth/refresh")) {
           try {
             await this.refreshAuthToken();
-            // Reintentar la solicitud original con el nuevo token
-            const newToken = TokenManager.getToken();
-            config.headers = {
-              ...config.headers,
-              ...(newToken ? { Authorization: `Bearer ${newToken}` } : {}),
-            };
             const retryResponse = await fetch(url, config);
             const retryData = await retryResponse.json();
 
@@ -85,21 +77,13 @@ export class BaseApiService {
     }
   }
 
-  private async refreshAuthToken(): Promise<ApiResponse<{ token: string }>> {
-    const refreshToken = TokenManager.getRefreshToken();
-    const response = await this.makeRequest<{ token: string }>(
+  private async refreshAuthToken(): Promise<ApiResponse<unknown>> {
+    return this.makeRequest<unknown>(
       "/auth/refresh-token",
       {
         method: "POST",
-        body: refreshToken ? JSON.stringify({ refreshToken }) : undefined,
       }
     );
-
-    if (response.success && response.data) {
-      TokenManager.setToken(response.data.token);
-    }
-
-    return response;
   }
 
   // Métodos de conveniencia para HTTP

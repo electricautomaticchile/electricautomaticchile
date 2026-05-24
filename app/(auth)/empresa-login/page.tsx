@@ -38,17 +38,10 @@ export default function LoginEmpresaPage() {
       document.cookie = `user_data=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
       document.cookie = `permisos=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
       
-      // Setear nuevas cookies
-      const token = data.token || data.data?.token;
+      // Setear solo datos no sensibles. La sesión real está en cookies HttpOnly.
       const user = data.user || data.data?.user;
       const permisos = data.permisos || data.data?.permisos;
-      
-      if (!token) {
-        setError("No se recibió token del servidor");
-        setLoading(false);
-        return;
-      }
-      
+
       if (user) {
         document.cookie = `user_data=${encodeURIComponent(JSON.stringify({
           id: user._id || user.id, nombre: user.nombre, correo: user.correo,

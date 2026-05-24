@@ -24,7 +24,6 @@ import {
   ContextoWebSocket,
   type ValorContextoWebSocket,
 } from "./WebSocketContext";
-import { TokenManager } from "../api/utils/tokenManager";
 import { useWebSocketStore } from "@/store/useWebSocketStore";
 import { useToast } from "@/components/ui/use-toast";
 import type { EstadoConexion } from "./tipos";
@@ -240,19 +239,14 @@ export function ProveedorWebSocket({
       return;
     }
 
-    const token = TokenManager.getToken();
-
-    if (token && !estaConectado && estadoConexion === "desconectado") {
+    if (!estaConectado && estadoConexion === "desconectado") {
       administradorRef.current
-        .conectar(token)
+        .conectar()
         .then(() => {
         })
         .catch((error) => {
           manejarError(error, { contexto: "conexion_automatica" });
         });
-    } else if (!token && estaConectado) {
-      // Si no hay token pero estamos conectados, desconectar
-      administradorRef.current.desconectar();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conectarAutomaticamente, estaConectado, estadoConexion]);
@@ -265,20 +259,12 @@ export function ProveedorWebSocket({
       return;
     }
 
-    // Verificar token periódicamente
     const intervalo = setInterval(() => {
-      const token = TokenManager.getToken();
+      if (!estaConectado && estadoConexion === "desconectado") {
 
-      // Si hay token y no estamos conectados, intentar conectar
-      if (token && !estaConectado && estadoConexion === "desconectado") {
-
-        administradorRef.current?.conectar(token).catch((error) => {
+        administradorRef.current?.conectar().catch((error) => {
           manejarError(error, { contexto: "reconexion_periodica" });
         });
-      }
-      // Si no hay token y estamos conectados, desconectar
-      else if (!token && estaConectado) {
-        administradorRef.current?.desconectar();
       }
     }, 5000); // Verificar cada 5 segundos
 
@@ -315,15 +301,6 @@ export function ProveedorWebSocket({
       return;
     }
 
-    const token = TokenManager.getToken();
-
-    if (!token) {
-      const error = new Error("No hay token de autenticación disponible");
-      manejarError(error, { contexto: "reconexion_manual" });
-      return;
-    }
-
-
     // Desconectar primero si está conectado
     if (estaConectado) {
       administradorRef.current.desconectar();
@@ -331,7 +308,7 @@ export function ProveedorWebSocket({
 
     // Intentar conectar
     administradorRef.current
-      .conectar(token)
+      .conectar()
       .then(() => {
         toast({
           title: "Reconectado",

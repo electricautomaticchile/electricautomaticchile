@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getCSRFToken } from '@/lib/utils/csrf';
+import { ensureCSRFToken } from '@/lib/utils/csrf';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
@@ -15,17 +15,9 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use(
-  (config) => {
-    if (typeof window !== 'undefined') {
-      const cookies = document.cookie.split(';');
-      const authCookie = cookies.find(c => c.trim().startsWith('auth_token='));
-      if (authCookie) {
-        const token = authCookie.split('=')[1];
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    }
-    // HIGH-03: Incluir CSRF token en peticiones mutantes
-    const csrfToken = getCSRFToken();
+  async (config) => {
+    const isMutation = ['post', 'put', 'delete', 'patch'].includes(config.method || '');
+    const csrfToken = isMutation ? await ensureCSRFToken() : '';
     if (csrfToken && ['post', 'put', 'delete', 'patch'].includes(config.method || '')) {
       config.headers['X-CSRF-Token'] = csrfToken;
     }

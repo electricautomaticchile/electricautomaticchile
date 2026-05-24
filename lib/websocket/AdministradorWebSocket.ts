@@ -61,23 +61,22 @@ export class AdministradorWebSocket {
   /**
    * Conectar al servidor WebSocket con autenticación JWT
    */
-  async conectar(token: string): Promise<void> {
+  async conectar(token?: string): Promise<void> {
     if (this.socket?.connected) {
       wsLogger.logAdvertencia('Intento de conectar cuando ya está conectado');
       return;
     }
 
-    this.tokenActual = token;
+    this.tokenActual = token || null;
     this.cambiarEstado('conectando');
     wsLogger.logIntentoConexion({ url: this.url });
 
     return new Promise((resolve, reject) => {
       try {
-        this.socket = io(this.url, {
-          auth: {
-            token,
-          },
-          transports: ['websocket', 'polling'],
+	        this.socket = io(this.url, {
+	          auth: token ? { token } : undefined,
+	          withCredentials: true,
+	          transports: ['websocket', 'polling'],
           timeout: this.opciones.timeout,
           reconnection: false, // Manejamos reconexión manualmente
         });

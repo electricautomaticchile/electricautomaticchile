@@ -32,6 +32,7 @@ import {
 import { LiveBadge } from "@/components/ui/live-badge";
 import { SkeletonKPICard } from "@/components/ui/skeleton-card";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { useCambiarPassword } from "@/hooks/queries/useAuthMutations";
 import { BarraNavegacionLateral } from "@/components/features/dashboard-empresa/layout/navigation";
 import { KPICard } from "./components/KPICard";
 import { TendenciasChart } from "./components/TendenciasChart";
@@ -49,6 +50,7 @@ function DashboardContent() {
   const [mostrarModalPassword, setMostrarModalPassword] = useState(false);
   const [requiereCambioPassword, setRequiereCambioPassword] = useState(false);
   const [ticketsAbiertos, setTicketsAbiertos] = useState(0);
+  const cambiarPasswordMutation = useCambiarPassword();
 
   const { resumen } = useNotificaciones();
   const notificacionesNoLeidas = resumen.noLeidas;
@@ -270,7 +272,13 @@ function DashboardContent() {
       <CambioPasswordModal
         open={mostrarModalPassword}
         onOpenChange={(open) => { if (!requiereCambioPassword) setMostrarModalPassword(open); }}
-        onConfirm={async () => { setRequiereCambioPassword(false); setMostrarModalPassword(false); }}
+        onConfirm={async (currentPassword, newPassword) => {
+          await cambiarPasswordMutation.mutateAsync({ currentPassword, newPassword });
+          setRequiereCambioPassword(false);
+          setMostrarModalPassword(false);
+        }}
+        requiereActual={true}
+        esForzado={requiereCambioPassword}
       />
     </div>
   );
@@ -283,4 +291,3 @@ export default function DashboardEmpresa() {
     </NotificacionesProvider>
   );
 }
-

@@ -270,17 +270,15 @@ export class BaseReportService {
   protected async makeRequest<T>(
     endpoint: string,
     options: RequestInit = {}
-  ): Promise<IReporteResult> {
-    try {
-      const token = this.obtenerToken();
-
-      const response = await fetch(`${REPORTE_CONFIG.baseUrl}${endpoint}`, {
-        ...options,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-          ...options.headers,
-        },
+	  ): Promise<IReporteResult> {
+	    try {
+	      const response = await fetch(`${REPORTE_CONFIG.baseUrl}${endpoint}`, {
+	        ...options,
+	        credentials: "include",
+	        headers: {
+	          "Content-Type": "application/json",
+	          ...options.headers,
+	        },
       });
 
       if (!response.ok) {
@@ -302,10 +300,4 @@ export class BaseReportService {
     }
   }
 
-  // Obtener token de autenticación
-  private obtenerToken(): string {
-    return (
-      localStorage.getItem("token") || localStorage.getItem("auth_token") || ""
-    );
-  }
-}
+	}

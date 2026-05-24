@@ -13,24 +13,22 @@ export class DownloadUtils {
     url: string,
     nombreArchivo: string,
     onProgress?: IProgressCallback
-  ): Promise<void> {
-    try {
-      const token = this.obtenerToken();
-
-      // Progress: Conectando
-      onProgress?.({
+	  ): Promise<void> {
+	    try {
+	      // Progress: Conectando
+	      onProgress?.({
         step: "connecting",
         percentage: PROGRESS_STEPS.connecting.percentage,
         message: PROGRESS_STEPS.connecting.message,
       });
 
-      const response = await fetch(`${REPORTE_CONFIG.baseUrl}${url}`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+	      const response = await fetch(`${REPORTE_CONFIG.baseUrl}${url}`, {
+	        method: "GET",
+	        credentials: "include",
+	        headers: {
+	          "Content-Type": "application/json",
+	        },
+	      });
 
       if (response.status === 204) {
         throw new Error("Sin datos");
@@ -79,19 +77,7 @@ export class DownloadUtils {
     }
   }
 
-  // Obtener token de autenticación
-  private static obtenerToken(): string {
-    return (
-      localStorage.getItem("token") ||
-      localStorage.getItem("auth_token") ||
-      document.cookie.replace(
-        /(?:(?:^|.*;\s*)token\s*=\s*([^;]*).*$)|^.*$/,
-        "$1"
-      )
-    );
-  }
-
-  // Extraer metadatos de los headers de respuesta
+	  // Extraer metadatos de los headers de respuesta
   private static extraerMetadatos(response: Response) {
     return {
       totalRegistros: response.headers.get("X-Reporte-Registros"),

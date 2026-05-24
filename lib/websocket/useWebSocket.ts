@@ -49,17 +49,7 @@ export function useWebSocket(options: UseNativeWSOptions = {}): RetornoUseWebSoc
 
     intentionalCloseRef.current = false;
 
-    // Obtener token de las cookies para autenticar el WebSocket
-    const cookies = document.cookie.split(';');
-    const authCookie = cookies.find(c => c.trim().startsWith('auth_token='));
-    const token = authCookie ? decodeURIComponent(authCookie.split('=').slice(1).join('=').trim()) : '';
-
-    if (!token) {
-      return;
-    }
-
-    const wsUrlWithToken = `${wsUrl}?token=${encodeURIComponent(token)}`;
-    const ws = new WebSocket(wsUrlWithToken);
+    const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     ws.onopen = () => {

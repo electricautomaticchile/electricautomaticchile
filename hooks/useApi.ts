@@ -72,10 +72,9 @@ class AuthManager {
     this.isInitializing = true;
 
     try {
-      const token = this.getStoredToken();
       const savedUser = this.getStoredUser();
 
-      if (!token && !savedUser) {
+      if (!savedUser) {
         this.setState({
           user: TEMP_USER,
           isAuthenticated: false,
@@ -153,7 +152,7 @@ class AuthManager {
         isLoading: false,
       });
       this.saveUser(userData);
-      return { success: true, data: { user: response.user as any, token: response.token, refreshToken: response.refreshToken } };
+      return { success: true, data: { user: response.user as any } };
     } catch (error: any) {
       return { success: false, error: error.response?.data?.error || "Error de conexión" };
     }
@@ -173,15 +172,6 @@ class AuthManager {
         isLoading: false,
       });
     }
-  }
-
-  private getStoredToken(): string | null {
-    if (typeof window === "undefined") return null;
-    const cookies = document.cookie.split(";");
-    const authCookie = cookies.find((cookie) =>
-      cookie.trim().startsWith("auth_token=")
-    );
-    return authCookie ? decodeURIComponent(authCookie.split("=")[1]) : null;
   }
 
   private getStoredUser(): AuthUser | null {

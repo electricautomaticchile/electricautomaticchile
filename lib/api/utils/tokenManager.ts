@@ -39,19 +39,19 @@ export class TokenManager {
   }
 
   static getToken(): string | null {
-    return this.getCookie(this.TOKEN_KEY);
+    return null;
   }
 
-  static setToken(token: string): void {
-    this.setCookie(this.TOKEN_KEY, token, 24 * 60 * 60);
+  static setToken(_token: string): void {
+    // Los tokens de sesión viven solo en cookies HttpOnly emitidas por el backend.
   }
 
   static getRefreshToken(): string | null {
-    return this.getCookie(this.REFRESH_TOKEN_KEY);
+    return null;
   }
 
-  static setRefreshToken(token: string): void {
-    this.setCookie(this.REFRESH_TOKEN_KEY, token, 7 * 24 * 60 * 60);
+  static setRefreshToken(_token: string): void {
+    // No guardar refresh tokens en cookies legibles por JavaScript.
   }
 
   static getUser(): any | null {
