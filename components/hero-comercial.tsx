@@ -57,13 +57,13 @@ export function HeroComercial() {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-orange-500/5 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-orange-500/3 rounded-full blur-[80px] pointer-events-none" />
 
-      <div className="container mx-auto px-4 md:px-6 pt-16 pb-24 relative z-10">
+      <div className="container mx-auto px-4 md:px-6 pt-10 md:pt-16 pb-16 md:pb-24 relative z-10">
 
         {/* HERO */}
-        <div className="grid lg:grid-cols-2 gap-16 items-center mb-28">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center mb-16 md:mb-28">
           <motion.div variants={stagger} initial="hidden" animate="visible">
 
-            <motion.h1 variants={fadeUp} className="text-4xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] tracking-tight mb-6">
+            <motion.h1 variants={fadeUp} className="text-[2.7rem] sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.03] md:leading-[1.05] tracking-tight mb-5 md:mb-6">
               <span className="text-foreground">Automatización</span>
               <br />
               <span className="text-gradient-orange">Inteligente</span>
@@ -71,12 +71,12 @@ export function HeroComercial() {
               <span className="text-foreground">del Suministro</span>
             </motion.h1>
 
-            <motion.p variants={fadeUp} className="text-lg text-muted-foreground leading-relaxed mb-8 max-w-lg">
+            <motion.p variants={fadeUp} className="text-base sm:text-lg text-muted-foreground leading-relaxed mb-6 md:mb-8 max-w-lg">
               Eliminamos los tiempos de espera en la reposición eléctrica.
               Control total desde cualquier lugar, en tiempo real.
             </motion.p>
 
-            <motion.div variants={fadeUp} className="space-y-2.5 mb-8">
+            <motion.div variants={fadeUp} className="space-y-2.5 mb-6 md:mb-8">
               {[
                 { text: "Reposición de 24-48 hrs a minutos",              bg: "bg-orange-500/15", color: "text-orange-400" },
                 { text: "Monitoreo en tiempo real vía web, SMS y email",  bg: "bg-sky-500/15",    color: "text-sky-400" },
@@ -91,7 +91,7 @@ export function HeroComercial() {
               ))}
             </motion.div>
 
-            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 mb-10">
+            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 mb-7 md:mb-10">
               <Link href="/formulario">
                 <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300 gap-2 group w-full sm:w-auto">
                   Solicitar Demo Gratuita
@@ -105,7 +105,7 @@ export function HeroComercial() {
               </Link>
             </motion.div>
 
-            <motion.div variants={fadeUp} className="grid grid-cols-3 gap-4 pt-6 border-t border-border">
+            <motion.div variants={fadeUp} className="grid grid-cols-3 gap-3 md:gap-4 pt-5 md:pt-6 border-t border-border">
               <StatCounter value={99.8} suffix="%" label="Cobertura Chile"  color="text-orange-400" />
               <StatCounter value={80}   suffix="%" label="Ahorro de tiempo" color="text-amber-400" />
               <StatCounter value={24}   suffix="/7" label="Monitoreo activo" color="text-sky-400" />
@@ -118,7 +118,7 @@ export function HeroComercial() {
             transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] as any }}
             className="space-y-3"
           >
-            <div className="relative min-h-[360px] rounded-2xl overflow-hidden border border-orange-500/20 shadow-2xl shadow-orange-500/10 card-hover bg-[#0a0a0a]">
+            <div className="relative min-h-[300px] md:min-h-[360px] rounded-2xl overflow-hidden border border-orange-500/20 shadow-2xl shadow-orange-500/10 card-hover bg-[#0a0a0a]">
               <Image
                 src="/images/hero/hero-comercial-cloud.png"
                 alt="Sistema inteligente de medición eléctrica conectado a la nube y app móvil"
@@ -162,10 +162,11 @@ export function HeroComercial() {
               <div className="relative overflow-hidden min-h-[320px] rounded-tl-3xl rounded-bl-3xl lg:rounded-tr-none rounded-tr-3xl">
                 <Image
                   src="/images/hero/hero-comercial-wall.png"
-                  alt="Medidor eléctrico inteligente con métricas de consumo, voltaje y ubicación"
-                  fill
-                  className="object-cover"
-                />
+                alt="Medidor eléctrico inteligente con métricas de consumo, voltaje y ubicación"
+                fill
+                sizes="(min-width: 1024px) 50vw, 100vw"
+                className="object-cover"
+              />
               </div>
               <div className="p-10 lg:p-14 flex flex-col justify-center">
                 <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">

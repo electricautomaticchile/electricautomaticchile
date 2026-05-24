@@ -95,6 +95,7 @@ export default function EmpresasElectricidadPage() {
               alt="Medición inteligente con datos de consumo, voltaje y estado para empresas eléctricas"
               fill
               sizes="(min-width: 1024px) 960px, 100vw"
+              priority
               className="object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />

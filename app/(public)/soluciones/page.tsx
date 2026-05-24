@@ -134,13 +134,13 @@ export default function SolucionesPage() {
               initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
               className="relative aspect-video rounded-2xl overflow-hidden border border-orange-500/20"
             >
-              <Image src="/images/hero/hero-comercial-dashboard.png" alt="Medidor inteligente conectado a paneles de datos eléctricos" fill className="object-cover" />
+              <Image src="/images/hero/hero-comercial-dashboard.png" alt="Medidor inteligente conectado a paneles de datos eléctricos" fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
             </motion.div>
             <motion.div
               initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
               className="relative aspect-video rounded-2xl overflow-hidden border border-orange-500/20"
             >
-              <Image src="/images/platform/phone-app.png" alt="Aplicación móvil para monitoreo y control del consumo eléctrico" fill className="object-cover" />
+              <Image src="/images/platform/phone-app.png" alt="Aplicación móvil para monitoreo y control del consumo eléctrico" fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
             </motion.div>
           </div>
         </div>

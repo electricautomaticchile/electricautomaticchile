@@ -47,7 +47,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <AppContextProvider>{children}</AppContextProvider>
       </ThemeProvider>
 
-      {process.env.NODE_ENV === "development" && (
+      {process.env.NODE_ENV === "development" &&
+        process.env.NEXT_PUBLIC_SHOW_QUERY_DEVTOOLS === "true" && (
         <ReactQueryDevtools
           initialIsOpen={false}
           buttonPosition="bottom-right"
