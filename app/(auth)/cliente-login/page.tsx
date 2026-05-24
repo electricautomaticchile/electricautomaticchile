@@ -19,6 +19,13 @@ function formatRut(value: string): string {
   return `${formatted}-${dv}`;
 }
 
+function safeCallbackUrl(value: string | null): string {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return "/cliente/";
+  }
+  return value;
+}
+
 export default function LoginClientePage() {
   const router = useRouter();
   const [rut, setRut] = useState("");
@@ -38,10 +45,6 @@ export default function LoginClientePage() {
       const { data } = await apiClient.post("/api/auth/login", { rut, password });
       const isProduction = window.location.protocol === "https:";
       const cookieOptions = `path=/; max-age=${24 * 60 * 60}; samesite=lax${isProduction ? "; secure" : ""}`;
-      // Limpiar token anterior primero
-      document.cookie = `auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-      document.cookie = `auth_token=${encodeURIComponent(data.token)}; ${cookieOptions}`;
-      document.cookie = `refresh_token=${encodeURIComponent(data.refreshToken)}; ${cookieOptions}`;
       document.cookie = `user_data=${encodeURIComponent(JSON.stringify({
         id: data.user._id, nombre: data.user.nombre, correo: data.user.correo,
         numeroCliente: data.user.numeroCliente, role: data.user.role || "cliente",
@@ -52,7 +55,7 @@ export default function LoginClientePage() {
       }
       // Full page redirect para que el middleware de Next.js verifique la cookie
       const callbackUrl = new URLSearchParams(window.location.search).get("callbackUrl");
-      window.location.href = callbackUrl || "/cliente/";
+      window.location.href = safeCallbackUrl(callbackUrl);
     } catch (err: any) {
       const msg = err.response?.data?.error?.message || err.response?.data?.message || err.message || "Error al iniciar sesión";
       setError(typeof msg === "string" ? msg : JSON.stringify(msg));

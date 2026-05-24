@@ -73,8 +73,9 @@ class AuthManager {
 
     try {
       const token = this.getStoredToken();
+      const savedUser = this.getStoredUser();
 
-      if (!token) {
+      if (!token && !savedUser) {
         this.setState({
           user: TEMP_USER,
           isAuthenticated: false,
@@ -85,7 +86,6 @@ class AuthManager {
         return;
       }
 
-      const savedUser = this.getStoredUser();
       if (savedUser) {
         this.setState({
           user: savedUser,

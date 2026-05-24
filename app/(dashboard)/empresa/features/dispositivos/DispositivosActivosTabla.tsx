@@ -56,6 +56,11 @@ export function DispositivosActivosTabla({
     return dispositivos.find(d => d.id === dispositivoSeleccionado) || null;
   }, [dispositivoSeleccionado, dispositivos]);
 
+  const clienteIdSeleccionado = useMemo(() => {
+    if (!dispositivoSeleccionado) return null;
+    return dispositivos.find(d => d.id === dispositivoSeleccionado)?.cliente?.id || null;
+  }, [dispositivoSeleccionado, dispositivos]);
+
   // Guardar clienteId en ref para no re-ejecutar el efecto con cada WS update
   const clienteIdRef = useRef<string | null>(null);
 
@@ -74,18 +79,15 @@ export function DispositivosActivosTabla({
   }, [toast]);
 
   useEffect(() => {
-    if (dispositivoSeleccionado) {
-      const dispositivo = dispositivos.find(d => d.id === dispositivoSeleccionado);
-      const clienteId = dispositivo?.cliente?.id || null;
-      // Solo cargar estado si cambió el dispositivo seleccionado
-      if (clienteId && clienteId !== clienteIdRef.current) {
-        clienteIdRef.current = clienteId;
-        cargarEstadoServicio(clienteId);
+    if (clienteIdSeleccionado) {
+      if (clienteIdSeleccionado !== clienteIdRef.current) {
+        clienteIdRef.current = clienteIdSeleccionado;
+        cargarEstadoServicio(clienteIdSeleccionado);
       }
     } else {
       clienteIdRef.current = null;
     }
-  }, [dispositivoSeleccionado, cargarEstadoServicio]); // Sin 'dispositivos' en deps
+  }, [clienteIdSeleccionado, cargarEstadoServicio]);
 
   const abrirDetalles = (dispositivoId: string) => {
     setDispositivoSeleccionado(dispositivoId);

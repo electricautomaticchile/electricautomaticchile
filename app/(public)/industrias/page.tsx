@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Zap, BarChart3, Shield, TrendingDown, AlertTriangle, Settings, ArrowRight, CheckCircle2, Factory } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -76,6 +77,27 @@ export default function IndustriasPage() {
                 </Button>
               </Link>
             </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* VISUAL */}
+      <section className="py-16 px-4 bg-background">
+        <div className="container mx-auto max-w-5xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="relative aspect-[16/7] overflow-hidden rounded-2xl border border-amber-500/20 bg-[#0a0a0a]"
+          >
+            <Image
+              src="/images/hero/landing-electric-network.png"
+              alt="Red eléctrica inteligente conectando industria, nube y monitoreo remoto"
+              fill
+              sizes="(min-width: 1024px) 960px, 100vw"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
           </motion.div>
         </div>
       </section>

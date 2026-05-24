@@ -8,6 +8,7 @@ import { Logo } from "@/components/logo";
 import { useEffect, useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { apiClient } from "@/lib/api/client";
 
 const navLinks = [
   { href: "/", label: "Inicio" },
@@ -25,17 +26,13 @@ export default function Navbar() {
 
   const checkAuth = useCallback(() => {
     const cookies = document.cookie.split(";");
-    const tokenCookie = cookies.find((c) => c.trim().startsWith("auth_token="));
-    const hasToken = !!tokenCookie && tokenCookie.split("=").slice(1).join("=").trim().length > 10;
-    setIsAuthenticated(hasToken);
-    if (hasToken) {
-      const userCookie = cookies.find((c) => c.trim().startsWith("user_data="));
-      if (userCookie) {
-        try {
-          const userData = JSON.parse(decodeURIComponent(userCookie.split("=").slice(1).join("=")));
-          setPortalHref(userData.tipoUsuario === "empresa" ? "/empresa" : "/cliente");
-        } catch {}
-      }
+    const userCookie = cookies.find((c) => c.trim().startsWith("user_data="));
+    setIsAuthenticated(Boolean(userCookie));
+    if (userCookie) {
+      try {
+        const userData = JSON.parse(decodeURIComponent(userCookie.split("=").slice(1).join("=")));
+        setPortalHref(userData.tipoUsuario === "empresa" ? "/empresa" : "/cliente");
+      } catch {}
     }
   }, []);
 
@@ -50,11 +47,16 @@ export default function Navbar() {
     checkAuth();
   }, [pathname, checkAuth]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await apiClient.post("/api/auth/logout");
+    } catch {}
     localStorage.removeItem("user");
     localStorage.removeItem("permisos");
     localStorage.removeItem("userType");
-    document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    document.cookie = "user_data=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    document.cookie = "permisos=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    document.cookie = "requiereCambioPassword=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     window.location.href = "/";
   };
 
@@ -206,4 +208,3 @@ export default function Navbar() {
     </header>
   );
 }
-

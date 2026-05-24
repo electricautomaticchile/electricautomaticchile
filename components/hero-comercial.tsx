@@ -118,16 +118,16 @@ export function HeroComercial() {
             transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] as any }}
             className="space-y-3"
           >
-            <div className="relative rounded-2xl overflow-hidden border border-border/60 shadow-2xl shadow-black/20 card-hover">
-              <div className="absolute inset-0 bg-gradient-to-t from-background/30 to-transparent z-10 pointer-events-none" />
+            <div className="relative min-h-[360px] rounded-2xl overflow-hidden border border-orange-500/20 shadow-2xl shadow-orange-500/10 card-hover bg-[#0a0a0a]">
               <Image
-                src="/tablero-completo.png"
-                alt="Dashboard ElectricAutomaticChile en tiempo real"
-                width={700}
-                height={420}
-                className="w-full object-cover"
+                src="/images/hero/hero-comercial-cloud.png"
+                alt="Sistema inteligente de medición eléctrica conectado a la nube y app móvil"
+                fill
                 priority
+                sizes="(min-width: 1024px) 50vw, 100vw"
+                className="object-cover"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent pointer-events-none" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               {features.map((item, i) => (
@@ -161,8 +161,8 @@ export function HeroComercial() {
             <div className="grid lg:grid-cols-2 gap-0">
               <div className="relative overflow-hidden min-h-[320px] rounded-tl-3xl rounded-bl-3xl lg:rounded-tr-none rounded-tr-3xl">
                 <Image
-                  src="/medidor-arduino.png"
-                  alt="Dispositivo Arduino instalado en tablero eléctrico"
+                  src="/images/hero/hero-comercial-wall.png"
+                  alt="Medidor eléctrico inteligente con métricas de consumo, voltaje y ubicación"
                   fill
                   className="object-cover"
                 />
@@ -211,6 +211,15 @@ export function HeroComercial() {
           <p className="text-muted-foreground mb-12 max-w-lg mx-auto">
             Todo el ecosistema conectado en tiempo real, de extremo a extremo
           </p>
+          <div className="relative mx-auto mb-10 aspect-[1024/753] max-w-3xl overflow-hidden rounded-2xl border border-orange-500/20 bg-black">
+            <Image
+              src="/images/hero/landing-electric-network.png"
+              alt="Red inteligente conectando hogares, industrias, nube y app móvil"
+              fill
+              sizes="(min-width: 1024px) 768px, 100vw"
+              className="object-contain"
+            />
+          </div>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             {[
               { icon: MeterIcon,     label: "Medidor Eléctrico", sub: "Hardware", color: "text-yellow-400", border: "border-yellow-500/40", bg: "bg-yellow-500/10", subColor: "text-yellow-400/70" },
@@ -258,7 +267,7 @@ export function HeroComercial() {
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4 mb-8">
             <div className="px-8 py-4 rounded-2xl border border-border bg-white shadow-sm card-hover cursor-default">
-              <Image src="/Chilquinta_Logotipo.svg" alt="Chilquinta Energía" width={160} height={44} className="h-9 w-auto" />
+              <Image src="/images/partners/chilquinta-logotipo.svg" alt="Chilquinta Energía" width={160} height={44} className="h-9 w-auto" />
             </div>
           </div>
           <div className="flex flex-wrap justify-center gap-6">

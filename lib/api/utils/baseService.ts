@@ -45,28 +45,26 @@ export class BaseApiService {
 
       if (!response.ok) {
         // Si el token ha expirado, intentar renovarlo
-        if (response.status === 401 && token) {
+        if (response.status === 401 && !endpoint.includes("/auth/refresh")) {
           try {
             await this.refreshAuthToken();
             // Reintentar la solicitud original con el nuevo token
             const newToken = TokenManager.getToken();
-            if (newToken) {
-              config.headers = {
-                ...config.headers,
-                Authorization: `Bearer ${newToken}`,
-              };
-              const retryResponse = await fetch(url, config);
-              const retryData = await retryResponse.json();
+            config.headers = {
+              ...config.headers,
+              ...(newToken ? { Authorization: `Bearer ${newToken}` } : {}),
+            };
+            const retryResponse = await fetch(url, config);
+            const retryData = await retryResponse.json();
 
-              if (retryResponse.ok) {
-                return retryData;
-              }
+            if (retryResponse.ok) {
+              return retryData;
             }
           } catch (refreshError) {
-            // Si falla la renovación, limpiar tokens y redirigir al login
+            // Si falla la renovación, limpiar sesión local y redirigir al login
             TokenManager.clearTokens();
             if (typeof window !== "undefined") {
-              window.location.href = "/auth/login";
+              window.location.href = "/";
             }
           }
         }
@@ -89,15 +87,11 @@ export class BaseApiService {
 
   private async refreshAuthToken(): Promise<ApiResponse<{ token: string }>> {
     const refreshToken = TokenManager.getRefreshToken();
-    if (!refreshToken) {
-      throw new Error("No refresh token available");
-    }
-
     const response = await this.makeRequest<{ token: string }>(
       "/auth/refresh-token",
       {
         method: "POST",
-        body: JSON.stringify({ refreshToken }),
+        body: refreshToken ? JSON.stringify({ refreshToken }) : undefined,
       }
     );
 

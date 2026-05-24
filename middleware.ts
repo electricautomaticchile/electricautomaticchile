@@ -65,6 +65,8 @@ async function verifyJWT(token: string): Promise<JWTPayload | null> {
 const protectedRoutes = [
   "/cliente",
   "/empresa",
+  "/admin",
+  "/dashboard",
 ];
 
 // Rutas públicas que no requieren autenticación
@@ -95,6 +97,10 @@ function hasAccess(
 
   if (pathname.startsWith("/empresa")) {
     return userType === "empresa" || userRole === "empresa";
+  }
+
+  if (pathname.startsWith("/admin") || pathname.startsWith("/dashboard")) {
+    return userType === "admin" || userType === "superadmin" || userRole === "admin" || userRole === "superadmin";
   }
 
   return true;

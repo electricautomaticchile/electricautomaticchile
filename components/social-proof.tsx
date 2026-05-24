@@ -32,7 +32,7 @@ const testimonios: Testimonio[] = [
     texto: "Gestionar cientos de clientes residenciales y comerciales requiere datos confiables en tiempo real. Electricautomaticchile nos entrega visibilidad completa sobre el consumo de toda la cartera, reduce los tiempos de respuesta ante incidencias y nos permite escalar la operacion sin aumentar el equipo.",
     estrellas: 5,
     avatar: "CM",
-    avatarImg: "/Ceo Chilquinta S.A.jpg",
+    avatarImg: "/images/partners/ceo-chilquinta.jpg",
     color: "from-orange-600 to-red-700",
   },
   {

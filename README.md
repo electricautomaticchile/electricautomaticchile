@@ -48,7 +48,7 @@ La aplicación estará disponible en `http://localhost:3000`
 
 ## 📚 Documentación Detallada
 
-Para más información sobre deployment, endpoints y configuraciones, consulta la carpeta [`docs/`](./docs/)
+Para más información sobre variables, autenticación, blog y checks locales, consulta [`docs/operacion.md`](./docs/operacion.md).
 
 ## 🔗 Proyectos Relacionados
 

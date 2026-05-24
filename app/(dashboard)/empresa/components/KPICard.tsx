@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { TrendingUp, TrendingDown, Activity } from "lucide-react";
+import { TrendingUp, TrendingDown, Activity, type LucideProps } from "lucide-react";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 
 const fadeIn = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } };
@@ -22,7 +22,7 @@ interface KPICardProps {
   title: string;
   value: string | number;
   subtitle?: string;
-  icon: React.ElementType;
+  icon: React.FC<LucideProps>;
   trend?: "up" | "down" | "neutral";
   trendValue?: string;
   colorScheme: ColorScheme;

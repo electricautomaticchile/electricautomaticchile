@@ -1,8 +1,12 @@
-const NOTION_TOKEN = process.env.NOTION_TOKEN!;
-const DB_ID = process.env.NOTION_BLOG_DB_ID!;
+const NOTION_TOKEN = process.env.NOTION_TOKEN;
+const DB_ID = process.env.NOTION_BLOG_DB_ID;
+
+function isNotionConfigured(): boolean {
+  return Boolean(NOTION_TOKEN && DB_ID);
+}
 
 const headers = {
-  Authorization: `Bearer ${NOTION_TOKEN}`,
+  Authorization: `Bearer ${NOTION_TOKEN ?? ""}`,
   "Notion-Version": "2022-06-28",
   "Content-Type": "application/json",
 };
@@ -47,10 +51,15 @@ function pageToPost(page: any): BlogPost {
 }
 
 async function getFirstImageFromBlocks(pageId: string): Promise<string | null> {
+  if (!isNotionConfigured()) return null;
+
   const res = await fetch(`https://api.notion.com/v1/blocks/${pageId}/children`, {
     headers,
     next: { revalidate: 300 },
   });
+
+  if (!res.ok) return null;
+
   const data = await res.json();
   const imageBlock = (data.results ?? []).find((b: any) => b.type === "image");
   if (!imageBlock) return null;
@@ -59,6 +68,8 @@ async function getFirstImageFromBlocks(pageId: string): Promise<string | null> {
 }
 
 export async function getPublishedPosts(): Promise<BlogPost[]> {
+  if (!isNotionConfigured()) return [];
+
   const res = await fetch(`https://api.notion.com/v1/databases/${DB_ID}/query`, {
     method: "POST",
     headers,
@@ -68,6 +79,9 @@ export async function getPublishedPosts(): Promise<BlogPost[]> {
     }),
     next: { revalidate: 300 },
   });
+
+  if (!res.ok) return [];
+
   const data = await res.json();
   const posts: BlogPost[] = await Promise.all(
     (data.results ?? []).map(async (page: any) => {
@@ -82,6 +96,8 @@ export async function getPublishedPosts(): Promise<BlogPost[]> {
 }
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
+  if (!isNotionConfigured()) return null;
+
   const res = await fetch(`https://api.notion.com/v1/databases/${DB_ID}/query`, {
     method: "POST",
     headers,
@@ -90,16 +106,24 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
     }),
     next: { revalidate: 300 },
   });
+
+  if (!res.ok) return null;
+
   const data = await res.json();
   if (!data.results?.length) return null;
   return pageToPost(data.results[0]);
 }
 
 export async function getPostBlocks(pageId: string): Promise<any[]> {
+  if (!isNotionConfigured()) return [];
+
   const res = await fetch(`https://api.notion.com/v1/blocks/${pageId}/children`, {
     headers,
     next: { revalidate: 300 },
   });
+
+  if (!res.ok) return [];
+
   const data = await res.json();
   return data.results ?? [];
 }

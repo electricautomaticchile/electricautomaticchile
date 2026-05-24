@@ -10,6 +10,13 @@ import { apiClient } from "@/lib/api/client";
 import { Building2, Mail, Lock, AlertCircle, ArrowLeft, Zap } from "lucide-react";
 import Link from "next/link";
 
+function safeCallbackUrl(value: string | null): string {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return "/empresa/";
+  }
+  return value;
+}
+
 export default function LoginEmpresaPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -28,14 +35,11 @@ export default function LoginEmpresaPage() {
       const cookieOptions = `path=/; max-age=${24 * 60 * 60}; samesite=lax${isProduction ? "; secure" : ""}`;
       
       // Limpiar cookies anteriores
-      document.cookie = `auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-      document.cookie = `refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
       document.cookie = `user_data=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
       document.cookie = `permisos=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
       
       // Setear nuevas cookies
       const token = data.token || data.data?.token;
-      const refreshToken = data.refreshToken || data.data?.refreshToken;
       const user = data.user || data.data?.user;
       const permisos = data.permisos || data.data?.permisos;
       
@@ -45,10 +49,6 @@ export default function LoginEmpresaPage() {
         return;
       }
       
-      document.cookie = `auth_token=${encodeURIComponent(token)}; ${cookieOptions}`;
-      if (refreshToken) {
-        document.cookie = `refresh_token=${encodeURIComponent(refreshToken)}; ${cookieOptions}`;
-      }
       if (user) {
         document.cookie = `user_data=${encodeURIComponent(JSON.stringify({
           id: user._id || user.id, nombre: user.nombre, correo: user.correo,
@@ -62,7 +62,7 @@ export default function LoginEmpresaPage() {
       
       // Redirect con full page load
       const params = new URLSearchParams(window.location.search);
-      const callbackUrl = params.get("callbackUrl") || "/empresa/";
+      const callbackUrl = safeCallbackUrl(params.get("callbackUrl"));
       window.location.replace(callbackUrl);
     } catch (err: any) {
       const msg = err.response?.data?.error?.message || err.response?.data?.error || err.response?.data?.message || err.message || "Error al iniciar sesión";

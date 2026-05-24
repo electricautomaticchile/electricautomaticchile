@@ -10,7 +10,7 @@ export function Logo({ className, showText = true }: LogoProps) {
   return (
     <div className={cn("flex items-center", className)}>
       <Image
-        src="/logo.svg"
+        src="/images/brand/logo.svg"
         alt="ElectricAutomaticChile"
         width={showText ? 240 : 50}
         height={showText ? 60 : 50}

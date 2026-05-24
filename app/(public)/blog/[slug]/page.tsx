@@ -9,12 +9,16 @@ import type { BlockObjectResponse } from "@notionhq/client/build/src/api-endpoin
 export const revalidate = 300;
 
 export async function generateStaticParams() {
-  const posts = await getPublishedPosts();
-  return posts.map((p) => ({ slug: p.slug || p.id }));
+  try {
+    const posts = await getPublishedPosts();
+    return posts.map((p) => ({ slug: p.slug || p.id }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const post = await getPostBySlug(params.slug);
+  const post = await getPostBySlug(params.slug).catch(() => null);
   if (!post) return {};
   return {
     title: `${post.titulo} | Blog Electricautomaticchile`,

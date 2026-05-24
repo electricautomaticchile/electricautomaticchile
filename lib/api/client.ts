@@ -75,7 +75,9 @@ apiClient.interceptors.response.use(
         isRedirecting = true;
         // HIGH-02: Solo limpiar datos no sensibles
         localStorage.removeItem('userType');
-        document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        document.cookie = 'user_data=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        document.cookie = 'permisos=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        document.cookie = 'requiereCambioPassword=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         window.location.href = '/';
         setTimeout(() => { isRedirecting = false; }, 3000);
       }
