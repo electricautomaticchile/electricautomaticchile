@@ -2,7 +2,7 @@ name: Web CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, "dev/**"]
   pull_request:
   workflow_dispatch:
     inputs:
@@ -23,13 +23,13 @@ jobs:
           cache-dependency-path: package-lock.json
       - run: npm ci
       - run: npm run lint
-      - run: npx tsc --noEmit
+      - run: npm run typecheck
       - run: npm run build
-      - name: Audit production dependencies
-        run: npm audit --omit=dev --audit-level=critical
+      - name: Audit dependencies
+        run: npm audit --audit-level=moderate
       - name: Smoke test
         run: |
-          HOSTNAME=127.0.0.1 PORT=3000 node .next/standalone/server.js &
+          HOSTNAME=127.0.0.1 PORT=3000 npm run start &
           echo $! > /tmp/next.pid
           for i in {1..30}; do
             curl -fsS http://127.0.0.1:3000/ >/dev/null && break
