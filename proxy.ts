@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose/jwt/verify";
 
-// Tipos para el middleware
+// Tipos para el proxy
 interface JWTPayload {
   sub: string;
   userId: string;
@@ -12,7 +12,7 @@ interface JWTPayload {
   exp: number;
 }
 
-class MiddlewareLogger {
+class ProxyLogger {
   private isProduction = process.env.NODE_ENV === "production";
 
   info(message: string, data?: Record<string, unknown>): void {
@@ -29,7 +29,7 @@ class MiddlewareLogger {
   }
 }
 
-const logger = new MiddlewareLogger();
+const logger = new ProxyLogger();
 
 // Función para verificar JWT
 async function verifyJWT(token: string): Promise<JWTPayload | null> {
@@ -106,7 +106,7 @@ function hasAccess(
   return true;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (!isProtectedRoute(pathname)) {
