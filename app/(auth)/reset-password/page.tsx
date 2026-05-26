@@ -212,14 +212,14 @@ const ResetPasswordContent = () => {
 
               <div className="space-y-4">
                 <Button
-                  onClick={() => router.push("/auth/recovery")}
+                  onClick={() => router.push("/recovery")}
                   className="w-full"
                 >
                   Solicitar Nuevo Enlace
                 </Button>
 
                 <Button
-                  onClick={() => router.push("/auth/login")}
+                  onClick={() => router.push("/cliente-login")}
                   variant="outline"
                   className="w-full"
                 >

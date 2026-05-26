@@ -145,7 +145,7 @@ export default function Navbar() {
           <ThemeToggle />
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="hover:bg-orange-500/10">
+              <Button variant="ghost" size="icon" className="hover:bg-orange-500/10" aria-label="Abrir menú">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>

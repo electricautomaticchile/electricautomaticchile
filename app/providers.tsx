@@ -4,8 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AppContextProvider } from "@/lib/context/AppContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { useState, useEffect } from "react";
-import { fetchCSRFToken } from "@/lib/utils/csrf";
+import { useState } from "react";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -28,10 +27,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
         },
       })
   );
-
-  useEffect(() => {
-    fetchCSRFToken();
-  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
