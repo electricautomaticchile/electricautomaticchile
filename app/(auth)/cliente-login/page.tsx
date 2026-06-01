@@ -43,19 +43,33 @@ export default function LoginClientePage() {
     setLoading(true);
     try {
       const { data } = await apiClient.post("/api/auth/login", { rut, password });
+      const user = data.user || data.data?.user;
+      const requiereCambioPassword = data.requiereCambioPassword ?? data.data?.requiereCambioPassword;
+
+      if (!user) {
+        throw new Error("Login exitoso, pero la respuesta no incluyó datos de usuario");
+      }
+
       const isProduction = window.location.protocol === "https:";
       const cookieOptions = `path=/; max-age=${24 * 60 * 60}; samesite=lax${isProduction ? "; secure" : ""}`;
+
+      document.cookie = `user_data=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+      document.cookie = `permisos=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+      document.cookie = `requiereCambioPassword=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+
       document.cookie = `user_data=${encodeURIComponent(JSON.stringify({
-        id: data.user._id, nombre: data.user.nombre, correo: data.user.correo,
-        numeroCliente: data.user.numeroCliente, role: data.user.role || "cliente",
-        tipoUsuario: "cliente", activo: data.user.activo,
+        id: user._id || user.id, nombre: user.nombre, correo: user.correo,
+        numeroCliente: user.numeroCliente, role: user.role || "cliente",
+        tipoUsuario: "cliente", empresaId: user.empresaId, activo: user.activo,
       }))}; ${cookieOptions}`;
-      if (data.requiereCambioPassword) {
+
+      if (requiereCambioPassword) {
         document.cookie = `requiereCambioPassword=true; ${cookieOptions}`;
       }
+
       // Full page redirect para que el middleware de Next.js verifique la cookie
       const callbackUrl = new URLSearchParams(window.location.search).get("callbackUrl");
-      window.location.href = safeCallbackUrl(callbackUrl);
+      window.location.replace(safeCallbackUrl(callbackUrl));
     } catch (err: any) {
       const msg = err.response?.data?.error?.message || err.response?.data?.message || err.message || "Error al iniciar sesión";
       setError(typeof msg === "string" ? msg : JSON.stringify(msg));

@@ -3,15 +3,28 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-const zonas = [
-  { nombre: "Zona Norte",  consumo: 85, color: "bg-red-500" },
-  { nombre: "Zona Centro", consumo: 65, color: "bg-orange-500" },
-  { nombre: "Zona Sur",    consumo: 45, color: "bg-orange-400" },
-  { nombre: "Zona Este",   consumo: 72, color: "bg-orange-600" },
-  { nombre: "Zona Oeste",  consumo: 38, color: "bg-orange-300" },
-];
+interface ZonaEnergia {
+  nombre: string;
+  consumo: number;
+  color?: string;
+}
 
-export function MapaCalor() {
+const colorByConsumption = (consumo: number) => {
+  if (consumo >= 80) return "bg-red-500";
+  if (consumo >= 60) return "bg-orange-500";
+  if (consumo >= 40) return "bg-orange-400";
+  return "bg-orange-300";
+};
+
+export function MapaCalor({ zonas = [] }: { zonas?: ZonaEnergia[] }) {
+  if (zonas.length === 0) {
+    return (
+      <div className="h-64 w-full flex items-center justify-center rounded-lg border border-dashed border-border/70 text-sm text-muted-foreground">
+        Sin datos reales por zona
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {zonas.map((zona, idx) => (
@@ -28,7 +41,7 @@ export function MapaCalor() {
           </div>
           <div className="h-3 bg-muted rounded-full overflow-hidden">
             <motion.div
-              className={cn("h-full rounded-full", zona.color)}
+              className={cn("h-full rounded-full", zona.color || colorByConsumption(zona.consumo))}
               initial={{ width: 0 }}
               animate={{ width: `${zona.consumo}%` }}
               transition={{ delay: idx * 0.08 + 0.2, duration: 0.7, ease: "easeOut" }}

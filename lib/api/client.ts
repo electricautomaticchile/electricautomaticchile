@@ -6,6 +6,21 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 // Flag para evitar múltiples redirects simultáneos (MED-02)
 let isRedirecting = false;
 
+const publicAuthMutations = [
+  '/api/auth/login',
+  '/api/auth/login/empresa',
+  '/api/auth/registro-empresa',
+  '/api/auth/solicitar-recuperacion',
+  '/api/auth/restablecer-password',
+  '/api/auth/refresh',
+  '/api/auth/refresh-token',
+];
+
+function shouldAttachCSRF(method = '', url = '') {
+  if (!['post', 'put', 'delete', 'patch'].includes(method)) return false;
+  return !publicAuthMutations.some((endpoint) => url.endsWith(endpoint));
+}
+
 export const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
@@ -16,9 +31,9 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   async (config) => {
-    const isMutation = ['post', 'put', 'delete', 'patch'].includes(config.method || '');
-    const csrfToken = isMutation ? await ensureCSRFToken() : '';
-    if (csrfToken && ['post', 'put', 'delete', 'patch'].includes(config.method || '')) {
+    const needsCSRF = shouldAttachCSRF(config.method || '', config.url || '');
+    const csrfToken = needsCSRF ? await ensureCSRFToken() : '';
+    if (csrfToken && needsCSRF) {
       config.headers['X-CSRF-Token'] = csrfToken;
     }
     return config;

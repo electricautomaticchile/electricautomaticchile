@@ -96,7 +96,7 @@ function hasAccess(
   }
 
   if (pathname.startsWith("/empresa")) {
-    return userType === "empresa" || userRole === "empresa";
+    return userType === "empresa" || userType === "usuario_empresa" || userRole === "empresa" || userRole?.startsWith("EMPRESA_");
   }
 
   if (pathname.startsWith("/admin") || pathname.startsWith("/dashboard")) {

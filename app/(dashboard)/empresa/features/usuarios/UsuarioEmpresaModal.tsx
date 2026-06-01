@@ -3,11 +3,18 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  EMPRESA_PERMISSION_ACTIONS,
+  EMPRESA_PERMISSION_MODULES,
+  getDefaultPermisosEmpresa,
+  mergePermisosEmpresa,
+} from "@/lib/permissions/empresaPermissions";
 import { usuariosEmpresaService } from "@/lib/api/services/usuariosEmpresaService";
-import type { UsuarioEmpresa, RoleEmpresa } from "@/types/usuario-empresa";
+import type { PermisosModulo, PermisosRole, UsuarioEmpresa, RoleEmpresa } from "@/types/usuario-empresa";
 
 interface UsuarioEmpresaModalProps {
   open: boolean;
@@ -26,6 +33,7 @@ export function UsuarioEmpresaModal({ open, onClose, onSuccess, usuario }: Usuar
     cargo: "",
     activo: true,
   });
+  const [permisos, setPermisos] = useState<PermisosRole>(() => getDefaultPermisosEmpresa("EMPRESA_OPERADOR"));
 
   useEffect(() => {
     if (usuario) {
@@ -37,6 +45,7 @@ export function UsuarioEmpresaModal({ open, onClose, onSuccess, usuario }: Usuar
         cargo: usuario.cargo || "",
         activo: usuario.activo,
       });
+      setPermisos(mergePermisosEmpresa(usuario.permisos, usuario.role));
     } else {
       setFormData({
         nombre: "",
@@ -46,8 +55,28 @@ export function UsuarioEmpresaModal({ open, onClose, onSuccess, usuario }: Usuar
         cargo: "",
         activo: true,
       });
+      setPermisos(getDefaultPermisosEmpresa("EMPRESA_OPERADOR"));
     }
   }, [usuario, open]);
+
+  const handleRoleChange = (value: RoleEmpresa) => {
+    setFormData({ ...formData, role: value });
+    setPermisos(getDefaultPermisosEmpresa(value));
+  };
+
+  const togglePermiso = (
+    modulo: keyof PermisosRole,
+    accion: keyof PermisosModulo,
+    checked: boolean
+  ) => {
+    setPermisos((current) => ({
+      ...current,
+      [modulo]: {
+        ...current[modulo],
+        [accion]: checked,
+      },
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +90,7 @@ export function UsuarioEmpresaModal({ open, onClose, onSuccess, usuario }: Usuar
           cargo: formData.cargo,
           role: formData.role,
           activo: formData.activo,
+          permisos,
         });
       } else {
         await usuariosEmpresaService.crear({
@@ -69,6 +99,7 @@ export function UsuarioEmpresaModal({ open, onClose, onSuccess, usuario }: Usuar
           role: formData.role,
           telefono: formData.telefono,
           cargo: formData.cargo,
+          permisos,
         });
       }
       onSuccess();
@@ -82,7 +113,7 @@ export function UsuarioEmpresaModal({ open, onClose, onSuccess, usuario }: Usuar
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {usuario ? "Editar Usuario" : "Nuevo Usuario"}
@@ -116,7 +147,7 @@ export function UsuarioEmpresaModal({ open, onClose, onSuccess, usuario }: Usuar
             <Label htmlFor="role">Rol</Label>
             <Select
               value={formData.role}
-              onValueChange={(value) => setFormData({ ...formData, role: value as RoleEmpresa })}
+              onValueChange={(value) => handleRoleChange(value as RoleEmpresa)}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -128,6 +159,34 @@ export function UsuarioEmpresaModal({ open, onClose, onSuccess, usuario }: Usuar
                 <SelectItem value="EMPRESA_FINANCIERO">Financiero</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-3 rounded-lg border border-border/70 p-4">
+            <div>
+              <Label className="text-sm font-semibold">Permisos</Label>
+              <p className="text-xs text-muted-foreground mt-1">
+                Ajusta que modulos puede ver, crear, editar, eliminar o exportar este usuario.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              {EMPRESA_PERMISSION_MODULES.map((modulo) => (
+                <div key={modulo.key} className="grid gap-2 rounded-md bg-muted/30 p-3 md:grid-cols-[130px_1fr] md:items-center">
+                  <div className="text-sm font-medium">{modulo.label}</div>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                    {EMPRESA_PERMISSION_ACTIONS.map((accion) => (
+                      <label key={accion.key} className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Checkbox
+                          checked={permisos[modulo.key][accion.key]}
+                          onCheckedChange={(checked) => togglePermiso(modulo.key, accion.key, checked === true)}
+                        />
+                        {accion.label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="space-y-2">

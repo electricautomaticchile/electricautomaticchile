@@ -7,8 +7,10 @@ export interface EstadisticasDashboard {
   dispositivosTotales: number;
   alertasActivas: number;
   ticketsPendientes: number;
+  boletasPendientes: number;
   consumoTotal: number;
   consumoHoy: number;
+  ingresosMensuales: number;
 }
 
 export const dashboardService = {
@@ -21,8 +23,10 @@ export const dashboardService = {
       dispositivosTotales: 0,
       alertasActivas: 0,
       ticketsPendientes: 0,
+      boletasPendientes: 0,
       consumoTotal: 0,
       consumoHoy: 0,
+      ingresosMensuales: 0,
     };
   },
 };

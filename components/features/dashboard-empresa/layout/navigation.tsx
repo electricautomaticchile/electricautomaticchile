@@ -1,25 +1,41 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   LayoutDashboard, Users, Battery, BellRing, BarChart3,
-  Settings, Menu, X, Headphones, Zap,
+  Settings, Menu, X, Headphones, UserCog,
 } from "lucide-react";
 import { useApi } from "@/hooks/useApi";
 import { Logo } from "@/components/logo";
+import { getDefaultPermisosEmpresa, hasEmpresaPermission } from "@/lib/permissions/empresaPermissions";
+import type { PermisosRole } from "@/types/usuario-empresa";
 
 const menuItems = [
   { id: "dashboard", title: "Dashboard", icon: LayoutDashboard },
-  { id: "clientes", title: "Clientes", icon: Users },
-  { id: "dispositivos", title: "Dispositivos", icon: Battery },
-  { id: "alertas", title: "Alertas", icon: BellRing },
-  { id: "soporte", title: "Soporte", icon: Headphones },
-  { id: "estadisticas", title: "Estadísticas", icon: BarChart3 },
-  { id: "configuracion", title: "Configuración", icon: Settings },
+  { id: "clientes", title: "Clientes", icon: Users, permission: ["clientes", "ver"] as const },
+  { id: "dispositivos", title: "Dispositivos", icon: Battery, permission: ["dispositivos", "ver"] as const },
+  { id: "alertas", title: "Alertas", icon: BellRing, permission: ["alertas", "ver"] as const },
+  { id: "soporte", title: "Soporte", icon: Headphones, permission: ["tickets", "ver"] as const },
+  { id: "estadisticas", title: "Estadísticas", icon: BarChart3, permission: ["reportes", "ver"] as const },
+  { id: "usuarios", title: "Usuarios", icon: UserCog, permission: ["usuarios", "ver"] as const },
+  { id: "configuracion", title: "Configuración", icon: Settings, permission: ["configuracion", "ver"] as const },
 ];
+
+function readPermisosCookie(): PermisosRole | undefined {
+  if (typeof document === "undefined") return undefined;
+  const cookie = document.cookie
+    .split(";")
+    .find((item) => item.trim().startsWith("permisos="));
+  if (!cookie) return undefined;
+  try {
+    return JSON.parse(decodeURIComponent(cookie.split("=").slice(1).join("=")));
+  } catch {
+    return undefined;
+  }
+}
 
 interface SidebarEmpresaProps {
   activeTab?: string;
@@ -36,6 +52,22 @@ export function BarraNavegacionLateral({
 }: SidebarEmpresaProps) {
   const { user, logout, isAuthenticated } = useApi();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [permisos] = useState<PermisosRole | undefined>(() => readPermisosCookie());
+  const role = ((user as any)?.role || (user as any)?.tipoUsuario || "empresa") as string;
+  const permisosEfectivos = permisos || getDefaultPermisosEmpresa(role);
+  const visibleMenuItems = useMemo(() => {
+    return menuItems.filter((item) => {
+      if (!item.permission) return true;
+      const [module, action] = item.permission;
+      return hasEmpresaPermission(permisosEfectivos, module, action, role);
+    });
+  }, [permisosEfectivos, role]);
+
+  useEffect(() => {
+    if (!visibleMenuItems.some((item) => item.id === activeTab)) {
+      onTabChange?.("dashboard");
+    }
+  }, [activeTab, onTabChange, visibleMenuItems]);
 
   const getBadge = (id: string) => {
     if (id === "alertas" && notificacionesNoLeidas > 0) return notificacionesNoLeidas.toString();
@@ -88,7 +120,7 @@ export function BarraNavegacionLateral({
             Navegación
           </span>
         </div>
-        {menuItems.map((item) => {
+        {visibleMenuItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
           const badge = getBadge(item.id);
@@ -150,4 +182,3 @@ export function BarraNavegacionLateral({
     </>
   );
 }
-

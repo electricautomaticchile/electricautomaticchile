@@ -41,17 +41,22 @@ export default function LoginEmpresaPage() {
       // Setear solo datos no sensibles. La sesión real está en cookies HttpOnly.
       const user = data.user || data.data?.user;
       const permisos = data.permisos || data.data?.permisos;
+      const requiereCambioPassword = data.requiereCambioPassword || data.data?.requiereCambioPassword;
 
       if (user) {
+        const tipoUsuario = user.tipoUsuario || user.tipoCliente || "empresa";
         document.cookie = `user_data=${encodeURIComponent(JSON.stringify({
-          id: user._id || user.id, nombre: user.nombre, correo: user.correo,
-          role: user.role || "empresa", tipoUsuario: "empresa",
+          id: user._id || user.id, _id: user._id || user.id,
+          name: user.nombre, nombre: user.nombre,
+          email: user.correo, correo: user.correo,
+          role: user.role || "empresa", type: tipoUsuario, tipoUsuario,
           empresaId: user.empresaId || user._id || user.id, activo: user.activo,
         }))}; ${cookieOptions}`;
       }
       if (permisos) {
         document.cookie = `permisos=${encodeURIComponent(JSON.stringify(permisos))}; ${cookieOptions}`;
       }
+      document.cookie = `requiereCambioPassword=${requiereCambioPassword ? "true" : "false"}; ${cookieOptions}`;
       
       // Redirect con full page load
       const params = new URLSearchParams(window.location.search);

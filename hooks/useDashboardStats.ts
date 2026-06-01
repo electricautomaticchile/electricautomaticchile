@@ -9,8 +9,10 @@ export function useDashboardStats() {
     dispositivosTotales: 0,
     alertasActivas: 0,
     ticketsPendientes: 0,
+    boletasPendientes: 0,
     consumoTotal: 0,
     consumoHoy: 0,
+    ingresosMensuales: 0,
   });
   const [loading, setLoading] = useState(true);
 

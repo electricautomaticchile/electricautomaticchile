@@ -6,6 +6,7 @@ export interface UsuarioEmpresa {
   role: RoleEmpresa;
   telefono?: string;
   cargo?: string;
+  permisos?: PermisosRole;
   activo: boolean;
   passwordTemporal: boolean;
   ultimoAcceso?: string;
@@ -64,6 +65,7 @@ export interface CrearUsuarioEmpresaRequest {
   role: RoleEmpresa;
   telefono?: string;
   cargo?: string;
+  permisos?: PermisosRole;
 }
 
 export interface ActualizarUsuarioEmpresaRequest {
@@ -72,4 +74,5 @@ export interface ActualizarUsuarioEmpresaRequest {
   cargo?: string;
   role?: RoleEmpresa;
   activo?: boolean;
+  permisos?: PermisosRole;
 }

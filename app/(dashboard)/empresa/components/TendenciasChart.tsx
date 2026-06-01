@@ -9,6 +9,14 @@ interface TendenciaItem {
 }
 
 export function TendenciasChart({ data }: { data: TendenciaItem[] }) {
+  if (data.length === 0) {
+    return (
+      <div className="h-64 w-full flex items-center justify-center rounded-lg border border-dashed border-border/70 text-sm text-muted-foreground">
+        Sin lecturas historicas para graficar
+      </div>
+    );
+  }
+
   return (
     <div className="h-64 w-full flex items-end gap-2 px-2">
       {data.map((item, idx) => (

@@ -1,5 +1,7 @@
 import { baseService } from "./utils/baseService";
 
+type TicketEstado = "abierto" | "en-proceso" | "resuelto" | "cerrado";
+
 export interface Ticket {
   id?: string;
   _id: string;
@@ -16,7 +18,7 @@ export interface Ticket {
   descripcion: string;
   categoria: "tecnico" | "facturacion" | "consulta" | "reclamo";
   prioridad: "baja" | "media" | "alta" | "urgente";
-  estado: "abierto" | "en-proceso" | "resuelto" | "cerrado";
+  estado: TicketEstado;
   asignadoA?: string;
   asignadoNombre?: string;
   empresaId?: string;
@@ -74,12 +76,50 @@ export interface EstadisticasTickets {
   porPrioridad: Record<string, number>;
 }
 
+function normalizarEstadoTicket(estado?: string): TicketEstado {
+  if (estado === "en_proceso" || estado === "en-proceso") return "en-proceso";
+  if (estado === "resuelto" || estado === "cerrado" || estado === "abierto") return estado;
+  return "abierto";
+}
+
+function estadoParaBackend(estado: TicketEstado) {
+  return estado === "en-proceso" ? "en_proceso" : estado;
+}
+
+function normalizarTicket(ticket: any): Ticket {
+  const id = ticket?._id || ticket?.id || "";
+
+  return {
+    ...ticket,
+    id,
+    _id: id,
+    asunto: ticket?.asunto || ticket?.titulo || "",
+    numeroCliente: ticket?.numeroCliente || "",
+    nombreCliente: ticket?.nombreCliente || "",
+    emailCliente: ticket?.emailCliente || "",
+    estado: normalizarEstadoTicket(ticket?.estado),
+    respuestas: Array.isArray(ticket?.respuestas)
+      ? ticket.respuestas.map((respuesta: any, index: number) => ({
+          ...respuesta,
+          _id: respuesta?._id || `${id}-respuesta-${index}`,
+          autorId: respuesta?.autorId || respuesta?.usuarioId || "",
+          autorNombre: respuesta?.autorNombre || "Soporte",
+          autorTipo: respuesta?.autorTipo || "soporte",
+          fecha: respuesta?.fecha || respuesta?.fechaCreacion || ticket?.fechaCreacion,
+        }))
+      : [],
+    fechaActualizacion: ticket?.fechaActualizacion || ticket?.fechaCreacion,
+  };
+}
+
 class TicketsService {
   /**
    * Crear un nuevo ticket
    */
   async crearTicket(data: CrearTicketDto) {
-    return baseService.post<Ticket>("/tickets", data);
+    const response = await baseService.post<Ticket>("/tickets", data);
+    if (response.data) response.data = normalizarTicket(response.data);
+    return response;
   }
 
   /**
@@ -96,39 +136,46 @@ class TicketsService {
     }
 
     const query = params.toString();
-    return baseService.get<{
-      data: Ticket[];
-      pagination: {
-        page: number;
-        limit: number;
-        total: number;
-        pages: number;
-      };
-    }>(`/tickets${query ? `?${query}` : ""}`);
+    const response = await baseService.get<Ticket[]>(
+      `/tickets${query ? `?${query}` : ""}`
+    );
+    const rawData = response.data as any;
+    if (response.data) {
+      response.data = (Array.isArray(rawData) ? rawData : rawData?.data || []).map(
+        normalizarTicket
+      );
+    }
+    return response;
   }
 
   /**
    * Obtener un ticket por ID
    */
   async obtenerTicketPorId(id: string) {
-    return baseService.get<Ticket>(`/tickets/${id}`);
+    const response = await baseService.get<Ticket>(`/tickets/${id}`);
+    if (response.data) response.data = normalizarTicket(response.data);
+    return response;
   }
 
   /**
    * Obtener un ticket por número
    */
   async obtenerTicketPorNumero(numeroTicket: string) {
-    return baseService.get<Ticket>(`/tickets/numero/${numeroTicket}`);
+    const response = await baseService.get<Ticket>(`/tickets/numero/${numeroTicket}`);
+    if (response.data) response.data = normalizarTicket(response.data);
+    return response;
   }
 
   /**
    * Agregar respuesta a un ticket
    */
   async agregarRespuesta(ticketId: string, respuesta: AgregarRespuestaDto) {
-    return baseService.put<Ticket>(
+    const response = await baseService.put<Ticket>(
       `/tickets/${ticketId}/responder`,
       { mensaje: respuesta.mensaje }
     );
+    if (response.data) response.data = normalizarTicket(response.data);
+    return response;
   }
 
   /**
@@ -136,9 +183,13 @@ class TicketsService {
    */
   async actualizarEstado(
     ticketId: string,
-    estado: "abierto" | "en-proceso" | "resuelto" | "cerrado"
+    estado: TicketEstado
   ) {
-    return baseService.put<Ticket>(`/tickets/${ticketId}/estado`, { estado });
+    const response = await baseService.put<Ticket>(`/tickets/${ticketId}/estado`, {
+      estado: estadoParaBackend(estado),
+    });
+    if (response.data) response.data = normalizarTicket(response.data);
+    return response;
   }
 
   /**
@@ -148,9 +199,11 @@ class TicketsService {
     ticketId: string,
     prioridad: "baja" | "media" | "alta" | "urgente"
   ) {
-    return baseService.put<Ticket>(`/tickets/${ticketId}/prioridad`, {
+    const response = await baseService.put<Ticket>(`/tickets/${ticketId}/prioridad`, {
       prioridad,
     });
+    if (response.data) response.data = normalizarTicket(response.data);
+    return response;
   }
 
   /**
@@ -161,10 +214,12 @@ class TicketsService {
     asignadoA: string,
     asignadoNombre: string
   ) {
-    return baseService.put<Ticket>(`/tickets/${ticketId}/asignar`, {
+    const response = await baseService.put<Ticket>(`/tickets/${ticketId}/asignar`, {
       asignadoA,
       asignadoNombre,
     });
+    if (response.data) response.data = normalizarTicket(response.data);
+    return response;
   }
 
   /**

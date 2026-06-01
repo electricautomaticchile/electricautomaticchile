@@ -1,8 +1,8 @@
 import { ICliente } from "./cliente";
 import { IEmpresa } from "./empresa";
 
-export type UserRole = "cliente" | "empresa";
-export type UserType = "cliente" | "empresa";
+export type UserRole = "cliente" | "empresa" | "EMPRESA_ADMIN" | "EMPRESA_OPERADOR" | "EMPRESA_SOPORTE" | "EMPRESA_FINANCIERO";
+export type UserType = "cliente" | "empresa" | "usuario_empresa";
 
 export interface AuthUser {
   id: string;

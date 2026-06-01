@@ -4,6 +4,21 @@ import { TokenManager } from "./tokenManager";
 import { ensureCSRFToken } from "@/lib/utils/csrf";
 import { sanitizeInput } from "@/lib/utils/sanitize";
 
+const PUBLIC_AUTH_MUTATIONS = [
+  "/auth/login",
+  "/auth/login/empresa",
+  "/auth/registro-empresa",
+  "/auth/solicitar-recuperacion",
+  "/auth/restablecer-password",
+  "/auth/refresh",
+  "/auth/refresh-token",
+];
+
+function shouldAttachCSRF(method: string, endpoint: string) {
+  if (!["POST", "PUT", "DELETE", "PATCH"].includes(method)) return false;
+  return !PUBLIC_AUTH_MUTATIONS.some((publicEndpoint) => endpoint === publicEndpoint);
+}
+
 // Clase base para servicios API
 export class BaseApiService {
   protected async makeRequest<T>(
@@ -12,7 +27,8 @@ export class BaseApiService {
   ): Promise<ApiResponse<T>> {
     const url = `${API_URL}${endpoint}`;
     const method = options.method || "GET";
-    const csrfToken = ["POST", "PUT", "DELETE", "PATCH"].includes(method)
+    const needsCSRF = shouldAttachCSRF(method, endpoint);
+    const csrfToken = needsCSRF
       ? await ensureCSRFToken()
       : "";
 
@@ -24,7 +40,7 @@ export class BaseApiService {
       delete defaultHeaders["Content-Type"];
     }
 
-    if (csrfToken && ["POST", "PUT", "DELETE", "PATCH"].includes(method)) {
+    if (csrfToken && needsCSRF) {
       defaultHeaders['X-CSRF-Token'] = csrfToken;
     }
 

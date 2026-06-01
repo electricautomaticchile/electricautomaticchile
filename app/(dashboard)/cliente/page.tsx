@@ -20,7 +20,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   TrendingUp, TrendingDown, Zap, DollarSign, Activity,
-  Trophy, Target, Sparkles, ArrowRight, Bell,
+  Sparkles, ArrowRight, Bell,
 } from "lucide-react";
 
 const fadeIn = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } };
@@ -28,6 +28,10 @@ const stagger = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.09 } },
 };
+
+const formatKwhOrEmpty = (value: number | null) => (
+  value === null ? "--" : `${value.toFixed(1)} kWh`
+);
 
 export default function DashboardCliente() {
   const { user, isLoading: loadingCliente } = useApi();
@@ -78,7 +82,10 @@ export default function DashboardCliente() {
     }
   }, [resumen]);
 
-  const boletasPendientes = boletas.filter(b => !b.estado || b.estado !== "pagada").length;
+  const boletasPendientes = boletas.filter((b) => {
+    const estado = String(b.estado || "").toLowerCase();
+    return estado !== "pagado" && estado !== "pagada";
+  }).length;
 
   const datosCliente = {
     _id: (user as any)?._id?.toString() || user?.id?.toString(),
@@ -102,11 +109,10 @@ export default function DashboardCliente() {
     },
   };
 
-  const consumoMesAnterior = 120;
-  const consumoActual = datosCliente.estadisticas.consumoMensual;
-  const diferenciaPorcentaje = consumoMesAnterior > 0
-    ? ((consumoActual - consumoMesAnterior) / consumoMesAnterior) * 100 : 0;
-  const esAumento = diferenciaPorcentaje > 0;
+  const consumoPromedioDiario: number | null = null;
+  const consumoHoy: number | null = null;
+  const diferenciaPorcentaje: number | null = null;
+  const esAumento = false;
 
   const renderizarComponenteActivo = () => {
     switch (componenteActivo) {
@@ -138,13 +144,15 @@ export default function DashboardCliente() {
                     <div className="text-5xl font-extrabold tracking-tight">
                       ${datosCliente.estadisticas.costoMensual.toFixed(0)}
                     </div>
-                    <div className="flex items-center gap-1.5 text-sm text-white/80">
-                      {esAumento ? (
-                        <><TrendingUp className="h-4 w-4" /><span>+{Math.abs(diferenciaPorcentaje).toFixed(1)}% vs mes pasado</span></>
-                      ) : (
-                        <><TrendingDown className="h-4 w-4" /><span>-{Math.abs(diferenciaPorcentaje).toFixed(1)}% vs mes pasado</span></>
-                      )}
-                    </div>
+                    {diferenciaPorcentaje !== null && (
+                      <div className="flex items-center gap-1.5 text-sm text-white/80">
+                        {esAumento ? (
+                          <><TrendingUp className="h-4 w-4" /><span>+{Math.abs(diferenciaPorcentaje).toFixed(1)}% vs mes pasado</span></>
+                        ) : (
+                          <><TrendingDown className="h-4 w-4" /><span>-{Math.abs(diferenciaPorcentaje).toFixed(1)}% vs mes pasado</span></>
+                        )}
+                      </div>
+                    )}
                     <div className="flex items-center gap-1.5 text-white/70 text-xs mt-1">
                       <ArrowRight className="h-3.5 w-3.5" />
                       Ver mi consumo
@@ -163,8 +171,8 @@ export default function DashboardCliente() {
             {/* Stats row */}
             <motion.div variants={fadeIn} className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: "Consumo hoy", value: `${(consumoActual / 30).toFixed(1)} kWh`, icon: Zap, color: "text-orange-400", bg: "bg-orange-500/10 border-orange-500/40", onClick: undefined },
-                { label: "Consumo actual", value: `${(lecturaVivo?.potencia ?? 0).toFixed(0)} W`, icon: DollarSign, color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/40", onClick: undefined },
+                { label: "Consumo hoy", value: formatKwhOrEmpty(consumoHoy), icon: Zap, color: "text-orange-400", bg: "bg-orange-500/10 border-orange-500/40", onClick: undefined },
+                { label: "Consumo actual", value: lecturaVivo ? `${lecturaVivo.potencia.toFixed(0)} W` : "--", icon: DollarSign, color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/40", onClick: undefined },
                 { label: "Dispositivos", value: `${datosCliente.estadisticas.dispositivosActivos}/${datosCliente.estadisticas.dispositivosTotal}`, icon: Activity, color: "text-sky-400", bg: "bg-sky-500/10 border-sky-500/40 cursor-pointer hover:border-sky-400/70 hover:bg-sky-500/20 transition-all", onClick: () => setComponenteActivo("servicio") },
                 { label: "Boletas pend.", value: `${datosCliente.estadisticas.boletasPendientes}`, icon: Bell, color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/40 cursor-pointer hover:border-amber-400/70 hover:bg-amber-500/20 transition-all", onClick: () => setComponenteActivo("boletas") },
               ].map(({ label, value, icon: Icon, color, bg, onClick }) => (
@@ -186,23 +194,23 @@ export default function DashboardCliente() {
                       <Activity className="h-5 w-5 text-orange-500" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-foreground">Consumo Hoy vs Promedio</h3>
-                      <p className="text-xs text-muted-foreground">Comparado con tu historial</p>
+                      <h3 className="text-sm font-bold text-foreground">Consumo Diario</h3>
+                      <p className="text-xs text-muted-foreground">Se mostrara cuando exista historial real</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <div className="text-xs text-muted-foreground">Hoy</div>
-                      <div className="text-2xl font-bold text-orange-500">{(consumoActual / 30).toFixed(1)} kWh</div>
+                      <div className="text-2xl font-bold text-orange-500">{formatKwhOrEmpty(consumoHoy)}</div>
                       <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                        <motion.div className="h-full bg-orange-500 rounded-full" initial={{ width: 0 }} animate={{ width: "75%" }} transition={{ duration: 1, ease: "easeOut" }} />
+                        <motion.div className="h-full bg-orange-500 rounded-full" initial={{ width: 0 }} animate={{ width: consumoHoy !== null ? "75%" : "0%" }} transition={{ duration: 1, ease: "easeOut" }} />
                       </div>
                     </div>
                     <div className="space-y-2">
                       <div className="text-xs text-muted-foreground">Promedio</div>
-                      <div className="text-2xl font-bold text-muted-foreground">{(consumoMesAnterior / 30).toFixed(1)} kWh</div>
+                      <div className="text-2xl font-bold text-muted-foreground">{formatKwhOrEmpty(consumoPromedioDiario)}</div>
                       <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                        <motion.div className="h-full bg-muted-foreground/40 rounded-full" initial={{ width: 0 }} animate={{ width: "60%" }} transition={{ duration: 1, ease: "easeOut", delay: 0.2 }} />
+                        <motion.div className="h-full bg-muted-foreground/40 rounded-full" initial={{ width: 0 }} animate={{ width: consumoPromedioDiario !== null ? "60%" : "0%" }} transition={{ duration: 1, ease: "easeOut", delay: 0.2 }} />
                       </div>
                     </div>
                   </div>
@@ -215,42 +223,6 @@ export default function DashboardCliente() {
               <ConsejosAhorroIA />
             </motion.div>
 
-            {/* Ranking */}
-            <motion.div variants={fadeIn}>
-              <Card className="border-orange-500/40 bg-gradient-to-br from-orange-500/5 to-orange-600/5 shadow-sm">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-orange-500/10 border border-orange-500/40 rounded-xl flex items-center justify-center">
-                        <Trophy className="h-5 w-5 text-orange-500" />
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-bold text-foreground">Tu Ranking de Eficiencia</h3>
-                        <p className="text-xs text-muted-foreground">Comparado con clientes similares</p>
-                      </div>
-                    </div>
-                    <Badge className="bg-orange-500 text-white text-xs">TOP 30%</Badge>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Tu posición</span>
-                      <span className="font-bold text-foreground">30 de 100 clientes</span>
-                    </div>
-                    <div className="relative h-2 bg-muted rounded-full overflow-hidden">
-                      <motion.div
-                        className="absolute h-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-full"
-                        initial={{ width: 0 }} animate={{ width: "70%" }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
-                      />
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-orange-500">
-                      <Target className="h-3.5 w-3.5" />
-                      Consumiendo menos que el 70% de clientes similares
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
           </motion.div>
         );
     }
@@ -315,5 +287,3 @@ export default function DashboardCliente() {
     </div>
   );
 }
-
-
