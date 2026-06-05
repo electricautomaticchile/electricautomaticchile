@@ -1,56 +1,85 @@
-# Electric Automatic Chile - Frontend
+# ElectricAutomaticChile - Frontend Web
 
-Aplicación web para monitoreo y gestión de consumo eléctrico en tiempo real con dispositivos IoT.
+Frontend Next.js para monitoreo y gestion de consumo electrico, clientes,
+empresas, dispositivos IoT, boletas, reportes y administracion.
 
-## 🚀 ¿Qué hace este proyecto?
+## Funcionalidades
 
-Frontend desarrollado en Next.js que permite:
+- Dashboard de clientes con consumo, boletas, notificaciones y soporte.
+- Dashboard de empresas para gestion de clientes y dispositivos.
+- Vista superadmin para administracion del sistema.
+- Autenticacion por cookies `HttpOnly` emitidas por el backend.
+- WebSocket/Socket.IO para actualizaciones en tiempo real.
+- Reportes, mapas, configuracion, control y monitoreo de dispositivos IoT.
+- Blog opcional usando Notion.
 
-- **Dashboard de Clientes**: Visualización en tiempo real del consumo eléctrico desde dispositivos Arduino
-- **Dashboard de Empresas**: Gestión de múltiples clientes y sus dispositivos
-- **Dashboard de Superadmin**: Administración completa del sistema
-- **Autenticación JWT**: Sistema seguro de login y gestión de sesiones
-- **WebSocket en tiempo real**: Actualización automática de datos de consumo cada 5 segundos
-- **Gestión de dispositivos IoT**: Asignación y monitoreo de dispositivos Arduino
+## Tecnologias
 
-## 🛠️ Tecnologías
+- Next.js 16.
+- React 19.
+- TypeScript.
+- Tailwind CSS.
+- Zustand y TanStack Query.
+- Socket.IO Client.
+- Nivo/Recharts para graficos.
 
-- **Next.js 14** - Framework React con SSR
-- **TypeScript** - Tipado estático
-- **Tailwind CSS** - Estilos
-- **Socket.IO Client** - WebSocket para datos en tiempo real
-- **Zustand** - Gestión de estado global
-- **Recharts** - Gráficos de consumo
+## Requisitos
 
-## 📦 Instalación
+- Node.js `>=20.9.0`.
+- npm `>=10.0.0`.
+- Backend `../electric-backend` disponible.
 
-```bash
-npm install
-```
+## Configuracion
 
-## 🔧 Configuración
-
-Crea un archivo `.env.local` con las siguientes variables:
+Crear `.env.local`:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000
-NEXT_PUBLIC_WS_URL=http://localhost:5000
-JWT_SECRET=tu_secret_key_aqui
+NEXT_PUBLIC_WS_URL=http://localhost:4000
+JWT_SECRET=clave-local-de-al-menos-32-caracteres
 ```
 
-## 🚀 Desarrollo
+Variables opcionales:
+
+```env
+NEXT_PUBLIC_SHOW_QUERY_DEVTOOLS=true
+NOTION_TOKEN=
+NOTION_BLOG_DB_ID=
+```
+
+## Desarrollo
 
 ```bash
+npm install
 npm run dev
 ```
 
-La aplicación estará disponible en `http://localhost:3000`
+La aplicacion queda disponible en `http://localhost:3000`.
 
-## 📚 Documentación Detallada
+Checks locales:
 
-Para más información sobre variables, autenticación, blog y checks locales, consulta [`docs/operacion.md`](./docs/operacion.md).
+```bash
+npm run lint
+npm run typecheck
+npm run build
+```
 
-## 🔗 Proyectos Relacionados
+Build standalone:
 
-- [API Backend](../api-electricautomaticchile/)
-- [WebSocket API](../Websocket-api/)
+```bash
+npm run build
+npm run start
+```
+
+## Produccion
+
+- Configurar `NEXT_PUBLIC_API_URL` con la URL publica del backend.
+- Configurar `NEXT_PUBLIC_WS_URL` si el WebSocket usa una URL distinta.
+- Usar el mismo dominio de cookies definido en el backend.
+- Ejecutar `npm run lint`, `npm run typecheck` y `npm run build` antes de
+  publicar.
+- Mantener `JWT_SECRET` fuera de Git y con al menos 32 caracteres.
+
+## Documentacion relacionada
+
+Ver `docs/operacion.md` para variables, autenticacion, blog y checks locales.

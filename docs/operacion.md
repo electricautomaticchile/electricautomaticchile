@@ -4,8 +4,13 @@
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000
+NEXT_PUBLIC_WS_URL=http://localhost:4000
 JWT_SECRET=clave-local-de-al-menos-32-caracteres
 ```
+
+`NEXT_PUBLIC_API_URL` debe apuntar al backend Go. `NEXT_PUBLIC_WS_URL` puede
+usar la misma base si el WebSocket esta servido por el backend; si se separa en
+otro servicio, configurar su URL publica.
 
 ## Blog con Notion
 
@@ -32,6 +37,7 @@ CORS_ORIGINS=https://electricautomaticchile.com
 
 ```bash
 npm run lint
+npm run typecheck
 npm run build
 ```
 

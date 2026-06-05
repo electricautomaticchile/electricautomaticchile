@@ -1,7 +1,6 @@
 "use client";
 import { Card, CardContent } from "@/components/ui/card"
 import { BoltIcon, GaugeIcon, BellIcon, CheckCircle, Users, TrendingUp, Zap } from 'lucide-react'
-import test from "@/public/test.jpg"
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
@@ -144,7 +143,7 @@ export default function Component() {
           <div className="flex-1 relative">
             <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-orange-400 to-orange-600 opacity-30 blur-md"></div>
             <Image
-              src={test.src}
+              src="/images/hero/hero-comercial-dashboard.png"
               alt="Dashboard de control eléctrico"
               className="relative rounded-lg shadow-[0_20px_50px_-15px_rgba(234,88,12,0.2)] w-full transform transition-transform duration-700 hover:scale-[1.02]"
               width={600}
