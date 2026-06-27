@@ -2,14 +2,13 @@
  * Resolución centralizada de la URL del servicio WebSocket.
  *
  * El WebSocket Hub vive en un servicio independiente (websocket-electric),
- * separado de la API REST. En producción el ALB enruta las rutas `/ws` y
- * `/ws/*` al servicio WS, por lo que el cliente puede usar el mismo dominio
- * que la API.
+ * desplegado por separado de la API REST (en Render, dominio propio).
  *
  * Orden de resolución:
- *   1. NEXT_PUBLIC_WS_URL  → URL explícita del WS (ej: wss://api.dominio.com)
- *   2. NEXT_PUBLIC_API_URL → se reutiliza el dominio de la API (mismo ALB)
- *   3. Fallback de desarrollo local
+ *   1. NEXT_PUBLIC_WS_URL  → URL explícita del WS
+ *                            (ej: wss://websocket-electric.onrender.com)
+ *   2. NEXT_PUBLIC_API_URL → fallback: reutiliza el dominio de la API
+ *   3. Fallback de desarrollo local (puerto 8081)
  *
  * El path del endpoint de conexión es siempre `/ws/connect`.
  */
@@ -25,7 +24,7 @@ export function getWebSocketBase(): string {
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   if (apiUrl) {
-    // Reutilizar el dominio de la API (mismo ALB, distinto path).
+    // Fallback: reutilizar el dominio de la API.
     return apiUrl.replace(/\/api\/?$/, '').replace(/\/+$/, '');
   }
 
