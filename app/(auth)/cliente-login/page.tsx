@@ -45,6 +45,7 @@ export default function LoginClientePage() {
       const { data } = await apiClient.post("/api/auth/login", { rut, password });
       const user = data.user || data.data?.user;
       const requiereCambioPassword = data.requiereCambioPassword ?? data.data?.requiereCambioPassword;
+      const token = data.token ?? data.data?.token;
 
       if (!user) {
         throw new Error("Login exitoso, pero la respuesta no incluyó datos de usuario");
@@ -56,6 +57,13 @@ export default function LoginClientePage() {
       document.cookie = `user_data=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
       document.cookie = `permisos=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
       document.cookie = `requiereCambioPassword=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+
+      // El proxy de Next (dominio del frontend) valida esta cookie. Como la API
+      // está en otro dominio, su cookie HttpOnly no es visible aquí, por lo que
+      // guardamos el token recibido en el body para el guard de rutas.
+      if (token) {
+        document.cookie = `auth_token=${token}; ${cookieOptions}`;
+      }
 
       document.cookie = `user_data=${encodeURIComponent(JSON.stringify({
         id: user._id || user.id, nombre: user.nombre, correo: user.correo,

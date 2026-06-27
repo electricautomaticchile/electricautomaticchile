@@ -25,6 +25,10 @@ export const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
+    // Indica al backend que exponga el token en el body de login. Necesario
+    // porque frontend y API viven en dominios distintos: el proxy de Next
+    // (dominio del frontend) no puede leer la cookie HttpOnly del backend.
+    'X-Client-Type': 'web',
   },
   withCredentials: true,
 });

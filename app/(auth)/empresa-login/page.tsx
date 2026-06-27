@@ -42,6 +42,14 @@ export default function LoginEmpresaPage() {
       const user = data.user || data.data?.user;
       const permisos = data.permisos || data.data?.permisos;
       const requiereCambioPassword = data.requiereCambioPassword || data.data?.requiereCambioPassword;
+      const token = data.token ?? data.data?.token;
+
+      // El proxy de Next (dominio del frontend) valida esta cookie. Como la API
+      // está en otro dominio, su cookie HttpOnly no es visible aquí, por lo que
+      // guardamos el token recibido en el body para el guard de rutas.
+      if (token) {
+        document.cookie = `auth_token=${token}; ${cookieOptions}`;
+      }
 
       if (user) {
         const tipoUsuario = user.tipoUsuario || user.tipoCliente || "empresa";
