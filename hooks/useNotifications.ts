@@ -4,6 +4,7 @@ import { useEffect, useCallback, useState } from 'react';
 import { useWebSocket } from './useWebSocket';
 import { useAuth } from '@/store/useAppStore';
 import { toast } from '@/components/ui/use-toast';
+import { getWebSocketBase } from '@/lib/websocket/wsUrl';
 
 interface Notification {
   id: string;
@@ -35,7 +36,7 @@ export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [soundEnabled, setSoundEnabled] = useState(true);
 
-  const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:5000';
+  const wsUrl = getWebSocketBase();
 
   const { socket, state, reconnect } = useWebSocket({
     url: wsUrl,

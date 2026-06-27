@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { getWebSocketUrl } from './wsUrl';
 
 export interface WSMessage {
   type: string;
@@ -44,8 +45,9 @@ export function useWebSocket(options: UseNativeWSOptions = {}): RetornoUseWebSoc
     // Ya conectado o conectando
     if (wsRef.current && wsRef.current.readyState <= WebSocket.OPEN) return;
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-    const wsUrl = apiUrl.replace(/^http/, 'ws') + '/api/ws/connect';
+    // WebSocket Hub independiente (servicio websocket-electric).
+    // El ALB enruta /ws/* a este servicio; en local usa el puerto 8081.
+    const wsUrl = getWebSocketUrl();
 
     intentionalCloseRef.current = false;
 

@@ -26,6 +26,7 @@ import {
 } from "./WebSocketContext";
 import { useWebSocketStore } from "@/store/useWebSocketStore";
 import { useToast } from "@/components/ui/use-toast";
+import { getWebSocketBase } from "./wsUrl";
 import type { EstadoConexion } from "./tipos";
 import {
   manejarErrorAutenticacion,
@@ -95,13 +96,9 @@ export function ProveedorWebSocket({
     registrarDesconexion,
   } = useWebSocketStore();
 
-  // Obtener URL del WebSocket (de props o variable de entorno)
-  // Usar el mismo puerto que la API (3001 o 4000)
-  const wsUrl =
-    url ||
-    process.env.NEXT_PUBLIC_WS_URL ||
-    process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
-    "http://localhost:3001";
+  // Obtener URL del WebSocket (de props o resolución centralizada).
+  // El WS vive en el servicio independiente websocket-electric.
+  const wsUrl = url || getWebSocketBase();
 
   /**
    * Manejar errores de conexión con clasificación y acciones apropiadas

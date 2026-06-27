@@ -37,7 +37,7 @@ interface WebSocketState {
  * 
  * @example
  * const { socket, state, connect, disconnect } = useWebSocket({
- *   url: 'http://localhost:5000',
+ *   url: process.env.NEXT_PUBLIC_WS_URL,
  *   reconnection: true,
  *   maxReconnectionAttempts: 10
  * });
