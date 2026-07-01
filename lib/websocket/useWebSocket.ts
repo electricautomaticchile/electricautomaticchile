@@ -68,14 +68,23 @@ export function useWebSocket(options: UseNativeWSOptions = {}): RetornoUseWebSoc
     };
 
     ws.onmessage = (event) => {
-      try {
-        const msg: WSMessage = JSON.parse(event.data);
-        if (msg.type === 'pong' && pingTimestampRef.current) {
-          setLatencia(Date.now() - pingTimestampRef.current);
-          pingTimestampRef.current = null;
-        }
-        onMessageRef.current?.(msg);
-      } catch {}
+      // El Hub agrupa varios mensajes en un mismo frame separados por '\n'
+      // (optimización del WritePump). Hay que dividir y parsear cada línea,
+      // de lo contrario un JSON.parse del frame completo falla y se pierden
+      // lotes de mensajes bajo alta frecuencia.
+      const raw = typeof event.data === 'string' ? event.data : '';
+      for (const line of raw.split('\n')) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        try {
+          const msg: WSMessage = JSON.parse(trimmed);
+          if (msg.type === 'pong' && pingTimestampRef.current) {
+            setLatencia(Date.now() - pingTimestampRef.current);
+            pingTimestampRef.current = null;
+          }
+          onMessageRef.current?.(msg);
+        } catch {}
+      }
     };
 
     ws.onclose = () => {

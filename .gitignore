@@ -72,3 +72,9 @@ bun.lock*
 .kiro
 .vscode
 next.config.mjs
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
