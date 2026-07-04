@@ -12,6 +12,8 @@ const PUBLIC_AUTH_MUTATIONS = [
   "/auth/restablecer-password",
   "/auth/refresh",
   "/auth/refresh-token",
+  // Captura pública de leads: no requiere CSRF (endpoint sin AuthMiddleware en el backend)
+  "/leads",
 ];
 
 function shouldAttachCSRF(method: string, endpoint: string) {

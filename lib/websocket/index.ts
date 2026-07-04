@@ -1,13 +1,15 @@
 /**
  * Módulo WebSocket - Exportaciones principales
+ *
+ * NOTA: el stack socket.io (AdministradorWebSocket, ProveedorWebSocket,
+ * WebSocketContext) fue eliminado. El backend usa WebSocket nativo (gorilla),
+ * así que el cliente oficial es `useWebSocket` de ./useWebSocket.
  */
 
-export { AdministradorWebSocket } from './AdministradorWebSocket';
-export { ContextoWebSocket } from './WebSocketContext';
-export { ProveedorWebSocket } from './ProveedorWebSocket';
 export { useWebSocket } from './useWebSocket';
-export type { ValorContextoWebSocket } from './WebSocketContext';
-export type { RetornoUseWebSocket } from './useWebSocket';
+export type { RetornoUseWebSocket, WSMessage } from './useWebSocket';
+export { getWebSocketUrl, getWebSocketBase, WS_CONNECT_PATH } from './wsUrl';
+
 export type {
   EstadoConexion,
   OpcionesWebSocket,
@@ -22,10 +24,10 @@ export type {
   ActualizacionReleHardware,
 } from './tipos';
 
-// Exportar manejadores de eventos
+// Manejadores de eventos
 export * from './manejadores';
 
-// Exportar utilidades de rendimiento
+// Utilidades de rendimiento
 export {
   debounce,
   throttle,
@@ -37,7 +39,7 @@ export {
 } from './performanceUtils';
 export type { EventBufferConfig, EventEntry } from './performanceUtils';
 
-// Exportar hooks optimizados
+// Hooks optimizados
 export {
   useWebSocketThrottled,
   useWebSocketHistory,
@@ -47,9 +49,7 @@ export {
   useWebSocketConditional,
 } from './optimizedHooks';
 
-// Componentes optimizados eliminados (no se usaban)
-
-// Exportar gestión de memoria
+// Gestión de memoria
 export {
   MemoryManager,
   getMemoryManager,

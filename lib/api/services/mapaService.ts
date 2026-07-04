@@ -34,6 +34,18 @@ export interface DatosMapaResponse {
 export const mapaService = {
   obtenerDatosMapa: async (): Promise<DatosMapaResponse> => {
     const response = await baseService.get<DatosMapaResponse>('/mapa/datos');
-    return response.data || { dispositivos: [], clientes: [] };
+
+    // El endpoint devuelve { success, dispositivos, clientes } en el nivel
+    // superior. Según el interceptor/estructura, los datos pueden llegar bajo
+    // `data` o directamente en la raíz de la respuesta; contemplamos ambos.
+    const raw = response as unknown as Partial<DatosMapaResponse> & {
+      data?: DatosMapaResponse;
+    };
+    const payload = raw?.data ?? raw;
+
+    return {
+      dispositivos: payload?.dispositivos ?? [],
+      clientes: payload?.clientes ?? [],
+    };
   },
 };

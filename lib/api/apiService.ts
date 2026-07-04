@@ -15,6 +15,7 @@ import { clientesService } from "./services/clientesService";
 import { dispositivosService } from "./services/dispositivosService";
 import { estadisticasService } from "./services/estadisticasService";
 import { leadMagnetService } from "./services/leadMagnetService";
+import { leadsService } from "./services/leadsService";
 import { empresasService } from "./services/empresasService";
 import { alertasService } from "./services/alertasService";
 // import { arduinoService } from "./services/arduinoService"; // Temporalmente deshabilitado
@@ -87,6 +88,9 @@ class ApiService {
   obtenerEstadisticasLeads =
     leadMagnetService.obtenerEstadisticasLeads.bind(leadMagnetService);
 
+  // =================== LEADS (landing pública) ===================
+  crearLead = leadsService.crearLead.bind(leadsService);
+
   // =================== EMPRESAS ===================
   obtenerEmpresas = empresasService.obtenerEmpresas.bind(empresasService);
   obtenerEmpresa = empresasService.obtenerEmpresa.bind(empresasService);
@@ -146,6 +150,7 @@ export {
   dispositivosService,
   estadisticasService,
   leadMagnetService,
+  leadsService,
   empresasService,
   alertasService,
   // arduinoService, // Temporalmente deshabilitado

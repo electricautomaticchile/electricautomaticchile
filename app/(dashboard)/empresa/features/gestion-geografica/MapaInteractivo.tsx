@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import {
   Card,
@@ -11,8 +11,9 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Map, AlertTriangle, RefreshCw } from "lucide-react";
+import { Map, AlertTriangle, RefreshCw, Wifi, WifiOff } from "lucide-react";
 import { mapaService } from "@/lib/api/services/mapaService";
+import { useWebSocket, type WSMessage } from "@/lib/websocket/useWebSocket";
 
 const LeafletMap = dynamic(
   () => import("./components/LeafletMap").then((mod) => mod.LeafletMap),
@@ -144,17 +145,65 @@ const medidoresDataEjemplo: Medidor[] = [
   },
 ];
 
+// Datos que llegan en un mensaje `device_update` publicado por el backend.
+// Debe coincidir con el Data de NotificarActualizacionDispositivo.
+interface DeviceUpdateData {
+  id?: string;
+  numeroDispositivo?: string;
+  nombre?: string;
+  estado?: string;
+  clienteId?: string;
+  latitud?: number;
+  longitud?: number;
+  direccion?: string;
+  ultimaLectura?: {
+    voltage?: number;
+    current?: number;
+    activePower?: number;
+    energy?: number;
+    cost?: number;
+    timestamp?: string;
+  };
+}
+
+// Mapea el estado del dispositivo (backend) al estado visual del marcador.
+// online -> active (verde), offline -> inactive (gris), alerta -> suspicious
+// (amarillo), error/fraude -> fraud_detected (rojo).
+function mapearEstado(
+  estado: string | undefined,
+  activo: boolean
+): "active" | "inactive" | "suspicious" | "fraud_detected" {
+  if (!activo || estado === "inactivo" || estado === "offline") return "inactive";
+  if (estado === "alerta") return "suspicious";
+  if (estado === "error" || estado === "fraude") return "fraud_detected";
+  return "active";
+}
+
+// Comprueba que las coordenadas GPS sean utilizables (no (0,0) ni fuera de rango).
+function coordenadasValidas(lat?: number, lng?: number): lat is number {
+  return (
+    typeof lat === "number" &&
+    typeof lng === "number" &&
+    !(lat === 0 && lng === 0) &&
+    lat >= -90 &&
+    lat <= 90 &&
+    lng >= -180 &&
+    lng <= 180
+  );
+}
+
 export function MapaInteractivo({ reducida = false }: MapaInteractivoProps) {
   const [medidores, setMedidores] = useState<Medidor[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtroEstado, setFiltroEstado] = useState<string>("todos");
+  const [ultimaActualizacion, setUltimaActualizacion] = useState<Date | null>(null);
 
   useEffect(() => {
     const cargarDatos = async () => {
       setLoading(true);
       try {
         const datos = await mapaService.obtenerDatosMapa();
-        
+
         const medidoresFormateados: Medidor[] = datos.dispositivos.map((d) => ({
           id: d.id,
           customerName: d.nombre,
@@ -176,13 +225,69 @@ export function MapaInteractivo({ reducida = false }: MapaInteractivoProps) {
     cargarDatos();
   }, []);
 
-  const mapearEstado = (estado: string, activo: boolean): "active" | "inactive" | "suspicious" | "fraud_detected" => {
-    if (!activo) return "inactive";
-    if (estado === "activo") return "active";
-    if (estado === "alerta") return "suspicious";
-    if (estado === "error") return "fraud_detected";
-    return "active";
-  };
+  // Actualización en vivo: cada mensaje `device_update` mueve/actualiza el
+  // marcador del dispositivo correspondiente sin recargar el mapa.
+  const handleDeviceUpdate = useCallback((msg: WSMessage) => {
+    if (msg.type !== "device_update" || !msg.data) return;
+    const data = msg.data as DeviceUpdateData;
+    const id = data.id;
+    const numero = data.numeroDispositivo;
+    if (!id && !numero) return;
+
+    setUltimaActualizacion(new Date());
+
+    setMedidores((prev) => {
+      const idx = prev.findIndex(
+        (m) => (id && m.id === id) || (numero && m.serialNumber === numero)
+      );
+
+      const nuevoConsumo = data.ultimaLectura?.energy;
+      const nuevoEstado = mapearEstado(data.estado, data.estado !== "inactivo");
+
+      // Dispositivo ya en el mapa: actualizamos en su lugar.
+      if (idx !== -1) {
+        const actual = prev[idx];
+        const nextCoords = coordenadasValidas(data.latitud, data.longitud)
+          ? { lat: data.latitud as number, lng: data.longitud as number }
+          : actual.coordinates;
+
+        const actualizado: Medidor = {
+          ...actual,
+          coordinates: nextCoords,
+          address: data.direccion || actual.address,
+          status: nuevoEstado,
+          consumption: nuevoConsumo ?? actual.consumption,
+          customerName: data.nombre || actual.customerName,
+        };
+
+        const copia = [...prev];
+        copia[idx] = actualizado;
+        return copia;
+      }
+
+      // Dispositivo nuevo con GPS válido: lo agregamos al mapa.
+      if (coordenadasValidas(data.latitud, data.longitud)) {
+        const nuevo: Medidor = {
+          id: id || numero || crypto.randomUUID(),
+          customerName: data.nombre || numero || "Dispositivo",
+          coordinates: { lat: data.latitud as number, lng: data.longitud as number },
+          address: data.direccion || "Sin dirección",
+          status: nuevoEstado,
+          consumption: nuevoConsumo ?? 0,
+          anomalies: 0,
+          serialNumber: numero || id || "",
+        };
+        return [...prev, nuevo];
+      }
+
+      return prev;
+    });
+  }, []);
+
+  const { connected: wsConnected } = useWebSocket({
+    enabled: true,
+    onMessage: handleDeviceUpdate,
+  });
 
   const medidoresFiltrados = medidores.filter((m) => {
     if (filtroEstado === "todos") return true;
@@ -259,7 +364,14 @@ export function MapaInteractivo({ reducida = false }: MapaInteractivoProps) {
         </div>
 
         <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200">
-          <span className="text-sm font-medium">Dispositivos con ubicación</span>
+          <span className="text-sm font-medium flex items-center gap-2">
+            {wsConnected ? (
+              <Wifi className="h-4 w-4 text-green-600" />
+            ) : (
+              <WifiOff className="h-4 w-4 text-gray-400" />
+            )}
+            Dispositivos con ubicación
+          </span>
           <Badge
             variant="outline"
             className="bg-green-100 text-green-700 border-green-300"
@@ -281,18 +393,41 @@ export function MapaInteractivo({ reducida = false }: MapaInteractivoProps) {
               Mapa Interactivo de Red Eléctrica
             </CardTitle>
             <CardDescription>
-              Visualización geográfica de medidores
+              Visualización geográfica de medidores en tiempo real
             </CardDescription>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => window.location.reload()}
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Actualizar
-          </Button>
+          <div className="flex items-center gap-3">
+            <Badge
+              variant="outline"
+              className={
+                wsConnected
+                  ? "bg-green-100 text-green-700 border-green-300 gap-1"
+                  : "bg-gray-100 text-gray-600 border-gray-300 gap-1"
+              }
+            >
+              {wsConnected ? (
+                <Wifi className="h-3 w-3" />
+              ) : (
+                <WifiOff className="h-3 w-3" />
+              )}
+              {wsConnected ? "En vivo" : "Sin conexión"}
+            </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.location.reload()}
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Actualizar
+            </Button>
+          </div>
         </div>
+        {ultimaActualizacion && (
+          <p className="text-xs text-muted-foreground mt-1">
+            Última actualización en vivo:{" "}
+            {ultimaActualizacion.toLocaleTimeString("es-CL")}
+          </p>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Stats Cards */}

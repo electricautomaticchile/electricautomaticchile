@@ -25,6 +25,10 @@ export function LeafletMap({ medidores, filtro }: LeafletMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.Marker[]>([]);
+  // Firma del conjunto de dispositivos presentes. Solo reencuadramos el mapa
+  // cuando cambia el conjunto (carga inicial / alta o baja de dispositivos),
+  // no en cada actualización de posición en vivo, para no marear al usuario.
+  const idsFirmaRef = useRef<string>("");
 
   // Inicializar mapa
   useEffect(() => {
@@ -140,13 +144,19 @@ export function LeafletMap({ medidores, filtro }: LeafletMapProps) {
       markersRef.current.push(marker);
     });
 
-    // Ajustar vista para mostrar todos los marcadores
-    if (medidores.length > 0) {
+    // Ajustar vista para mostrar todos los marcadores solo cuando cambia el
+    // conjunto de dispositivos (no en cada actualización de posición en vivo).
+    const firma = medidores
+      .map((m) => m.id)
+      .sort()
+      .join("|");
+    if (medidores.length > 0 && firma !== idsFirmaRef.current) {
       const bounds = L.latLngBounds(
         medidores.map((m) => [m.lat, m.lng] as [number, number])
       );
       mapRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
     }
+    idsFirmaRef.current = firma;
   }, [medidores]);
 
   return <div ref={mapContainerRef} className="w-full h-full" />;

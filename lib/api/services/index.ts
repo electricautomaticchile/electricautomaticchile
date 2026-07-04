@@ -5,6 +5,8 @@ export { clientesService } from "./clientesService";
 export { dispositivosService } from "./dispositivosService";
 export { estadisticasService } from "./estadisticasService";
 export { leadMagnetService } from "./leadMagnetService";
+export { leadsService } from "./leadsService";
+export type { LeadType, CrearLeadData, LeadCreado } from "./leadsService";
 export { empresasService } from "./empresasService";
 export { default as ImagenPerfilService } from "./imagenPerfilService";
 export { alertasService } from "./alertasService";
