@@ -51,6 +51,8 @@ export default function Navbar() {
     try {
       await apiClient.post("/api/auth/logout");
     } catch {}
+    // Limpia la cookie de sesión HttpOnly (guard de rutas) en el servidor.
+    await fetch("/api/session", { method: "DELETE" }).catch(() => {});
     localStorage.removeItem("user");
     localStorage.removeItem("permisos");
     localStorage.removeItem("userType");

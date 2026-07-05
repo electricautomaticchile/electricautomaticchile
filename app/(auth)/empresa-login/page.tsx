@@ -44,11 +44,16 @@ export default function LoginEmpresaPage() {
       const requiereCambioPassword = data.requiereCambioPassword || data.data?.requiereCambioPassword;
       const token = data.token ?? data.data?.token;
 
-      // El proxy de Next (dominio del frontend) valida esta cookie. Como la API
-      // está en otro dominio, su cookie HttpOnly no es visible aquí, por lo que
-      // guardamos el token recibido en el body para el guard de rutas.
+      // El middleware de Next valida esta cookie. Como la API está en otro
+      // dominio, su cookie HttpOnly no es visible aquí, así que enviamos el
+      // token a un route handler del propio dominio que lo re-emite como
+      // cookie HttpOnly (ilegible por JS, a prueba de XSS).
       if (token) {
-        document.cookie = `auth_token=${token}; ${cookieOptions}`;
+        await fetch("/api/session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
       }
 
       if (user) {

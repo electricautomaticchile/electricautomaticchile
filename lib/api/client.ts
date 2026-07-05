@@ -89,6 +89,8 @@ apiClient.interceptors.response.use(
         document.cookie = 'user_data=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         document.cookie = 'permisos=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         document.cookie = 'requiereCambioPassword=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        // La cookie auth_token es HttpOnly: se limpia en el servidor.
+        void fetch('/api/session', { method: 'DELETE' }).catch(() => {});
         window.location.href = '/';
         setTimeout(() => { isRedirecting = false; }, 3000);
       }

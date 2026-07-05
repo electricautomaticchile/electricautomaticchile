@@ -206,6 +206,8 @@ class AuthManager {
 
   private clearAuthData(): void {
     if (typeof window === "undefined") return;
+    // La cookie auth_token es HttpOnly: se limpia en el servidor.
+    void fetch("/api/session", { method: "DELETE" }).catch(() => {});
     const clearCookieOptions = [
       "path=/",
       "expires=Thu, 01 Jan 1970 00:00:00 GMT",
@@ -214,8 +216,6 @@ class AuthManager {
     if (window.location.protocol === "https:") {
       clearCookieOptions.push("secure");
     }
-    document.cookie = `auth_token=; ${clearCookieOptions.join("; ")}`;
-    document.cookie = `refresh_token=; ${clearCookieOptions.join("; ")}`;
     document.cookie = `user_data=; ${clearCookieOptions.join("; ")}`;
   }
 }
