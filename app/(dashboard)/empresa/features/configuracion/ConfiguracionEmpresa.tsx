@@ -2,7 +2,8 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Building2, Bell, RefreshCw, Save, User } from "lucide-react";
+import { Building2, Bell, RefreshCw, Save, User, SlidersHorizontal } from "lucide-react";
+import { UmbralesAlerta } from "../umbrales";
 import { ConfiguracionEmpresaProps } from "./types";
 import { useConfiguracionEmpresa } from "./hooks/useConfiguracionEmpresa";
 import { ConfiguracionEstados } from "./ConfiguracionEstados";
@@ -85,7 +86,7 @@ export function ConfiguracionEmpresa({ className }: ConfiguracionEmpresaProps) {
 
       {/* Contenido principal con tabs */}
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
             Datos Generales
@@ -96,6 +97,10 @@ export function ConfiguracionEmpresa({ className }: ConfiguracionEmpresaProps) {
           >
             <Bell className="h-4 w-4" />
             Notificaciones
+          </TabsTrigger>
+          <TabsTrigger value="umbrales" className="flex items-center gap-2">
+            <SlidersHorizontal className="h-4 w-4" />
+            Umbrales de alerta
           </TabsTrigger>
         </TabsList>
 
@@ -152,6 +157,11 @@ export function ConfiguracionEmpresa({ className }: ConfiguracionEmpresaProps) {
             saving={estados.savingNotificaciones}
             onGuardar={guardarNotificaciones}
           />
+        </TabsContent>
+
+        {/* Tab de Umbrales de alerta */}
+        <TabsContent value="umbrales" className="space-y-6">
+          <UmbralesAlerta />
         </TabsContent>
       </Tabs>
     </div>
