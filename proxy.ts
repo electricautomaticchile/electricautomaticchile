@@ -106,11 +106,53 @@ function hasAccess(
   return true;
 }
 
+// Construye la CSP por-request con un nonce. Reemplaza al header estático de
+// next.config.mjs para poder eliminar 'unsafe-inline' de script-src: los scripts
+// de Next llevan el nonce y 'strict-dynamic' habilita los que ellos cargan.
+function buildCSP(nonce: string): string {
+  const isDev = process.env.NODE_ENV !== "production";
+  const connectSrc = [
+    "'self'",
+    "https://api-electricautomaticchile.com",
+    "wss://api-electricautomaticchile.com",
+    "https://api.notion.com",
+    "https://www.google-analytics.com",
+    ...(isDev ? ["http://localhost:4000", "ws://localhost:4000", "ws://localhost:3000"] : []),
+  ].join(" ");
+
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' https://fonts.gstatic.com",
+    `connect-src ${connectSrc}`,
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "object-src 'none'",
+  ].join("; ");
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // CSP con nonce por-request. El nonce va en los headers del request (para que
+  // Next lo aplique a sus scripts) y en la respuesta (para que el browser lo
+  // haga cumplir).
+  const nonce = crypto.randomUUID();
+  const csp = buildCSP(nonce);
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("Content-Security-Policy", csp);
+  const rendered = () => {
+    const res = NextResponse.next({ request: { headers: requestHeaders } });
+    res.headers.set("Content-Security-Policy", csp);
+    return res;
+  };
+
   if (!isProtectedRoute(pathname)) {
-    return NextResponse.next();
+    return rendered();
   }
 
   logger.info(`Verificando acceso a ruta protegida: ${pathname}`);
@@ -191,19 +233,15 @@ export async function proxy(request: NextRequest) {
   }
 
   logger.info(`Acceso permitido a: ${pathname}`);
-  return NextResponse.next();
+  return rendered();
 }
 
 // HIGH-04: Ampliar matcher para cubrir todas las rutas protegidas
+// El middleware corre en todas las páginas (para aplicar la CSP con nonce),
+// excepto assets estáticos y rutas /api. El guard de auth solo actúa en rutas
+// protegidas (ver isProtectedRoute); el resto solo recibe la CSP.
 export const config = {
   matcher: [
-    "/cliente",
-    "/cliente/:path*",
-    "/empresa",
-    "/empresa/:path*",
-    "/admin",
-    "/admin/:path*",
-    "/dashboard",
-    "/dashboard/:path*",
+    "/((?!api|_next/static|_next/image|favicon.ico|icon.png|robots.txt|sitemap.xml).*)",
   ],
 };

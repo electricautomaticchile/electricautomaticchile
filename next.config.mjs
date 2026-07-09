@@ -3,15 +3,6 @@ const isDev = process.env.NODE_ENV === 'development';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async headers() {
-    const connectSrc = [
-      "'self'",
-      "https://api-electricautomaticchile.com",
-      "wss://api-electricautomaticchile.com",
-      "https://api.notion.com",
-      "https://www.google-analytics.com",
-      ...(isDev ? ["http://localhost:4000", "ws://localhost:4000", "ws://localhost:3000"] : []),
-    ].join(' ');
-
     return [
       {
         source: '/(.*)',
@@ -25,22 +16,8 @@ const nextConfig = {
             key: 'Strict-Transport-Security',
             value: 'max-age=63072000; includeSubDomains; preload',
           }] : []),
-          {
-            key: 'Content-Security-Policy',
-            value: [
-              "default-src 'self'",
-              // unsafe-eval solo en desarrollo (Next.js hot reload lo necesita).
-              // En producción solo unsafe-inline (requerido por Next.js hydration).
-              `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://www.google-analytics.com`,
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "img-src 'self' data: blob: https:",
-              "font-src 'self' https://fonts.gstatic.com",
-              `connect-src ${connectSrc}`,
-              "frame-ancestors 'none'",
-              "base-uri 'self'",
-              "form-action 'self'",
-            ].join('; '),
-          },
+          // La Content-Security-Policy se define por-request (con nonce) en el
+          // middleware proxy.ts, para poder eliminar 'unsafe-inline' de script-src.
         ],
       },
     ];
